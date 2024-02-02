@@ -21,6 +21,7 @@
 
 #include <deque>
 #include <tuple>
+#include <iostream>
 
 Junction::Junction(std::string networkName, int numNodes, int numEdges): 
     networkName(networkName), numNodes(numNodes), numEdges(numEdges) {

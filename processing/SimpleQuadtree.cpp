@@ -23,6 +23,7 @@
 #include "../utility/utility.h"
 
 #include <cmath>
+#include <iostream>
 
 SimpleQuadtree::SimpleQuadtree(int maxLeafItems): maxLeafItems(maxLeafItems), maxRange(0), xTranslation(0), yTranslation(0), 
     isPointSet(false), objSetType(""), objSetDensity(0), objSetSize(0) {}

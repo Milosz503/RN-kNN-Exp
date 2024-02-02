@@ -28,6 +28,7 @@
 #include <regex>
 #include <assert.h>
 #include <unordered_map>
+#include <cmath>
 
 int Graph::getNumNodes() {
     return this->numNodes;

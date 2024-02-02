@@ -35,6 +35,7 @@
 #include "../many/manytomany.h"
 
 #include <unordered_map>
+#include <cmath>
 
 #include "../../queue/BinaryMaxHeap.h"
 #include "../../queue/BinaryMinHeap.h"
@@ -305,8 +306,8 @@ namespace processing{
 		// get the vertex u's cell position
 		void getCell(NodeID u, Cell &cell, vector <CoordinateType> &xcord, vector <CoordinateType> &ycord)
 		{
-			cell.xvertex = (NodeID) (xcord[u] / cellLength);		//ÊÇ·ñÏÈ¼ÓÀ¨ºÅ? earnestwu
-			cell.yvertex = (NodeID) (ycord[u] / cellLength);		//ÊÇ·ñÏÈ¼ÓÀ¨ºÅ? earnestwu
+			cell.xvertex = (NodeID) (xcord[u] / cellLength);		//ï¿½Ç·ï¿½ï¿½È¼ï¿½ï¿½ï¿½ï¿½ï¿½? earnestwu
+			cell.yvertex = (NodeID) (ycord[u] / cellLength);		//ï¿½Ç·ï¿½ï¿½È¼ï¿½ï¿½ï¿½ï¿½ï¿½? earnestwu
 			if (xcord[u] == range){
 				cell.xvertex = ascale - 1;
 			}
@@ -2838,7 +2839,7 @@ private:
 				NodeID totalNodes = graph->noOfNodes();
 				avgNodesPerCell = totalNodes / (ascale * ascale);
 				if (avgNodesPerCell == 0){
-					//avgNodesPerCell == 100;	//Ó¦¸ÃÎª=£¿earnestwu
+					//avgNodesPerCell == 100;	//Ó¦ï¿½ï¿½Îª=ï¿½ï¿½earnestwu
 					avgNodesPerCell = 100;
 				}
 				allCellNum = ascale * ascale;

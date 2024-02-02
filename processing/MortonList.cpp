@@ -37,6 +37,8 @@
 #include <tuple>
 #include <bitset>
 #include <iomanip>
+#include <cmath>
+#include <iostream>
 
 /*
  * SILCPathOracle

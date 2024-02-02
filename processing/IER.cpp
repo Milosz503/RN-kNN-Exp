@@ -19,6 +19,8 @@
 
 #include "IER.h"
 
+#include <cmath>
+
 #include "DijkstraSearch.h"
 #include "../queue/BinaryMaxHeap.h"
 

@@ -32,6 +32,7 @@
 
 #include <bitset>
 #include <cmath>
+#include <iostream>
 
 Quadtree::Quadtree(int maxLeafItems): maxLeafItems(maxLeafItems), maxRange(0), xTranslation(0), yTranslation(0), 
     isPointSet(false) {}

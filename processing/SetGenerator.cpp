@@ -28,6 +28,8 @@
 #include <random>
 #include <unordered_set>
 #include <deque>
+#include <cmath>
+#include <iostream>
 
 // Status -1 indicates indicates ignore outdegrees, status 0 indicates exclude given degree, status 1 indicates include only given outdegree
 std::vector<NodeID> SetGenerator::generateRandomSampleSet(Graph& graph, unsigned int numObjects, int status, int outdegree)

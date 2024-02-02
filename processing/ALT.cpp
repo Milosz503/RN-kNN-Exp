@@ -24,6 +24,8 @@
 #include "AStarSearch.h"
 #include "../queue/BinaryMinHeap.h"
 
+#include <iostream>
+
 ALT::ALT(std::string _networkName, int _numNodes, int _numEdges): 
     networkName(_networkName), numNodes(_numNodes), numEdges(_numEdges) {
 }

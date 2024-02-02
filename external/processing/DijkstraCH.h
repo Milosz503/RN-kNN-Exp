@@ -31,6 +31,7 @@
 
 #include <queue>
 #include <stack>
+#include <cmath>
 
 #include "../datastr/graph/graph.h"
 #include "../datastr/graph/pqNode.h"

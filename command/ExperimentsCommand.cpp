@@ -38,6 +38,7 @@
 #include "../utility/serialization.h"
 
 #include <cstdio>
+#include <cmath>
 
 void ExperimentsCommand::execute(int argc, char* argv[])
 {

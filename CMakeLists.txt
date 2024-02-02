@@ -79,7 +79,7 @@ target_link_libraries (nd_knn_gtree_stl_hashtable_dist_matrix boost_serializatio
 set_target_properties(nd_knn_gtree_stl_hashtable_dist_matrix PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DGTREE_STL_HASH_TABLE_DIST_MATRIX")
 add_executable(nd_knn_gtree_google_densehash_dist_matrix ${MAIN_SRC})
 target_link_libraries (nd_knn_gtree_google_densehash_dist_matrix boost_serialization metis)
-set_target_properties(nd_knn_gtree_google_densehash_dist_matrix PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DGTREE_GOOGLE_DENSEHASH_DIST_MATRIX")
+#set_target_properties(nd_knn_gtree_google_densehash_dist_matrix PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DGTREE_GOOGLE_DENSEHASH_DIST_MATRIX")
 
 # Version with IER using unoptimsed shortest path methods (e.g. G-tree without materialization, SILC without skipping)
 add_executable(nd_knn_ier_unoptimised ${MAIN_SRC})

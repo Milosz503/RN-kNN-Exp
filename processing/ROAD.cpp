@@ -23,6 +23,7 @@
 #include "../utility/utility.h"
 
 #include <deque>
+#include <iostream>
 
 ROAD::ROAD(std::string networkName, int numNodes, int numEdges, int fanout, int levels): 
     networkName(networkName), numNodes(numNodes), numEdges(numEdges), fanout(fanout), levels(levels) {

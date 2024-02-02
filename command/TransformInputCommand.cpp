@@ -35,6 +35,7 @@
 #include <regex>
 #include <unordered_map>
 #include <assert.h>
+#include <cmath>
 
 void TransformInputCommand::execute(int argc, char* argv[])
 {
