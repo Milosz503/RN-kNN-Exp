@@ -14,6 +14,12 @@
 #                   "gtree=0,road=0,silc=0,phl=0,ch=0,tnr=0,alt=0,$W_index_parameters"
 #                   "gtree=0,road=0,silc=0,phl=0,ch=0,tnr=0,alt=0,$CTR_index_parameters"
 #                   "gtree=0,road=0,silc=0,phl=0,ch=0,tnr=0,alt=0,$USA_index_parameters")
+
+# Uncomment to build only Gtree
+#index_parameters=("gtree=1,road=0,silc=0,phl=0,ch=0,tnr=0,alt=0,$DE_index_parameters"
+#                 "gtree=1,road=0,silc=0,phl=0,ch=0,tnr=0,alt=0,$VT_index_parameters"
+#                 "gtree=1,road=0,silc=0,phl=0,ch=0,tnr=0,alt=0,$ME_index_parameters"
+#                 "gtree=1,road=0,silc=0,phl=0,ch=0,tnr=0,alt=0,$NW_index_parameters")
             
 for i in "${!road_networks[@]}"; do 
     echo -e "\nBuilding indexes for ${road_networks[$i]}..." 

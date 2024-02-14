@@ -8,10 +8,10 @@
 # Key Specs: position, orientation, width (no omission alowed)
 
 # Default Settings
-gnu_terminal="postscript enhanced eps 32"
-fig_ext="eps"
-# gnu_terminal="pngcairo enhanced font '15'"
-# fig_ext="png"
+#gnu_terminal="postscript enhanced eps 32"
+#fig_ext="eps"
+gnu_terminal="pngcairo enhanced font '15'"
+fig_ext="png"
 default_line_colours=('blue' 'red' 'dark-green' 'brown' 'violet' 'black' 'dark-cyan' 'navy' 'dark-magenta;')
 default_line_pts=(6 8 12 4 2 3 1 10 14)
 key_pos="right top"

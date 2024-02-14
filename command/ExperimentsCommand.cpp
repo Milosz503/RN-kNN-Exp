@@ -1625,6 +1625,7 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                                 if (!utility::verifyKNN(ineKNNs,ineKNNDistances,kNNs,kNNDistances,false,kValues[k],message,true)) {
                                     std::cout << "Verfication failed for Gtree on object index " << objIdxFilePath << " for query node " << *queryNodeIt << " with k = " << kValues[k] << std::endl;
                                     std::cout << "Message: " << message << std::endl;
+                                    exit(1);
                                 }
                             }
                         }        
@@ -1643,6 +1644,7 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                     stats.setAdditionalFields(specialFields);
                     stats.addSupplementaryFields("max_leaf_size",std::to_string(gtree.getMaxLeafSize()));
                     stats.addSupplementaryFields("fanout",std::to_string(gtree.getFanout()));
+                    std::cout << "STATS time:" << stats.getTupleString() << std::endl;
 #if defined(COLLECT_STATISTICS)
                     knnStats.populateTupleFields(stats,0);
 #endif

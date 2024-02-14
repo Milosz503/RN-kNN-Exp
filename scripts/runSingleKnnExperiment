@@ -92,10 +92,10 @@ fi
 if [[ ${10} != "" && ${10} != "default" ]]; then
     num_sets=${10}
 fi
-
 for i in "${!road_networks[@]}"; do 
     echo -e "\nRun kNN queries for ${road_networks[$i]}..."
     pts_filename="$(printf "%03d" $num_points)"
     args="-c exp -e knn_special -m $1 -g $idx_dir/${road_networks[$i]}.bin -q $sets_dir/${road_networks[$i]}_$pts_filename.txt -k $k_values -n $num_sets -d $densities -t $default_type -v $ignore_variable -p ${knn_parameters[$i]} -f $output_path -s $stats_dir/$3"
+    echo $exe_path $2 $args
     ${exe_path}/$2 $args
 done

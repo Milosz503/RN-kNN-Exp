@@ -1,11 +1,10 @@
 #!/bin/bash
 
+. workspaceVariables
+
 # Default Directories, Files and State
 main_program="nd_knn"
-exe_path="/<project path>/build"
-# output_path="/<distance directory full path>"
 # edge_type="d"
-output_path="/<time directory full path>" # Travel Time Experiments
 edge_type="t" # Travel Time Experiments
 idx_dir="$output_path/indexes"
 stats_dir="$output_path/stats"
@@ -84,13 +83,14 @@ default_type="random"
 default_network="NW"
 default_parameters="$NW_index_parameters,$NW_obj_index_parameters"
 default_obj_idxs="obj_sets=1,occ_list=1,assoc_dir=1,quadtree=1,rtree=1"
-default_verification="verify=0" # DO NOT set verify=1 when you want to compare query performance (verification adds overhead)
+default_verification="verify=1" # DO NOT set verify=1 when you want to compare query performance (verification adds overhead)
 default_obj_parameters="$default_obj_idxs,$default_parameters"
 default_knn_parameters="$default_methods,$default_parameters,$default_verification"
 ignore_variable="1"
 
 # kNN Experimental Parameters
-road_networks=("DE" "VT" "ME" "COL" "NW" "CAL" "E" "W" "CTR" "USA")
+#road_networks=("DE" "VT" "ME" "COL" "NW" "CAL" "E" "W" "CTR" "USA")
+road_networks=("DE" "VT" "ME" "NW")
 if [[ $edge_type == "d" ]]; then
     index_parameters=("gtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$DE_index_parameters"
                       "gtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$VT_index_parameters"

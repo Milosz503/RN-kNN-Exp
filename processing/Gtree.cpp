@@ -78,9 +78,19 @@ int Gtree::getParentIndex(int treeIdx)
 }
 
 void Gtree::buildGtree(Graph& graph){ 
-    
+
+    StopWatch sw;
+    sw.start();
     this->buildTreeHierarchy(graph);
+    sw.stop();
+    std::cout << " [Gtree] buildTreeHierarchy " << sw.getTimeMs() << std::endl;
+
+    sw.reset();
+    sw.start();
     this->computeDistanceMatrix(graph);
+    sw.stop();
+    std::cout << " [Gtree] computeDistanceMatrix " << sw.getTimeMs() << std::endl;
+
     this->initialiseGtreeQueryStructure();
     
 }

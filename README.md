@@ -62,7 +62,13 @@ The C++ source code can be found in the top-level `RN-kNN-Exp` directory, and in
 
     Note: This can be different to the path containing the code (recommended)
 
-3. Change the `exe_path` variable to the full path of the build directory created above (e.g. `/home/user/Downloads/rn_knn/build`)
+3. Create a new file `scripts/workspaceVariables` with the following content:
+    ```shell
+    #!/bin/bash
+    
+    exe_path="/<project path>/build"
+    output_path="/<time directory full path>"
+    ```
 
 4. Run `resetExperimentalSetup` in the `scripts` directory to create all necessary sub-directories
 
