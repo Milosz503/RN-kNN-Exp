@@ -1,0 +1,15 @@
+#!/bin/bash
+
+. globalVariables
+
+index_parameters=("agtree=1,$DE_index_parameters"
+                 "agtree=1,alt=0,$VT_index_parameters"
+                 "agtree=1,$ME_index_parameters"
+                 "agtree=1,$NW_index_parameters")
+
+for i in "${!road_networks[@]}"; do
+    echo -e "\nBuilding indexes for ${road_networks[$i]}..."
+    args="-c exp -e indexes -g $idx_dir/${road_networks[$i]}.bin -p ${index_parameters[$i]} -f $output_path -s $stats_dir/$idx_stats_file"
+    #echo "${exe_path}/nd_knn $args"
+    ${exe_path}/nd_knn $args
+done

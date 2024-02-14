@@ -37,6 +37,7 @@ class ExperimentsCommand: public Command {
         void buildExternalIndexes(std::string bgrFileName, std::string parameters, std::string filePathPrefix, std::string statsOutputFile);
         std::unordered_map<std::string,std::string> getParameters(std::string parameters);
         void buildGtree(Graph& graph, int fanout, std::size_t maxLeafSize, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
+        void buildAGtree(Graph& graph, int fanout, std::size_t maxLeafSize, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
         void buildRouteOverlay(Graph& graph, int fanout, int levels, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
         void buildSILC(Graph& graph, int maxQuadtreeLeafSize, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
         void buildPHL(std::string networkName, int numNodes, int numEdges, std::string dataOutputFile, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
@@ -68,6 +69,10 @@ class ExperimentsCommand: public Command {
         void runGtreeQueries(Graph& graph, std::string gtreeIdxFile, std::vector<NodeID>& queryNodes, std::vector<int>& kValues, 
                              std::size_t numSets, std::vector<double> objDensities, std::vector<std::string> objTypes, std::vector<int> objVariable, std::string filePathPrefix, 
                              std::string statsOutputFile, bool verifyKNN, std::vector<std::string>& parameterKeys, std::vector<std::string>& parameterValues, 
+                             std::vector<std::string> specialFields = {});
+        void runAGtreeQueries(Graph& graph, std::string gtreeIdxFile, std::vector<NodeID>& queryNodes, std::vector<int>& kValues,
+                             std::size_t numSets, std::vector<double> objDensities, std::vector<std::string> objTypes, std::vector<int> objVariable, std::string filePathPrefix,
+                             std::string statsOutputFile, bool verifyKNN, std::vector<std::string>& parameterKeys, std::vector<std::string>& parameterValues,
                              std::vector<std::string> specialFields = {});
         void runROADQueries(Graph& graph, std::string routeOverlayIdxFile, std::vector<NodeID>& queryNodes, std::vector<int>& kValues, 
                             std::size_t numSets, std::vector<double> objDensities, std::vector<std::string> objTypes, std::vector<int> objVariable, std::string filePathPrefix, 

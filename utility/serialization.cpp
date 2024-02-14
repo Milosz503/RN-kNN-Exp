@@ -22,6 +22,7 @@
 #include "../processing/Graph.h"
 #include "../processing/DynamicGraph.h"
 #include "../processing/Gtree.h"
+#include "../processing/AdaptiveGtree.h"
 #include "../processing/ROAD.h"
 #include "../processing/MortonList.h"
 #include "../processing/Quadtree.h"
@@ -101,7 +102,9 @@ namespace serialization
     template DynamicGraph getIndexFromBinaryFile<DynamicGraph>(std::string idxFilePath);
     template void outputIndexToBinaryFile<DynamicGraph>(DynamicGraph& index, std::string idxFilePath);
     template Gtree getIndexFromBinaryFile<Gtree>(std::string idxFilePath);
+    template AdaptiveGtree getIndexFromBinaryFile<AdaptiveGtree>(std::string idxFilePath);
     template void outputIndexToBinaryFile<Gtree>(Gtree& index, std::string idxFilePath);
+    template void outputIndexToBinaryFile<AdaptiveGtree>(AdaptiveGtree& index, std::string idxFilePath);
     template OccurenceList getIndexFromBinaryFile<OccurenceList>(std::string idxFilePath);
     template void outputIndexToBinaryFile<OccurenceList>(OccurenceList& index, std::string idxFilePath);
     template ROAD getIndexFromBinaryFile<ROAD>(std::string idxFilePath);

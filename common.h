@@ -49,6 +49,7 @@ namespace constants
     // Command Names (must be less than constants::MAX_COMMAND_NAME_SIZE)
     std::string const IDX_GRAPH_CMD = "graph";
     std::string const IDX_GTREE_CMD = "gtree";
+    std::string const IDX_AGTREE_CMD = "agtree";
     std::string const IDX_DYNAMICGRAPH_CMD = "dynamic_graph";
     std::string const IDX_ROUTEOVERLAY_CMD = "route_overlay";
     std::string const IDX_SILC_CMD = "silc";
@@ -83,6 +84,7 @@ namespace constants
     std::string const DIJKSTRA_SPDIST_QUERY = "dijkstra";
     std::string const ASTAR_SPDIST_QUERY = "a_star";
     std::string const GTREE_SPDIST_QUERY = "gtree";
+    std::string const AGTREE_SPDIST_QUERY = "agtree";
     std::string const SILC_SPDIST_QUERY = "silc";
     std::string const PHL_SPDIST_QUERY = "phl";
     std::string const ALT_SPDIST_QUERY = "alt";
@@ -92,6 +94,9 @@ namespace constants
     // kNN Query Methods
     std::string const INE_KNN_QUERY = "ine";
     std::string const GTREE_KNN_QUERY = "gtree";
+    std::string const GTREE_KNN_QUERY_BUILD = "gtree_query_built";
+    std::string const AGTREE_KNN_QUERY = "agtree";
+    std::string const AGTREE_KNN_QUERY_BUILD = "agtree_query_built";
     std::string const ROAD_KNN_QUERY = "road";
     std::string const SILC_KNN_QUERY = "silc";
     std::string const OPT_SILC_KNN_QUERY = "opt_silc";

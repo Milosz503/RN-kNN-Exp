@@ -1,0 +1,3 @@
+#!/bin/bash
+
+bash runSingleKnnExperiment agtree nd_knn agtree_stats_file.txt array DE default default 0.001
