@@ -20,11 +20,12 @@
 #ifndef _ADAPTIVEGTREE_H
 #define _ADAPTIVEGTREE_H
 
-#include "Graph.h"
-#include "Gtree.h"
-#include "../queue/BinaryMinHeap.h"
-#include "../utility/METISWrapper.h"
-#include "../utility/Statistics.h"
+#include "../Graph.h"
+#include "../Gtree.h"
+#include "../../queue/BinaryMinHeap.h"
+#include "../../utility/METISWrapper.h"
+#include "../../utility/Statistics.h"
+#include "AdaptiveGtreeNode.h"
 
 #include <vector>
 #include <unordered_map>
@@ -36,6 +37,7 @@
 #if defined(GTREE_GOOGLE_DENSEHASH_DIST_MATRIX)
     #include <google/dense_hash_map>
 #endif
+
 
 class AdaptiveGtree {
 
@@ -104,7 +106,7 @@ class AdaptiveGtree {
         // Build hash-table based distance matrices from existing vector-based distance matrices
         void populateUnorderedMapDistanceMatrix();
 
-        std::vector<GtreeNode> treeNodes;
+        std::vector<AdaptiveGtreeNode> treeNodes;
         std::vector<int> leafIdxs;
         // Note: The sourceToTreeNodeBorderDist is used to store the intermediary results during
         // querying using the G-tree index. Firstly this structure is included in the index size.

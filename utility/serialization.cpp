@@ -22,7 +22,7 @@
 #include "../processing/Graph.h"
 #include "../processing/DynamicGraph.h"
 #include "../processing/Gtree.h"
-#include "../processing/AdaptiveGtree.h"
+#include "../processing/adaptive_gtree/AdaptiveGtree.h"
 #include "../processing/ROAD.h"
 #include "../processing/MortonList.h"
 #include "../processing/Quadtree.h"

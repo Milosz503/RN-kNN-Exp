@@ -21,7 +21,7 @@
 
 #include "../processing/DynamicGraph.h"
 #include "../processing/Gtree.h"
-#include "../processing/AdaptiveGtree.h"
+#include "../processing/adaptive_gtree/AdaptiveGtree.h"
 #include "../processing/ROAD.h"
 #include "../processing/MortonList.h"
 #include "../processing/INE.h"
@@ -1803,7 +1803,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                     // Collect stats and return to output to file
                     kNNs.clear(); // Clear so that we don't pass last executed queries results to stats tuple
                     kNNDistances.clear();
-                    KnnQueryTuple stats(agtree.getNetworkName(), agtree.getNumNodes(), agtree.getNumEdges(), totalQueries, constants::GTREE_KNN_QUERY,
+                    KnnQueryTuple stats(agtree.getNetworkName(), agtree.getNumNodes(), agtree.getNumEdges(), totalQueries, constants::AGTREE_KNN_QUERY,
                                         kValues[k], queryTimeMs, objTypes[i], objDensities[j], objVariable[m], static_cast<int>(totalObjects/numSets), kNNs, kNNDistances);
                     stats.setAdditionalFields(specialFields);
                     stats.addSupplementaryFields("max_leaf_size",std::to_string(agtree.getMaxLeafSize()));
