@@ -18,6 +18,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/unordered_set.hpp>
 #include <boost/serialization/unordered_map.hpp>
+#include <iostream>
 
 
 class DistanceMatrix {
@@ -28,9 +29,15 @@ public:
 
     void push_back(EdgeWeight distance);
 
+    void pushBackNotAssigned();
+
     EdgeWeight atIndex(unsigned i);
 
     EdgeWeight get(unsigned row, unsigned column);
+
+    bool isAssigned(unsigned row, unsigned column);
+
+    void set(unsigned row, unsigned column, EdgeWeight weight);
 
     size_t size();
 
@@ -39,7 +46,7 @@ public:
 private:
     friend class boost::serialization::access;
 
-    std::vector<EdgeWeight> distanceMatrix;
+    std::vector<long> distanceMatrix;
     unsigned rowLength;
 
     // Boost Serialization
@@ -55,17 +62,34 @@ inline void DistanceMatrix::push_back(EdgeWeight distance) {
     distanceMatrix.push_back(distance);
 }
 
+inline void DistanceMatrix::pushBackNotAssigned() {
+    distanceMatrix.push_back(-1);
+}
+
 inline EdgeWeight DistanceMatrix::atIndex(unsigned i) {
     return distanceMatrix[i];
 }
 
 inline EdgeWeight DistanceMatrix::get(unsigned int row, unsigned int column) {
-    return distanceMatrix[row*rowLength + column];
+    auto dist = distanceMatrix[row*rowLength + column];
+    assert(dist >= 0);
+    return dist;
 }
 
+inline bool DistanceMatrix::isAssigned(unsigned int row, unsigned int column) {
+    auto dist = distanceMatrix[row*rowLength + column];
+    return dist >= 0;
+}
+
+inline void DistanceMatrix::set(unsigned int row, unsigned int column, EdgeWeight weight) {
+    distanceMatrix[row*rowLength + column] = weight;
+}
 
 inline size_t DistanceMatrix::size() {
     return distanceMatrix.size();
 }
+
+
+
 
 #endif //ND_KNN_DISTANCEMATRIX_H

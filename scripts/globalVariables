@@ -93,16 +93,16 @@ ignore_variable="1"
 #road_networks=("DE" "VT" "ME" "NW")
 road_networks=("DE" "VT" "ME")
 if [[ $edge_type == "d" ]]; then
-    index_parameters=("gtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$DE_index_parameters"
-                      "gtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$VT_index_parameters"
-                      "gtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$ME_index_parameters"
-                      "gtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$COL_index_parameters"
-                      "gtree=1,road=1,silc=1,phl=1,ch=1,tnr=1,alt=0,$NW_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=0,tnr=0,alt=0,$CAL_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=0,tnr=0,alt=0,$E_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=0,tnr=0,alt=0,$W_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=0,ch=0,tnr=0,alt=0,$CTR_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=0,ch=0,tnr=0,alt=0,$USA_index_parameters")
+    index_parameters=("gtree=1,agtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$DE_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$VT_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$ME_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$COL_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=1,phl=1,ch=1,tnr=1,alt=0,$NW_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=0,tnr=0,alt=0,$CAL_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=0,tnr=0,alt=0,$E_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=0,tnr=0,alt=0,$W_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=0,ch=0,tnr=0,alt=0,$CTR_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=0,ch=0,tnr=0,alt=0,$USA_index_parameters")
     obj_parameters=("obj_sets=1,occ_list=1,assoc_dir=1,quadtree=1,rtree=1,$DE_index_parameters,$DE_obj_index_parameters"
                     "obj_sets=1,occ_list=1,assoc_dir=1,quadtree=1,rtree=1,$VT_index_parameters,$VT_obj_index_parameters"
                     "obj_sets=1,occ_list=1,assoc_dir=1,quadtree=1,rtree=1,$ME_index_parameters,$ME_obj_index_parameters"
@@ -124,16 +124,16 @@ if [[ $edge_type == "d" ]]; then
                     "$CTR_knn_methods,$CTR_index_parameters,$CTR_obj_index_parameters,$default_verification"
                     "$USA_knn_methods,$USA_index_parameters,$USA_obj_index_parameters,$default_verification")
 elif [[ $edge_type == "t" ]]; then
-    index_parameters=("gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$DE_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$VT_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$ME_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$COL_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$NW_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$CAL_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$E_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$W_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$CTR_index_parameters"
-                      "gtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$USA_index_parameters")
+    index_parameters=("gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$DE_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$VT_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$ME_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$COL_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$NW_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$CAL_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$E_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$W_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$CTR_index_parameters"
+                      "gtree=1,agtree=1,road=1,silc=0,phl=1,ch=1,tnr=1,alt=0,$USA_index_parameters")
     obj_parameters=("obj_sets=1,occ_list=1,assoc_dir=1,quadtree=0,rtree=1,$DE_index_parameters,$DE_obj_index_parameters"
                     "obj_sets=1,occ_list=1,assoc_dir=1,quadtree=0,rtree=1,$VT_index_parameters,$VT_obj_index_parameters"
                     "obj_sets=1,occ_list=1,assoc_dir=1,quadtree=0,rtree=1,$ME_index_parameters,$ME_obj_index_parameters"

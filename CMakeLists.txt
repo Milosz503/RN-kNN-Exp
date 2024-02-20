@@ -8,6 +8,10 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 #set (CMAKE_CXX_FLAGS "-g -Wall -O1 -std=c++11")
 set (CMAKE_CXX_FLAGS "-O3 -std=c++11")
 
+# uncomment to use debugger
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+
 file(GLOB MAIN_SRC
     "common.h"
     "main.cpp"

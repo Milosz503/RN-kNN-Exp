@@ -70,11 +70,11 @@ class AdaptiveGtree {
         EdgeWeight BorderDist(NodeID u, NodeID v, int leafNode);
         EdgeWeight DijkstraDist(NodeID u, NodeID v, int leafNode, Graph& graph);
         std::vector<int> getGtreePath(NodeID u, NodeID v, int& firstLCAChild);
-        EdgeWeight SPDistToSourceLeafNode(NodeID u, int treeIdx);
+        EdgeWeight SPDistToSourceLeafNode(Graph& graph, NodeID u, int treeIdx);
         EdgeWeight SPDistToParentNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
         EdgeWeight SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist = true);
         EdgeWeight SPDistToChildNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
-        EdgeWeight SPDistToLeafTarget(NodeID target, int leafIdx);
+        EdgeWeight SPDistToLeafTarget(Graph& graph, NodeID target, int leafIdx);
         void getKNNs(OccurenceList& occList, unsigned int k, NodeID queryNodeID, std::vector<NodeID>& kNNs,
                  std::vector<EdgeWeight>& kNNDistances, Graph& graph);
         bool getSourceLeafkNNsByINE(NodeID queryNode, unsigned int k, std::unordered_set<NodeID>& targets, int leafNode, Graph& graph, std::vector<NodeID>& kNNs,

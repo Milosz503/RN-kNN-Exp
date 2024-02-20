@@ -60,6 +60,7 @@ public:
     std::vector<int> children;
     std::vector<NodeID> bordersVec;
     std::vector<NodeID> leafVerticesVec;
+    // The first one is the root, the last one is this node
     std::vector<int> gtreePath;
     DistanceMatrix distanceMatrix;
     // Corresponding childBordersVec index for each of this nodes borders (will have same size as bordersVec)

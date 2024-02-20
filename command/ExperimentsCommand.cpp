@@ -1700,6 +1700,7 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                     stats.addSupplementaryFields("max_leaf_size",std::to_string(gtree.getMaxLeafSize()));
                     stats.addSupplementaryFields("fanout",std::to_string(gtree.getFanout()));
                     std::cout << "STATS time:" << stats.getTupleString() << std::endl;
+                    std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << totalQueries << std::endl;
 #if defined(COLLECT_STATISTICS)
                     knnStats.populateTupleFields(stats,0);
 #endif
@@ -1809,6 +1810,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                     stats.addSupplementaryFields("max_leaf_size",std::to_string(agtree.getMaxLeafSize()));
                     stats.addSupplementaryFields("fanout",std::to_string(agtree.getFanout()));
                     std::cout << "STATS time:" << stats.getTupleString() << std::endl;
+                    std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << totalQueries << std::endl;
 #if defined(COLLECT_STATISTICS)
                     knnStats.populateTupleFields(stats,0);
 #endif
