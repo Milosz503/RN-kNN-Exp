@@ -64,16 +64,16 @@ class AdaptiveGtree {
         void addNode(int parentTreeIdx, std::unordered_set<NodeID>& subgraph, Graph& originalGraph, METISWrapper& metis);
         void addChildren(int parentTreeIdx, std::unordered_set<NodeID>& parentSubgraph, Graph& originalGraph, METISWrapper& metis);
         EdgeWeight getShortestPathDistance(Graph& graph, NodeID u, NodeID v);
-        EdgeWeight SPDist(NodeID u, NodeID v, std::vector<int>& gtreePath, int firstLCAChild);
+//        EdgeWeight SPDist(NodeID u, NodeID v, std::vector<int>& gtreePath, int firstLCAChild);
         EdgeWeight SPDistLeaf(NodeID u, NodeID v, int leafNode, Graph& graph);
         std::unordered_map<NodeID,EdgeWeight> DijkstraDistMultiTarget(NodeID u, std::unordered_set<NodeID>& targets, int leafNode, Graph& graph);
         EdgeWeight BorderDist(NodeID u, NodeID v, int leafNode);
         EdgeWeight DijkstraDist(NodeID u, NodeID v, int leafNode, Graph& graph);
         std::vector<int> getGtreePath(NodeID u, NodeID v, int& firstLCAChild);
         EdgeWeight SPDistToSourceLeafNode(Graph& graph, NodeID u, int treeIdx);
-        EdgeWeight SPDistToParentNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
-        EdgeWeight SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist = true);
-        EdgeWeight SPDistToChildNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
+        EdgeWeight SPDistToParentNode(Graph &graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
+        EdgeWeight SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist = true);
+        EdgeWeight SPDistToChildNode(Graph &graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
         EdgeWeight SPDistToLeafTarget(Graph& graph, NodeID target, int leafIdx);
         void getKNNs(OccurenceList& occList, unsigned int k, NodeID queryNodeID, std::vector<NodeID>& kNNs,
                  std::vector<EdgeWeight>& kNNDistances, Graph& graph);

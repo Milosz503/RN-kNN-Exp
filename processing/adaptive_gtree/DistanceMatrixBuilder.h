@@ -9,6 +9,7 @@
 #include "DistanceMatrix.h"
 #include "../DijkstraSearch.h"
 #include "AdaptiveGtreeNode.h"
+#include "../../utils/Logger.h"
 
 class DistanceMatrixBuilder {
 public:
@@ -35,14 +36,50 @@ public:
         DijkstraSearch dijkstra;
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
-//        std::cout << "row not assigned, borders size: " << targetsVec.size() << std::endl;
+        Logger::log(" > row not assigned, borders size: ", targetsVec.size());
+        dijkstra.findSSMTDistances(graph, sourceNodeID, targetsUset, siblingBorderDistances, &pqueue_local);
+
+        for (std::size_t j = 0; j < targetsVec.size(); ++j) {
+            auto weight = siblingBorderDistances[targetsVec[j]];
+            Logger::log(" > setting weight: ", j, ",",  sourceIdx, " ", weight);
+            matrix.set(sourceIdx, j, siblingBorderDistances[targetsVec[j]]);
+        }
+    }
+
+    // TODO: make a better name
+    void static fillRow2(Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
+                         const std::vector<NodeID> &targetsVec) {
+        DistanceMatrix& matrix = node.distanceMatrix;
+        BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
+        DijkstraSearch dijkstra;
+        std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
+        std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
+        Logger::log(" > row not assigned, borders size: ", targetsVec.size());
         dijkstra.findSSMTDistances(graph, sourceNodeID, targetsUset, siblingBorderDistances, &pqueue_local);
 
         for (std::size_t j = 0; j < targetsVec.size(); ++j) {
             auto weight = siblingBorderDistances[targetsVec[j]];
             int targetBorderIdx = node.getBorderIdxInChildBorderVec(j);
-//            std::cout << "setting weight: " << j << "," << sourceIdx << " " << weight << std::endl;
+            Logger::log(" > setting weight: ", targetBorderIdx, ",",  sourceIdx, " ", weight);
             matrix.set(sourceIdx, targetBorderIdx, siblingBorderDistances[targetsVec[j]]);
+        }
+    }
+
+    // TODO: make a better name
+    void static fillRow3(Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
+                        const std::vector<NodeID> &targetsVec, int targetOffset) {
+        DistanceMatrix& matrix = node.distanceMatrix;
+        BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
+        DijkstraSearch dijkstra;
+        std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
+        std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
+        Logger::log(" > row not assigned, borders size: ", targetsVec.size());
+        dijkstra.findSSMTDistances(graph, sourceNodeID, targetsUset, siblingBorderDistances, &pqueue_local);
+
+        for (std::size_t j = 0; j < targetsVec.size(); ++j) {
+            auto weight = siblingBorderDistances[targetsVec[j]];
+            Logger::log(" > setting weight: ", j, ",",  sourceIdx, " ", weight);
+            matrix.set(sourceIdx, j + targetOffset, siblingBorderDistances[targetsVec[j]]);
         }
     }
 };

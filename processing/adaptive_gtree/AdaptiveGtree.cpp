@@ -25,6 +25,7 @@
 #include "../../utility/StopWatch.h"
 #include "../../utility/utility.h"
 #include "DistanceMatrixBuilder.h"
+#include "../../utils/Logger.h"
 
 #include <assert.h>
 #include <iostream>
@@ -268,10 +269,11 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             } else {
                 // distances for internal nodes are precalculated at the moment
                 for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
-                    pqueue->clear();
-                    dijkstra.findSSMTDistances(graph, (*sourcesVec)[i], (*targets), siblingBorderDistances, pqueue);
+//                    pqueue->clear();
+//                    dijkstra.findSSMTDistances(graph, (*sourcesVec)[i], (*targets), siblingBorderDistances, pqueue);
                     for (std::size_t j = 0; j < targetsVec->size(); ++j) {
-                        this->treeNodes[currentIdx].distanceMatrix.push_back(siblingBorderDistances[(*targetsVec)[j]]);
+//                        this->treeNodes[currentIdx].distanceMatrix.push_back(siblingBorderDistances[(*targetsVec)[j]]);
+                        this->treeNodes[currentIdx].distanceMatrix.pushBackNotAssigned();
                     }
                 }
             }
@@ -471,16 +473,16 @@ EdgeWeight AdaptiveGtree::getShortestPathDistance(Graph &graph, NodeID u, NodeID
         int x = i; // This is safe, depth of tree is O(log(n)) and n is at most 24 million in US dataset
         for (int k = uPathFromRoot.size() - 1; k > x; --k) {
             // Since k > x and x is at worst 0, k-1 is safe here
-            this->SPDistToParentNode(uPathFromRoot[k], uPathFromRoot[k - 1], false);
+            this->SPDistToParentNode(graph, uPathFromRoot[k], uPathFromRoot[k - 1], false);
         }
 
         // From first child of LCA to second child of LCA
-        this->SPDistToSiblingNode(uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
+        this->SPDistToSiblingNode(graph, uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
 
         // From second child of LCA to target leaf
         for (std::size_t k = j; k < vPathFromRoot.size() - 1; ++k) {
             // Note the size()-1 in the above condition
-            this->SPDistToChildNode(vPathFromRoot[k + 1], vPathFromRoot[k], false);
+            this->SPDistToChildNode(graph, vPathFromRoot[k + 1], vPathFromRoot[k], false);
         }
 
         // We assume target has not been visited
@@ -519,40 +521,40 @@ AdaptiveGtree::DijkstraDistMultiTarget(NodeID u, std::unordered_set<NodeID> &tar
     return targetDistances;
 }
 
-EdgeWeight AdaptiveGtree::SPDist(NodeID u, NodeID v, std::vector<int> &gtreePath, int firstLCAChild)
-{
-    // Assume gtreePath size is 2 or more (i.e. u and v are not in same leaf node)
-    // Assume that no results have been materialised (this for shortest path query)
-    // Note: Path cannot be size 1 since that make one parent of u and v a leaf node
-    // which cannot be possible as a leaf node has no children
-
-    EdgeWeight spDist = 0;
-
-    // Distance from query node to source leaf borders
-    std::size_t i = 0;
-    // Commented out because it doesn't compile, graph is not available here
-//    this->SPDistToSourceLeafNode(graph, u,gtreePath[i]);
-
-    // Distance up the G-tree hierarchy from source leaf
-    for (; gtreePath[i] != firstLCAChild; ++i) {
-        this->SPDistToParentNode(gtreePath[i], gtreePath[i + 1], false);
-    }
-
-    // Distance between siblings of LCA
-    int LCAIdx = this->treeNodes[gtreePath[i]].getParentIdx();
-    this->SPDistToSiblingNode(gtreePath[i], gtreePath[i + 1], LCAIdx, false);
-    ++i;
-
-    // Distance down G-tree hierarchy to target leaf
-    for (; i + 1 < gtreePath.size(); ++i) {
-        this->SPDistToChildNode(gtreePath[i + 1], gtreePath[i], false);
-    }
-
-    // doesn't compile
-//    spDist = this->SPDistToLeafTarget(graph, v,gtreePath[i]);
-
-    return spDist;
-}
+//EdgeWeight AdaptiveGtree::SPDist(NodeID u, NodeID v, std::vector<int> &gtreePath, int firstLCAChild)
+//{
+//    // Assume gtreePath size is 2 or more (i.e. u and v are not in same leaf node)
+//    // Assume that no results have been materialised (this for shortest path query)
+//    // Note: Path cannot be size 1 since that make one parent of u and v a leaf node
+//    // which cannot be possible as a leaf node has no children
+//
+//    EdgeWeight spDist = 0;
+//
+//    // Distance from query node to source leaf borders
+//    std::size_t i = 0;
+//    // Commented out because it doesn't compile, graph is not available here
+////    this->SPDistToSourceLeafNode(graph, u,gtreePath[i]);
+//
+//    // Distance up the G-tree hierarchy from source leaf
+//    for (; gtreePath[i] != firstLCAChild; ++i) {
+//        this->SPDistToParentNode(gtreePath[i], gtreePath[i + 1], false);
+//    }
+//
+//    // Distance between siblings of LCA
+//    int LCAIdx = this->treeNodes[gtreePath[i]].getParentIdx();
+//    this->SPDistToSiblingNode(gtreePath[i], gtreePath[i + 1], LCAIdx, false);
+//    ++i;
+//
+//    // Distance down G-tree hierarchy to target leaf
+//    for (; i + 1 < gtreePath.size(); ++i) {
+//        this->SPDistToChildNode(gtreePath[i + 1], gtreePath[i], false);
+//    }
+//
+//    // doesn't compile
+////    spDist = this->SPDistToLeafTarget(graph, v,gtreePath[i]);
+//
+//    return spDist;
+//}
 
 EdgeWeight AdaptiveGtree::BorderDist(NodeID u, NodeID v, int leafNode)
 {
@@ -740,7 +742,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
             if (Tn != 0) {
                 // We don't set Tmin if Tn is the root because this represents
                 // infinite instead - it's faster to check Tn != 0 than Tmin < max int
-                Tmin = this->SPDistToParentNode(prevTn, Tn);
+                Tmin = this->SPDistToParentNode(graph, prevTn, Tn);
 #if defined(COLLECT_STATISTICS)
                 this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -750,7 +752,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
             for (int childIdx: occList.nonLeafOccurenceList[Tn]) {
                 if (childIdx != prevTn) {
                     // We only add children that we haven't already visited
-                    dist = this->SPDistToSiblingNode(prevTn, childIdx, Tn);
+                    dist = this->SPDistToSiblingNode(graph, prevTn, childIdx, Tn);
 #if defined(COLLECT_STATISTICS)
                     this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -778,7 +780,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
                 if (Tn != 0) {
                     // We don't set Tmin if Tn is the root because this represents
                     // infinite instead - it's faster to check Tn != 0 than Tmin < max int
-                    Tmin = this->SPDistToParentNode(prevTn, Tn);
+                    Tmin = this->SPDistToParentNode(graph, prevTn, Tn);
 #if defined(COLLECT_STATISTICS)
                     this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -787,7 +789,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
                 // Tn is guaranteed to be a non-leaf here because we move to parent
                 for (int childIdx: occList.nonLeafOccurenceList[Tn]) {
                     if (childIdx != prevTn) {
-                        dist = this->SPDistToSiblingNode(prevTn, childIdx, Tn);
+                        dist = this->SPDistToSiblingNode(graph, prevTn, childIdx, Tn);
 #if defined(COLLECT_STATISTICS)
                         this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -817,7 +819,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
                     }
                 } else {
                     for (int childIdx: occList.nonLeafOccurenceList[treeIdx]) {
-                        dist = this->SPDistToChildNode(childIdx, treeIdx);
+                        dist = this->SPDistToChildNode(graph, childIdx, treeIdx);
 #if defined(COLLECT_STATISTICS)
                         this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,treeIdx));
 #endif
@@ -944,7 +946,7 @@ bool AdaptiveGtree::getSourceLeafkNNsByINE(NodeID queryNode, unsigned int k, std
                         localQueue.insert(this->treeNodes[leafNode].bordersVec[i],minDist+this->distanceMatrix[minDistNodeID][this->treeNodes[leafNode].bordersVec[i]]);
 #else
                         if (!this->treeNodes[leafNode].distanceMatrix.isAssigned(borderIdx, targetBorderIdx)) {
-                            DistanceMatrixBuilder::fillRow(graph, this->treeNodes[leafNode], minDistNodeID, borderIdx,
+                            DistanceMatrixBuilder::fillRow2(graph, this->treeNodes[leafNode], minDistNodeID, borderIdx,
                                                            this->treeNodes[leafNode].bordersVec);
                         }
                         localQueue.insert(this->treeNodes[leafNode].bordersVec[i], minDist +
@@ -1009,8 +1011,9 @@ EdgeWeight AdaptiveGtree::SPDistToSourceLeafNode(Graph &graph, NodeID u, int sou
     return spDist;
 }
 
-EdgeWeight AdaptiveGtree::SPDistToParentNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist)
+EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist)
 {
+    Logger::log("SPDistToParentNode start");
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToParentBorderDist;
 
     // Note: We assume we have already calculated distance to childTreeIdx from source
@@ -1046,17 +1049,33 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(int childTreeIdx, int parentTreeIdx
         sourceToChildBorderDist = this->sourceToTreeNodeBorderDist[childTreeIdx][0];
         for (std::size_t k = 0; k < this->treeNodes[parentTreeIdx].bordersVec.size(); ++k) {
             parentBorderIdx = this->treeNodes[parentTreeIdx].getBorderIdxInChildBorderVec(k);
+            if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(childBorderIdx, parentBorderIdx)) {
+                Logger::log(" > Distance matrix not assigned");
+                DistanceMatrixBuilder::fillRow2(graph, this->treeNodes[parentTreeIdx],
+                                               this->treeNodes[childTreeIdx].bordersVec[0],
+                                               childBorderIdx,
+                                               this->treeNodes[parentTreeIdx].bordersVec);
+            }
             sourceToParentBorderDist = sourceToChildBorderDist +
                                        this->treeNodes[parentTreeIdx].distanceMatrix.get(childBorderIdx,
                                                                                          parentBorderIdx);
             // I.e. this is the first time we are computing distances to parent's border set so we initialise
             this->sourceToTreeNodeBorderDist[parentTreeIdx][k] = sourceToParentBorderDist;
         }
-        for (std::size_t j = 1; j < this->treeNodes[childTreeIdx].bordersVec.size(); ++j) {
+        for (std::size_t j = 0; j < this->treeNodes[childTreeIdx].bordersVec.size(); ++j) {
+            Logger::log(" > For ", j);
             childBorderIdx = childBorderOffset + j;
             sourceToChildBorderDist = this->sourceToTreeNodeBorderDist[childTreeIdx][j];
             for (std::size_t k = 0; k < this->treeNodes[parentTreeIdx].bordersVec.size(); ++k) {
+                Logger::log(" >   Inner for ", k);
                 parentBorderIdx = this->treeNodes[parentTreeIdx].getBorderIdxInChildBorderVec(k);
+                if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(childBorderIdx, parentBorderIdx)) {
+                    Logger::log(" >   Distance matrix not assigned");
+                    DistanceMatrixBuilder::fillRow2(graph, this->treeNodes[parentTreeIdx],
+                                                   this->treeNodes[childTreeIdx].bordersVec[j],
+                                                   childBorderIdx,
+                                                   this->treeNodes[parentTreeIdx].bordersVec);
+                }
                 sourceToParentBorderDist = sourceToChildBorderDist +
                                            this->treeNodes[parentTreeIdx].distanceMatrix.get(childBorderIdx,
                                                                                              parentBorderIdx);
@@ -1085,8 +1104,9 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(int childTreeIdx, int parentTreeIdx
 }
 
 EdgeWeight
-AdaptiveGtree::SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist)
+AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist)
 {
+    Logger::log("SPDistToSiblingNode start");
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToBorderDist;
 
 #if defined(GTREE_STL_HASH_TABLE_DIST_MATRIX) || defined(GTREE_GOOGLE_DENSEHASH_DIST_MATRIX)
@@ -1123,6 +1143,14 @@ AdaptiveGtree::SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, 
         sourceToChildBorderDist = this->sourceToTreeNodeBorderDist[firstLCAChildIdx][0];
         for (std::size_t k = 0; k < this->treeNodes[targetLCAChildIdx].bordersVec.size(); ++k) {
             targetBorderIdx = targetBorderOffset + k;
+            if (!this->treeNodes[LCAIdx].distanceMatrix.isAssigned(childBorderIdx, targetBorderIdx)) {
+                Logger::log("SPDistToSiblingNode distanceMatrix not assigned");
+                DistanceMatrixBuilder::fillRow3(graph, this->treeNodes[LCAIdx],
+                                               this->treeNodes[firstLCAChildIdx].bordersVec[0],
+                                               childBorderIdx,
+                                               this->treeNodes[targetLCAChildIdx].bordersVec,
+                                                targetBorderOffset);
+            }
             sourceToBorderDist = sourceToChildBorderDist +
                                  this->treeNodes[LCAIdx].distanceMatrix.get(childBorderIdx, targetBorderIdx);
             // I.e. this is the first time we are computing distances to tthe target set
@@ -1133,6 +1161,13 @@ AdaptiveGtree::SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, 
             sourceToChildBorderDist = this->sourceToTreeNodeBorderDist[firstLCAChildIdx][j];
             for (std::size_t k = 0; k < this->treeNodes[targetLCAChildIdx].bordersVec.size(); ++k) {
                 targetBorderIdx = targetBorderOffset + k;
+                if (!this->treeNodes[LCAIdx].distanceMatrix.isAssigned(childBorderIdx, targetBorderIdx)) {
+                    DistanceMatrixBuilder::fillRow3(graph, this->treeNodes[LCAIdx],
+                                                   this->treeNodes[firstLCAChildIdx].bordersVec[j],
+                                                   childBorderIdx,
+                                                   this->treeNodes[targetLCAChildIdx].bordersVec,
+                                                   targetBorderOffset);
+                }
                 sourceToBorderDist = sourceToChildBorderDist +
                                      this->treeNodes[LCAIdx].distanceMatrix.get(childBorderIdx, targetBorderIdx);
                 if (sourceToBorderDist < this->sourceToTreeNodeBorderDist[targetLCAChildIdx][k]) {
@@ -1159,8 +1194,9 @@ AdaptiveGtree::SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, 
     return spDist;
 }
 
-EdgeWeight AdaptiveGtree::SPDistToChildNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist)
+EdgeWeight AdaptiveGtree::SPDistToChildNode(Graph &graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist)
 {
+
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToBorderDist;
 
 #if defined(GTREE_STL_HASH_TABLE_DIST_MATRIX) || defined(GTREE_GOOGLE_DENSEHASH_DIST_MATRIX)
@@ -1193,6 +1229,13 @@ EdgeWeight AdaptiveGtree::SPDistToChildNode(int childTreeIdx, int parentTreeIdx,
         sourceToChildBorderDist = this->sourceToTreeNodeBorderDist[parentTreeIdx][0];
         for (std::size_t k = 0; k < this->treeNodes[childTreeIdx].bordersVec.size(); ++k) {
             childBorderIdx = childBorderOffset + k;
+            if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(parentBorderIdx, childBorderIdx)) {
+                DistanceMatrixBuilder::fillRow3(graph, this->treeNodes[parentTreeIdx],
+                                               this->treeNodes[parentTreeIdx].bordersVec[0],
+                                               parentBorderIdx,
+                                               this->treeNodes[childTreeIdx].bordersVec,
+                                                childBorderOffset);
+            }
             sourceToBorderDist = sourceToChildBorderDist +
                                  this->treeNodes[parentTreeIdx].distanceMatrix.get(parentBorderIdx, childBorderIdx);
             // I.e. this is the first time we are computing distances to tthe target set
@@ -1203,6 +1246,13 @@ EdgeWeight AdaptiveGtree::SPDistToChildNode(int childTreeIdx, int parentTreeIdx,
             sourceToChildBorderDist = this->sourceToTreeNodeBorderDist[parentTreeIdx][j];
             for (std::size_t k = 0; k < this->treeNodes[childTreeIdx].bordersVec.size(); ++k) {
                 childBorderIdx = childBorderOffset + k;
+                if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(parentBorderIdx, childBorderIdx)) {
+                    DistanceMatrixBuilder::fillRow3(graph, this->treeNodes[parentTreeIdx],
+                                                   this->treeNodes[parentTreeIdx].bordersVec[j],
+                                                   parentBorderIdx,
+                                                   this->treeNodes[childTreeIdx].bordersVec,
+                                                   childBorderOffset);
+                }
                 sourceToBorderDist = sourceToChildBorderDist +
                                      this->treeNodes[parentTreeIdx].distanceMatrix.get(parentBorderIdx, childBorderIdx);
                 if (sourceToBorderDist < this->sourceToTreeNodeBorderDist[childTreeIdx][k]) {
@@ -1404,7 +1454,7 @@ EdgeWeight AdaptiveGtree::getRepeatedShortestPathDistance(Graph &graph, NodeID u
 
         // Since the two nodes are in different leaf nodes we can guarantee that
         // there is at least one more node (the parent of both) in the G-tree path
-        // which we call the the lowest common ancestor (LCA)
+        // which we call the lowest common ancestor (LCA)
 
         // Search down Gtree from root until we find first ancestor that is different
         // this means the previous ancestor is the LCA and the indexes point its children
@@ -1418,12 +1468,12 @@ EdgeWeight AdaptiveGtree::getRepeatedShortestPathDistance(Graph &graph, NodeID u
                 break;
             }
             // Note: We can guarantee that LCAIdx will be set here. The only situation
-            // it would not be set is both u and v were in the same leaf but we have
-            // guarnateed that is not the case in the if/else statement
+            // it would not be set is both u and v were in the same leaf, but we have
+            // guaranteed that is not the case in the if/else statement
         }
 
         // Now search up G-tree (from source leaf) until we reach i and j, then we 
-        // search down (to target leaf) computing shortest path distance
+        // search down (to target leaf) computing the shortest path distance
 
         // From source to source leaf
         if (!visited[uLeaf]) {
@@ -1436,14 +1486,14 @@ EdgeWeight AdaptiveGtree::getRepeatedShortestPathDistance(Graph &graph, NodeID u
         for (int k = uPathFromRoot.size() - 1; k > x; --k) {
             // Since k > x and x is at worst 0, k-1 is safe here
             if (!visited[uPathFromRoot[k - 1]]) {
-                this->SPDistToParentNode(uPathFromRoot[k], uPathFromRoot[k - 1], false);
+                this->SPDistToParentNode(graph, uPathFromRoot[k], uPathFromRoot[k - 1], false);
                 visited[uPathFromRoot[k - 1]] = true;
             }
         }
 
         // From first child of LCA to second child of LCA
         if (!visited[vPathFromRoot[j]]) {
-            this->SPDistToSiblingNode(uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
+            this->SPDistToSiblingNode(graph, uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
             visited[vPathFromRoot[j]] = true;
         }
 
@@ -1451,7 +1501,7 @@ EdgeWeight AdaptiveGtree::getRepeatedShortestPathDistance(Graph &graph, NodeID u
         for (std::size_t k = j; k < vPathFromRoot.size() - 1; ++k) {
             // Note the size()-1 in the above condition
             if (!visited[vPathFromRoot[k + 1]]) {
-                this->SPDistToChildNode(vPathFromRoot[k + 1], vPathFromRoot[k], false);
+                this->SPDistToChildNode(graph, vPathFromRoot[k + 1], vPathFromRoot[k], false);
                 visited[vPathFromRoot[k + 1]] = true;
             }
         }

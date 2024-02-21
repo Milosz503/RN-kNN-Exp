@@ -8,9 +8,7 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 #set (CMAKE_CXX_FLAGS "-g -Wall -O1 -std=c++11")
 set (CMAKE_CXX_FLAGS "-O3 -std=c++11")
 
-# uncomment to use debugger
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+
 
 file(GLOB MAIN_SRC
     "common.h"
@@ -43,6 +41,8 @@ file(GLOB MAIN_SRC
     "external/processing/*.cpp"
     "external/stats/*.h"
     "external/stats/*.cpp"
+    "utils/*.h"
+    "utils/*.cpp"
 )
 
 find_package(OpenMP)
@@ -57,6 +57,14 @@ target_link_libraries (nd_knn boost_serialization metis)
 # Standard Optimisations
 # By default all optimisations are already applied without pre-processor directives
 set_target_properties(nd_knn PROPERTIES COMPILE_FLAGS "${DefaultDefinitions}")
+
+
+## uncomment to use debugger
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+#set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+#set_target_properties(nd_knn PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DLOGGING")
+
+
 
 # Additional Executables for Experiments
 
