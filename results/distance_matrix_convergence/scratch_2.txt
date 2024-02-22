@@ -1,0 +1,312 @@
+CLUSTER
+Matrix calculation without any optimizations
+
+STATS totalQueryTime: 870179 0
+Leaves distance matrix size: 60/262359=0.000228694
+Internal distance matrix size: 15180/458899=0.0330792
+STATS totalQueryTime: 1742496 100
+Leaves distance matrix size: 821/262359=0.0031293
+Internal distance matrix size: 38363/458899=0.0835979
+STATS totalQueryTime: 1752318 200
+Leaves distance matrix size: 1324/262359=0.00504652
+Internal distance matrix size: 38640/458899=0.0842015
+STATS totalQueryTime: 1772187 300
+Leaves distance matrix size: 1829/262359=0.00697136
+Internal distance matrix size: 39263/458899=0.0855591
+STATS totalQueryTime: 1817323 400
+Leaves distance matrix size: 2361/262359=0.00899912
+Internal distance matrix size: 40271/458899=0.0877557
+STATS totalQueryTime: 1834687 500
+Leaves distance matrix size: 2895/262359=0.0110345
+Internal distance matrix size: 41166/458899=0.089706
+STATS totalQueryTime: 1842775 600
+Leaves distance matrix size: 3314/262359=0.0126315
+Internal distance matrix size: 41348/458899=0.0901026
+STATS totalQueryTime: 1850006 700
+Leaves distance matrix size: 3781/262359=0.0144116
+Internal distance matrix size: 41348/458899=0.0901026
+STATS totalQueryTime: 2023564 800
+Leaves distance matrix size: 4214/262359=0.016062
+Internal distance matrix size: 43765/458899=0.0953696
+STATS totalQueryTime: 2051086 900
+Leaves distance matrix size: 4663/262359=0.0177734
+Internal distance matrix size: 44542/458899=0.0970628
+STATS totalQueryTime: 2060369 1000
+Leaves distance matrix size: 5090/262359=0.0194009
+Internal distance matrix size: 44671/458899=0.0973439
+STATS totalQueryTime: 2114387 1100
+Leaves distance matrix size: 5932/262359=0.0226102
+Internal distance matrix size: 45708/458899=0.0996036
+STATS totalQueryTime: 2128679 1200
+Leaves distance matrix size: 6517/262359=0.02484
+Internal distance matrix size: 45944/458899=0.100118
+STATS totalQueryTime: 2135686 1300
+Leaves distance matrix size: 7067/262359=0.0269364
+Internal distance matrix size: 46078/458899=0.10041
+STATS totalQueryTime: 2142502 1400
+Leaves distance matrix size: 7591/262359=0.0289336
+Internal distance matrix size: 46210/458899=0.100698
+STATS totalQueryTime: 2204446 1500
+Leaves distance matrix size: 8005/262359=0.0305116
+Internal distance matrix size: 47297/458899=0.103066
+STATS totalQueryTime: 2212110 1600
+Leaves distance matrix size: 8361/262359=0.0318685
+Internal distance matrix size: 47429/458899=0.103354
+STATS totalQueryTime: 2219595 1700
+Leaves distance matrix size: 8722/262359=0.0332445
+Internal distance matrix size: 47575/458899=0.103672
+STATS totalQueryTime: 2226331 1800
+Leaves distance matrix size: 9140/262359=0.0348378
+Internal distance matrix size: 47633/458899=0.103798
+STATS totalQueryTime: 2235654 1900
+Leaves distance matrix size: 9642/262359=0.0367512
+Internal distance matrix size: 47849/458899=0.104269
+STATS totalQueryTime: 2271947 2000
+Leaves distance matrix size: 9979/262359=0.0380357
+Internal distance matrix size: 48479/458899=0.105642
+STATS totalQueryTime: 2419249 2100
+Leaves distance matrix size: 10460/262359=0.039869
+Internal distance matrix size: 50967/458899=0.111064
+STATS totalQueryTime: 2429845 2200
+Leaves distance matrix size: 10972/262359=0.0418206
+Internal distance matrix size: 51219/458899=0.111613
+STATS totalQueryTime: 2456412 2300
+Leaves distance matrix size: 11455/262359=0.0436615
+Internal distance matrix size: 52088/458899=0.113506
+STATS totalQueryTime: 2476891 2400
+Leaves distance matrix size: 11938/262359=0.0455025
+Internal distance matrix size: 52395/458899=0.114175
+STATS totalQueryTime: 2491869 2500
+Leaves distance matrix size: 12407/262359=0.0472902
+Internal distance matrix size: 53064/458899=0.115633
+STATS totalQueryTime: 2509198 2600
+Leaves distance matrix size: 12883/262359=0.0491045
+Internal distance matrix size: 53492/458899=0.116566
+STATS totalQueryTime: 2517675 2700
+Leaves distance matrix size: 13341/262359=0.0508502
+Internal distance matrix size: 53553/458899=0.116699
+STATS totalQueryTime: 2967940 2800
+Leaves distance matrix size: 13831/262359=0.0527178
+Internal distance matrix size: 60598/458899=0.132051
+STATS totalQueryTime: 3007197 2900
+Leaves distance matrix size: 14431/262359=0.0550048
+Internal distance matrix size: 61953/458899=0.135004
+STATS totalQueryTime: 3041430 3000
+Leaves distance matrix size: 15024/262359=0.057265
+Internal distance matrix size: 62729/458899=0.136695
+STATS totalQueryTime: 3052287 3100
+Leaves distance matrix size: 15626/262359=0.0595596
+Internal distance matrix size: 63042/458899=0.137377
+STATS totalQueryTime: 3069976 3200
+Leaves distance matrix size: 16243/262359=0.0619114
+Internal distance matrix size: 63514/458899=0.138405
+STATS totalQueryTime: 3100916 3300
+Leaves distance matrix size: 16856/262359=0.0642478
+Internal distance matrix size: 64572/458899=0.140711
+STATS totalQueryTime: 3199317 3400
+Leaves distance matrix size: 17400/262359=0.0663213
+Internal distance matrix size: 66797/458899=0.145559
+STATS totalQueryTime: 3234823 3500
+Leaves distance matrix size: 17819/262359=0.0679184
+Internal distance matrix size: 67662/458899=0.147444
+STATS totalQueryTime: 3243908 3600
+Leaves distance matrix size: 18241/262359=0.0695269
+Internal distance matrix size: 67830/458899=0.14781
+STATS totalQueryTime: 3256334 3700
+Leaves distance matrix size: 18629/262359=0.0710058
+Internal distance matrix size: 68364/458899=0.148974
+STATS totalQueryTime: 3264330 3800
+Leaves distance matrix size: 19113/262359=0.0728506
+Internal distance matrix size: 68574/458899=0.149432
+STATS totalQueryTime: 3441025 3900
+Leaves distance matrix size: 19625/262359=0.0748021
+Internal distance matrix size: 70679/458899=0.154019
+STATS totalQueryTime: 3468024 4000
+Leaves distance matrix size: 20143/262359=0.0767765
+Internal distance matrix size: 71590/458899=0.156004
+STATS totalQueryTime: 3475848 4100
+Leaves distance matrix size: 20627/262359=0.0786213
+Internal distance matrix size: 71701/458899=0.156246
+STATS totalQueryTime: 3552818 4200
+Leaves distance matrix size: 21121/262359=0.0805042
+Internal distance matrix size: 73171/458899=0.159449
+STATS totalQueryTime: 3620644 4300
+Leaves distance matrix size: 21706/262359=0.082734
+Internal distance matrix size: 75563/458899=0.164662
+STATS totalQueryTime: 3638856 4400
+Leaves distance matrix size: 22442/262359=0.0855393
+Internal distance matrix size: 76973/458899=0.167734
+STATS totalQueryTime: 3647888 4500
+Leaves distance matrix size: 23029/262359=0.0877767
+Internal distance matrix size: 77449/458899=0.168771
+STATS totalQueryTime: 3658731 4600
+Leaves distance matrix size: 23611/262359=0.089995
+Internal distance matrix size: 77932/458899=0.169824
+STATS totalQueryTime: 3669145 4700
+Leaves distance matrix size: 24154/262359=0.0920647
+Internal distance matrix size: 78369/458899=0.170776
+STATS totalQueryTime: 3728889 4800
+Leaves distance matrix size: 24736/262359=0.094283
+Internal distance matrix size: 80231/458899=0.174834
+STATS totalQueryTime: 3770283 4900
+Leaves distance matrix size: 25276/262359=0.0963413
+Internal distance matrix size: 82155/458899=0.179026
+STATS totalQueryTime: 3778193 5000
+Leaves distance matrix size: 25773/262359=0.0982356
+Internal distance matrix size: 82223/458899=0.179175
+STATS totalQueryTime: 3879356 5100
+Leaves distance matrix size: 26290/262359=0.100206
+Internal distance matrix size: 85379/458899=0.186052
+STATS totalQueryTime: 3894467 5200
+Leaves distance matrix size: 26845/262359=0.102322
+Internal distance matrix size: 85840/458899=0.187056
+STATS totalQueryTime: 3902896 5300
+Leaves distance matrix size: 27384/262359=0.104376
+Internal distance matrix size: 86186/458899=0.18781
+STATS totalQueryTime: 3930279 5400
+Leaves distance matrix size: 27913/262359=0.106392
+Internal distance matrix size: 87067/458899=0.18973
+STATS totalQueryTime: 3937782 5500
+Leaves distance matrix size: 28438/262359=0.108393
+Internal distance matrix size: 87257/458899=0.190144
+STATS totalQueryTime: 3945095 5600
+Leaves distance matrix size: 28947/262359=0.110334
+Internal distance matrix size: 87546/458899=0.190774
+STATS totalQueryTime: 3950987 5700
+Leaves distance matrix size: 29450/262359=0.112251
+Internal distance matrix size: 87708/458899=0.191127
+STATS totalQueryTime: 4075706 5800
+Leaves distance matrix size: 29932/262359=0.114088
+Internal distance matrix size: 90776/458899=0.197813
+STATS totalQueryTime: 4117953 5900
+Leaves distance matrix size: 30418/262359=0.11594
+Internal distance matrix size: 92764/458899=0.202145
+STATS totalQueryTime: 4126186 6000
+Leaves distance matrix size: 30973/262359=0.118056
+Internal distance matrix size: 93120/458899=0.20292
+STATS totalQueryTime: 4138662 6100
+Leaves distance matrix size: 31272/262359=0.119195
+Internal distance matrix size: 93422/458899=0.203579
+STATS totalQueryTime: 4146729 6200
+Leaves distance matrix size: 31588/262359=0.1204
+Internal distance matrix size: 93440/458899=0.203618
+STATS totalQueryTime: 4168412 6300
+Leaves distance matrix size: 31905/262359=0.121608
+Internal distance matrix size: 94113/458899=0.205084
+STATS totalQueryTime: 4179307 6400
+Leaves distance matrix size: 32300/262359=0.123114
+Internal distance matrix size: 94275/458899=0.205437
+STATS totalQueryTime: 4187235 6500
+Leaves distance matrix size: 32736/262359=0.124776
+Internal distance matrix size: 94293/458899=0.205477
+STATS totalQueryTime: 4196393 6600
+Leaves distance matrix size: 33232/262359=0.126666
+Internal distance matrix size: 94438/458899=0.205793
+STATS totalQueryTime: 4263179 6700
+Leaves distance matrix size: 33884/262359=0.129151
+Internal distance matrix size: 97679/458899=0.212855
+STATS totalQueryTime: 4340635 6800
+Leaves distance matrix size: 34724/262359=0.132353
+Internal distance matrix size: 103701/458899=0.225978
+STATS totalQueryTime: 4690641 6900
+Leaves distance matrix size: 35231/262359=0.134285
+Internal distance matrix size: 108488/458899=0.236409
+STATS totalQueryTime: 4847694 7000
+Leaves distance matrix size: 35935/262359=0.136969
+Internal distance matrix size: 111832/458899=0.243696
+STATS totalQueryTime: 4869391 7100
+Leaves distance matrix size: 37128/262359=0.141516
+Internal distance matrix size: 113220/458899=0.246721
+STATS totalQueryTime: 4893317 7200
+Leaves distance matrix size: 38947/262359=0.148449
+Internal distance matrix size: 114705/458899=0.249957
+STATS totalQueryTime: 4938661 7300
+Leaves distance matrix size: 40470/262359=0.154254
+Internal distance matrix size: 118385/458899=0.257976
+STATS totalQueryTime: 5020635 7400
+Leaves distance matrix size: 41722/262359=0.159026
+Internal distance matrix size: 120125/458899=0.261768
+STATS totalQueryTime: 5033500 7500
+Leaves distance matrix size: 42373/262359=0.161508
+Internal distance matrix size: 120411/458899=0.262391
+STATS totalQueryTime: 5225469 7600
+Leaves distance matrix size: 43040/262359=0.16405
+Internal distance matrix size: 124084/458899=0.270395
+STATS totalQueryTime: 5239628 7700
+Leaves distance matrix size: 43700/262359=0.166566
+Internal distance matrix size: 124498/458899=0.271297
+STATS totalQueryTime: 5314689 7800
+Leaves distance matrix size: 44366/262359=0.169104
+Internal distance matrix size: 126391/458899=0.275422
+STATS totalQueryTime: 5324071 7900
+Leaves distance matrix size: 45027/262359=0.171624
+Internal distance matrix size: 126391/458899=0.275422
+STATS totalQueryTime: 5353052 8000
+Leaves distance matrix size: 45752/262359=0.174387
+Internal distance matrix size: 126983/458899=0.276712
+STATS totalQueryTime: 5396906 8100
+Leaves distance matrix size: 46418/262359=0.176926
+Internal distance matrix size: 129683/458899=0.282596
+STATS totalQueryTime: 5410044 8200
+Leaves distance matrix size: 47203/262359=0.179918
+Internal distance matrix size: 130143/458899=0.283598
+STATS totalQueryTime: 5422059 8300
+Leaves distance matrix size: 47940/262359=0.182727
+Internal distance matrix size: 130507/458899=0.284392
+STATS totalQueryTime: 5438460 8400
+Leaves distance matrix size: 48575/262359=0.185147
+Internal distance matrix size: 131277/458899=0.286069
+STATS totalQueryTime: 5460989 8500
+Leaves distance matrix size: 49119/262359=0.187221
+Internal distance matrix size: 131997/458899=0.287638
+STATS totalQueryTime: 5548288 8600
+Leaves distance matrix size: 49695/262359=0.189416
+Internal distance matrix size: 134799/458899=0.293744
+STATS totalQueryTime: 5572070 8700
+Leaves distance matrix size: 50204/262359=0.191356
+Internal distance matrix size: 136356/458899=0.297137
+STATS totalQueryTime: 5593702 8800
+Leaves distance matrix size: 50880/262359=0.193933
+Internal distance matrix size: 137335/458899=0.299271
+STATS totalQueryTime: 5607837 8900
+Leaves distance matrix size: 51561/262359=0.196528
+Internal distance matrix size: 137593/458899=0.299833
+STATS totalQueryTime: 5617351 9000
+Leaves distance matrix size: 52130/262359=0.198697
+Internal distance matrix size: 137593/458899=0.299833
+STATS totalQueryTime: 5626758 9100
+Leaves distance matrix size: 52682/262359=0.200801
+Internal distance matrix size: 137643/458899=0.299942
+STATS totalQueryTime: 5661423 9200
+Leaves distance matrix size: 53293/262359=0.20313
+Internal distance matrix size: 139239/458899=0.30342
+STATS totalQueryTime: 5672129 9300
+Leaves distance matrix size: 53933/262359=0.205569
+Internal distance matrix size: 139451/458899=0.303882
+STATS totalQueryTime: 5681471 9400
+Leaves distance matrix size: 54542/262359=0.207891
+Internal distance matrix size: 139501/458899=0.303991
+STATS totalQueryTime: 5692278 9500
+Leaves distance matrix size: 55186/262359=0.210345
+Internal distance matrix size: 139855/458899=0.304762
+STATS totalQueryTime: 5704883 9600
+Leaves distance matrix size: 55802/262359=0.212693
+Internal distance matrix size: 140241/458899=0.305603
+STATS totalQueryTime: 5721691 9700
+Leaves distance matrix size: 56439/262359=0.215121
+Internal distance matrix size: 140775/458899=0.306767
+STATS totalQueryTime: 5784304 9800
+Leaves distance matrix size: 57111/262359=0.217683
+Internal distance matrix size: 143929/458899=0.31364
+STATS totalQueryTime: 6032394 9900
+Leaves distance matrix size: 57692/262359=0.219897
+Internal distance matrix size: 149348/458899=0.325449
+STATS totalQueryTime: 6042167 10000
+Leaves distance matrix size: 58263/262359=0.222074
+Internal distance matrix size: 149836/458899=0.326512
+STATS time:DE   48812   119004  max_leaf_size=64,fanout=4       agtree  10      603.804 random  0.00100 1       49      10098   array
+STATS totalQueryTime: 6097208 10098
+Leaves distance matrix size: 58816/262359=0.224181
+Internal distance matrix size: 151349/458899=0.329809
+AdaptiveGtree kNN queries successfully executed for DE
+AdaptiveGtree kNN verification completed for DE

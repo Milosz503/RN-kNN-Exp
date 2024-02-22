@@ -43,8 +43,8 @@ fi
 #                 "$USA_index_parameters,$USA_obj_index_parameters,$default_verification,$special_knn_parameters")
 # densities="1,0.1,0.01,0.001,0.0001"
 # types="random,uniform"
-# num_sets="50"
-# num_points="50"
+
+#num_points="50"
 # k_values="1,5,10,25,50"
 # default_k="10"
 # default_density="0.01"
@@ -92,6 +92,10 @@ fi
 if [[ ${10} != "" && ${10} != "default" ]]; then
     num_sets=${10}
 fi
+
+num_sets="1"
+num_points="10000"
+k_values="10"
 for i in "${!road_networks[@]}"; do 
     echo -e "\nRun kNN queries for ${road_networks[$i]}..."
     pts_filename="$(printf "%03d" $num_points)"

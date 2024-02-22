@@ -1,0 +1,36 @@
+RANDOM
+Matrix calculation without any optimizations
+
+STATS totalQueryTime: 519561 0
+Leaves distance matrix size: 87/262359=0.000331607
+Internal distance matrix size: 15703/458899=0.0342189
+STATS totalQueryTime: 1563587 1
+Leaves distance matrix size: 148/262359=0.000564113
+Internal distance matrix size: 35093/458899=0.0764722
+STATS totalQueryTime: 2017343 2
+Leaves distance matrix size: 170/262359=0.000647967
+Internal distance matrix size: 43867/458899=0.0955918
+STATS totalQueryTime: 2092845 3
+Leaves distance matrix size: 258/262359=0.000983385
+Internal distance matrix size: 45885/458899=0.0999893
+STATS totalQueryTime: 2240002 4
+Leaves distance matrix size: 286/262359=0.00109011
+Internal distance matrix size: 49377/458899=0.107599
+STATS totalQueryTime: 2698994 5
+Leaves distance matrix size: 332/262359=0.00126544
+Internal distance matrix size: 56472/458899=0.12306
+STATS totalQueryTime: 2902431 6
+Leaves distance matrix size: 338/262359=0.00128831
+Internal distance matrix size: 59331/458899=0.12929
+STATS totalQueryTime: 2950856 7
+Leaves distance matrix size: 340/262359=0.00129593
+Internal distance matrix size: 60806/458899=0.132504
+STATS totalQueryTime: 2963465 8
+Leaves distance matrix size: 344/262359=0.00131118
+Internal distance matrix size: 61482/458899=0.133977
+STATS totalQueryTime: 2964487 9
+Leaves distance matrix size: 351/262359=0.00133786
+Internal distance matrix size: 61594/458899=0.134221
+STATS totalQueryTime: 3036827 10
+Leaves distance matrix size: 374/262359=0.00142553
+Internal distance matrix size: 63126/458899=0.13756

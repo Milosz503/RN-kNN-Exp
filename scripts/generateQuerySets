@@ -5,8 +5,8 @@
 # $1 is the num points, $2 determines whether to include/exclude the nodes with $3 degree, $4 is the road network
 
 # We overwrite global variables here to re-run specific cases
-# road_networks=("DE" "VT" "ME" "COL" "NW" "CAL" "E" "W" "CTR" "USA")
-# num_points="25"
+road_networks=("DE")
+num_points="10000"
 
 if [[ $1 != "" ]]; then
     num_points=$1
@@ -25,6 +25,7 @@ fi
 for i in "${!road_networks[@]}"; do 
     echo -e "\nGenerating query points file for ${road_networks[$i]}..." 
     pts_filename="$(printf "%03d" $num_points)"
+#    args="-c sample_set -t cluster -i $idx_dir/${road_networks[$i]}.bin -o $sets_dir/${road_networks[$i]}_$pts_filename.txt -v 1000 $degree -p 10 -c 1"
     args="-c sample_set -t random -i $idx_dir/${road_networks[$i]}.bin -o $sets_dir/${road_networks[$i]}_$pts_filename.txt -n $num_points $degree"
     ${exe_path}/nd_knn $args
 done

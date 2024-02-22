@@ -37,6 +37,8 @@ public:
 
     bool isAssigned(unsigned row, unsigned column);
 
+    bool isAssigned(unsigned int index);
+
     void set(unsigned row, unsigned column, EdgeWeight weight);
 
     size_t size();
@@ -67,7 +69,9 @@ inline void DistanceMatrix::pushBackNotAssigned() {
 }
 
 inline EdgeWeight DistanceMatrix::atIndex(unsigned i) {
-    return distanceMatrix[i];
+    auto dist = distanceMatrix[i];
+    assert(dist >= 0);
+    return dist;
 }
 
 inline EdgeWeight DistanceMatrix::get(unsigned int row, unsigned int column) {
@@ -79,6 +83,10 @@ inline EdgeWeight DistanceMatrix::get(unsigned int row, unsigned int column) {
 inline bool DistanceMatrix::isAssigned(unsigned int row, unsigned int column) {
     auto dist = distanceMatrix[row*rowLength + column];
     return dist >= 0;
+}
+
+inline bool DistanceMatrix::isAssigned(unsigned int index) {
+    return distanceMatrix[index] >= 0;
 }
 
 inline void DistanceMatrix::set(unsigned int row, unsigned int column, EdgeWeight weight) {

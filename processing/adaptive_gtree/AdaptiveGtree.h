@@ -90,6 +90,7 @@ class AdaptiveGtree {
         double computeIndexSize();
         double computeMemoryUsage();
         double computeDistanceMatrixMemoryUsage();
+        void printDistanceMatrixConvergence();
         int getComputations(int leafIdx, int currIdx);
 
         // getRepeatedShortestPathDistance is used to find the shortest path distance to multiple

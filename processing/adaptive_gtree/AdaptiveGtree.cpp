@@ -259,14 +259,14 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             this->treeNodes[currentIdx].matrixRowLength = rowLength;
             this->treeNodes[currentIdx].distanceMatrix.init(targetsVec->size(), sourcesVec->size());
 
-            if (this->treeNodes[currentIdx].isLeafNode()) {
-                // distances for leaves are calculated adaptively
-                for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
-                    for (std::size_t j = 0; j < targetsVec->size(); ++j) {
-                        this->treeNodes[currentIdx].distanceMatrix.pushBackNotAssigned();
-                    }
-                }
-            } else {
+//            if (this->treeNodes[currentIdx].isLeafNode()) {
+//                // distances for leaves are calculated adaptively
+//                for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
+//                    for (std::size_t j = 0; j < targetsVec->size(); ++j) {
+//                        this->treeNodes[currentIdx].distanceMatrix.pushBackNotAssigned();
+//                    }
+//                }
+//            } else {
                 // distances for internal nodes are precalculated at the moment
                 for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
 //                    pqueue->clear();
@@ -276,7 +276,7 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
                         this->treeNodes[currentIdx].distanceMatrix.pushBackNotAssigned();
                     }
                 }
-            }
+//            }
 //            if (this->treeNodes[currentIdx].isLeafNode()) {
             // If it is a leaf node we can search using original Graph
             // who's data structure is faster than DynamicGraph
@@ -1696,4 +1696,36 @@ int AdaptiveGtree::getComputations(int leafIdx, int targetIdx)
     }
 
     return numComputations;
+}
+
+void AdaptiveGtree::printDistanceMatrixConvergence()
+{
+    unsigned leavesCellsNumber = 0;
+    unsigned leavesFilledCells = 0;
+
+    unsigned internalCellsNumber = 0;
+    unsigned internalFilledCells = 0;
+
+    for(auto& node : treeNodes) {
+        auto& nodeDistanceMatrix = node.distanceMatrix;
+        if(node.isLeafNode()) {
+            leavesCellsNumber += nodeDistanceMatrix.size();
+            for(int i = 0; i < nodeDistanceMatrix.size(); ++i) {
+                if(nodeDistanceMatrix.isAssigned(i)) {
+                    leavesFilledCells++;
+                }
+            }
+        }
+        else {
+            internalCellsNumber += nodeDistanceMatrix.size();
+            for(int i = 0; i < nodeDistanceMatrix.size(); ++i) {
+                if(nodeDistanceMatrix.isAssigned(i)) {
+                    internalFilledCells++;
+                }
+            }
+        }
+    }
+
+    std::cout << "Leaves distance matrix size: " << leavesFilledCells << "/" << leavesCellsNumber << "=" << ((double)leavesFilledCells)/leavesCellsNumber << std::endl;
+    std::cout << "Internal distance matrix size: " << internalFilledCells << "/" << internalCellsNumber << "=" << ((double)internalFilledCells)/internalCellsNumber << std::endl;
 }

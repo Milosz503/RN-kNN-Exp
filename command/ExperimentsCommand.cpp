@@ -1769,6 +1769,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                             graph.parseObjectFile(objSetFile,objSetType,objSetDensity,objSetVariable,objSetSize);
                         }
 
+                        int nodeCounter = 0;
                         for (auto queryNodeIt = queryNodes.begin(); queryNodeIt != queryNodes.end(); ++queryNodeIt) {
                             kNNs.clear();
                             kNNDistances.clear();
@@ -1793,6 +1794,13 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                                     exit(1);
                                 }
                             }
+
+                            if(nodeCounter % 1 == 0) {
+                                std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
+                                agtree.printDistanceMatrixConvergence();
+                            }
+
+                            nodeCounter++;
                         }
                     }
 
@@ -1811,6 +1819,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                     stats.addSupplementaryFields("fanout",std::to_string(agtree.getFanout()));
                     std::cout << "STATS time:" << stats.getTupleString() << std::endl;
                     std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << totalQueries << std::endl;
+                    agtree.printDistanceMatrixConvergence();
 #if defined(COLLECT_STATISTICS)
                     knnStats.populateTupleFields(stats,0);
 #endif
@@ -1868,7 +1877,7 @@ void ExperimentsCommand::runROADQueries(Graph& graph, std::string routeOverlayId
                             std::string objSetFile = filePathPrefix + "/obj_indexes/" + utility::constructObjsectSetFileName(graph.getNetworkName(),objTypes[i],objDensities[j],objVariable[m],l);
                             graph.parseObjectFile(objSetFile,objSetType,objSetDensity,objSetVariable,objSetSize);
                         }
-                        
+
                         for (auto queryNodeIt = queryNodes.begin(); queryNodeIt != queryNodes.end(); ++queryNodeIt) {
                             kNNs.clear();
                             kNNDistances.clear();
