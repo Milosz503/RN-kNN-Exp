@@ -212,7 +212,7 @@ void Gtree::computeDistanceMatrix(Graph& graph)
 {
     std::vector<std::vector<int>> treeLevelIdxs = this->getTreeNodesByLevel();
     
-    DijkstraSearch dijkstra;
+//    DijkstraSearch dijkstra;
     BinaryMinHeap<EdgeWeight,NodeID> *pqueue = new BinaryMinHeap<EdgeWeight,NodeID>();
     int currentIdx;
     DynamicGraph tempGraph(graph);
@@ -314,6 +314,7 @@ void Gtree::computeDistanceMatrix(Graph& graph)
     }
     
     delete pqueue;
+    dijkstra.printEdgeAccess();
 }
 
 void Gtree::initialiseGtreeQueryStructure()
@@ -487,7 +488,7 @@ std::unordered_map<NodeID,EdgeWeight> Gtree::DijkstraDistMultiTarget(NodeID u, s
 {
     // Assume u and all targets are in the same leaf node and number of targets > 0
     
-    DijkstraSearch dijkstra;
+//    DijkstraSearch dijkstra;
     std::unordered_map<NodeID,EdgeWeight> targetDistances;
     
     // This is equivalent of DijkDist function in paper, except we optimise by 
@@ -601,9 +602,9 @@ EdgeWeight Gtree::DijkstraDist(NodeID u, NodeID v, int leafNode, Graph& graph)
 {
     // Assume that u and v ARE in the same leaf node
     
-    DijkstraSearch dijk;
+//    DijkstraSearch dijk;
     
-    return dijk.findShortestPathDistanceSubgraph(graph,u,v,this->edgeInLeafSubgraph);
+    return dijkstra.findShortestPathDistanceSubgraph(graph,u,v,this->edgeInLeafSubgraph);
 }
 
 // Note: The returned path does not include the LCA
@@ -1566,6 +1567,11 @@ int Gtree::getComputations(int leafIdx, int targetIdx)
     }
 
     return numComputations;
+}
+
+void Gtree::printInfo()
+{
+    dijkstra.printEdgeAccess();
 }
 
 /*

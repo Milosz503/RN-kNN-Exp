@@ -1658,6 +1658,8 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                             std::string objSetFile = filePathPrefix + "/obj_indexes/" + utility::constructObjsectSetFileName(graph.getNetworkName(),objTypes[i],objDensities[j],objVariable[m],l);
                             graph.parseObjectFile(objSetFile,objSetType,objSetDensity,objSetVariable,objSetSize);
                         }
+
+                        int nodeCounter = 0;
                         
                         for (auto queryNodeIt = queryNodes.begin(); queryNodeIt != queryNodes.end(); ++queryNodeIt) {
                             kNNs.clear();
@@ -1683,6 +1685,13 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                                     exit(1);
                                 }
                             }
+
+                            if(nodeCounter % 10 == 0) {
+                                std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
+                                gtree.printInfo();
+                            }
+
+                            nodeCounter++;
                         }        
                     }
 
@@ -1795,9 +1804,9 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                                 }
                             }
 
-                            if(nodeCounter % 1 == 0) {
+                            if(nodeCounter % 10 == 0) {
                                 std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
-                                agtree.printDistanceMatrixConvergence();
+                                agtree.printInfo();
                             }
 
                             nodeCounter++;
@@ -1819,7 +1828,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                     stats.addSupplementaryFields("fanout",std::to_string(agtree.getFanout()));
                     std::cout << "STATS time:" << stats.getTupleString() << std::endl;
                     std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << totalQueries << std::endl;
-                    agtree.printDistanceMatrixConvergence();
+                    agtree.printInfo();
 #if defined(COLLECT_STATISTICS)
                     knnStats.populateTupleFields(stats,0);
 #endif

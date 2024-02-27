@@ -26,6 +26,7 @@
 #include "../../utility/METISWrapper.h"
 #include "../../utility/Statistics.h"
 #include "AdaptiveGtreeNode.h"
+#include "../DijkstraSearch.h"
 
 #include <vector>
 #include <unordered_map>
@@ -90,7 +91,7 @@ class AdaptiveGtree {
         double computeIndexSize();
         double computeMemoryUsage();
         double computeDistanceMatrixMemoryUsage();
-        void printDistanceMatrixConvergence();
+        void printInfo();
         int getComputations(int leafIdx, int currIdx);
 
         // getRepeatedShortestPathDistance is used to find the shortest path distance to multiple
@@ -132,6 +133,7 @@ class AdaptiveGtree {
     private:
         friend class boost::serialization::access;
 
+        DijkstraSearch dijkstra;
         std::string networkName;
         int numNodes;
         int numEdges;

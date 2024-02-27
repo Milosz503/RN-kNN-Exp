@@ -13,10 +13,9 @@
 
 class DistanceMatrixBuilder {
 public:
-    void static fillColumn(Graph &graph, DistanceMatrix &matrix, NodeID sourceNodeID, int sourceIdx,
+    void static fillColumn(DijkstraSearch& dijkstra, Graph &graph, DistanceMatrix &matrix, NodeID sourceNodeID, int sourceIdx,
                            const std::vector<NodeID> &targetsVec) {
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
-        DijkstraSearch dijkstra;
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
 //        std::cout << "column not assigned, borders size: " << targetsVec.size() << std::endl;
@@ -29,11 +28,10 @@ public:
         }
     }
 
-    void static fillRow(Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
+    void static fillRow(DijkstraSearch& dijkstra, Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
                         const std::vector<NodeID> &targetsVec) {
         DistanceMatrix& matrix = node.distanceMatrix;
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
-        DijkstraSearch dijkstra;
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
         Logger::log(" > row not assigned, borders size: ", targetsVec.size());
@@ -47,11 +45,10 @@ public:
     }
 
     // TODO: make a better name
-    void static fillRow2(Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
+    void static fillRow2(DijkstraSearch& dijkstra, Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
                          const std::vector<NodeID> &targetsVec) {
         DistanceMatrix& matrix = node.distanceMatrix;
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
-        DijkstraSearch dijkstra;
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
         Logger::log(" > row not assigned, borders size: ", targetsVec.size());
@@ -66,11 +63,10 @@ public:
     }
 
     // TODO: make a better name
-    void static fillRow3(Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
+    void static fillRow3(DijkstraSearch& dijkstra, Graph &graph, AdaptiveGtreeNode& node, NodeID sourceNodeID, int sourceIdx,
                         const std::vector<NodeID> &targetsVec, int targetOffset) {
         DistanceMatrix& matrix = node.distanceMatrix;
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
-        DijkstraSearch dijkstra;
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
         Logger::log(" > row not assigned, borders size: ", targetsVec.size());

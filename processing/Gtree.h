@@ -24,6 +24,7 @@
 #include "../queue/BinaryMinHeap.h"
 #include "../utility/METISWrapper.h"
 #include "../utility/Statistics.h"
+#include "DijkstraSearch.h"
 
 #include <vector>
 #include <unordered_map>
@@ -228,6 +229,7 @@ class Gtree {
         double computeMemoryUsage();
         double computeDistanceMatrixMemoryUsage();
         int getComputations(int leafIdx, int currIdx);
+        void printInfo();
         
         // getRepeatedShortestPathDistance is used to find the shortest path distance to multiple
         // target from the same query node. This assumes the G-tree index is not being used 
@@ -268,6 +270,7 @@ class Gtree {
     private:
         friend class boost::serialization::access;
 
+        DijkstraSearch dijkstra;
         std::string networkName;
         int numNodes;
         int numEdges;

@@ -115,7 +115,7 @@ Path DijkstraSearch::findShortestPath(Graph& graph, NodeID source, NodeID target
                 // Only update those we haven't already settled
                 if (!isNodeSettled[adjNode]) {
 //                 if (settledNodeIDs.find(adjNode) == settledNodeIDs.end()) {
-                    pqueue.insert(NodePair(adjNode,minDistNodeID),minDist+graph.edges[i].second);
+                    pqueue.insert(NodePair(adjNode,minDistNodeID),minDist+this->getEdgeWeight(graph, i));
                 }
             }
         }
@@ -171,7 +171,7 @@ EdgeWeight DijkstraSearch::findShortestPathDistance(Graph& graph, NodeID source,
                 if (!isNodeSettled[adjNode]) {
 //                 if (settledNodeIDs.find(adjNode) == settledNodeIDs.end()) {
                     // This is the first time we have seen this node (i.e. distance infinity)
-                    pqueue.insert(adjNode,minDist+graph.edges[i].second);
+                    pqueue.insert(adjNode,minDist+this->getEdgeWeight(graph, i));
                 }
             }
         }
@@ -221,9 +221,9 @@ void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<
             if (!isNodeSettled[adjNode]) {
                 if (!pqueue->contains(adjNode)) {
                     // This is the first time we have seen this node (i.e. distance infinity)
-                    pqueue->insert(adjNode,minDist+graph.edges[i].second);
+                    pqueue->insert(adjNode,minDist+this->getEdgeWeight(graph, i));
                 } else {
-                    newDistance = minDist+graph.edges[i].second;
+                    newDistance = minDist+this->getEdgeWeight(graph, i);
                     // Only decrease if a new distance is smaller than current distance
                     if (newDistance < pqueue->getKey(adjNode)) {
                         pqueue->decreaseKey(adjNode,newDistance);
@@ -273,7 +273,7 @@ void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<
                 adjNode = graph.edges[i].first;
                 // Only update those we haven't already settled
                 if (!isNodeSettled[adjNode]) {
-                    pqueue->insert(adjNode,minDist+graph.edges[i].second);
+                    pqueue->insert(adjNode,minDist+this->getEdgeWeight(graph, i));
                 }
             }
         }
@@ -320,7 +320,7 @@ void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<
                 adjNode = graph.edges[i].first;
                 // Only update those we haven't already settled
                 if (!isNodeSettled[adjNode]) {
-                    pqueue.push(minDist+graph.edges[i].second,adjNode);
+                    pqueue.push(minDist+this->getEdgeWeight(graph, i),adjNode);
                 }
             }
         }
@@ -374,7 +374,7 @@ void DijkstraSearch::findSSMTDistances(Graph& graph, NodeID source,
                 if (!isNodeSettled[adjNode]) {
 //                 if (settledNodeIDs.find(adjNode) == settledNodeIDs.end()) {
                     // This is the first time we have seen this node (i.e. distance infinity)
-                    pqueue->insert(adjNode,minDist+graph.edges[i].second);
+                    pqueue->insert(adjNode,minDist+this->getEdgeWeight(graph, i));
                 }
             }
         }
@@ -426,7 +426,7 @@ EdgeWeight DijkstraSearch::findShortestPathDistanceSubgraph(Graph& graph, NodeID
                 if (settledNodeIDs.find(adjNode) == settledNodeIDs.end() && edgeInSubgraph[i]) {
 //                 if (!isNodeSettled[adjNode] && edgeInSubgraph[i]) {
                     // This is the first time we have seen this node (i.e. distance infinity)
-                    pqueue.insert(adjNode,minDist+graph.edges[i].second);
+                    pqueue.insert(adjNode,minDist+this->getEdgeWeight(graph, i));
                 }
             }
         }
@@ -486,7 +486,7 @@ void DijkstraSearch::findSSMTDistancesSubgraph(Graph& graph, NodeID source,
 //                 if (subgraph.find(adjNode) != subgraph.end() && !isNodeSettled[adjNode]) {
 //                 if (subgraph.find(adjNode) != subgraph.end() && settledNodeIDs.find(adjNode) == settledNodeIDs.end()) {
                     // This is the first time we have seen this node (i.e. distance infinity)
-                    pqueue.insert(adjNode,minDist+graph.edges[i].second);
+                    pqueue.insert(adjNode,minDist+this->getEdgeWeight(graph, i));
                 }
             }
         }
@@ -521,7 +521,7 @@ bool DijkstraSearch::colourizeMap(Graph& graph, NodeID source, std::vector<EdgeI
     // Initialize colours of the sources neighbours (as themselves)
     for (int i = adjListStart; i < nextAdjListStart; ++i) {
         colourMap[graph.edges[i].first] = static_cast<EdgeID>(i);
-        pqueue->insert(NodeLinkPair(graph.edges[i].first,static_cast<EdgeID>(i-adjListStart)),graph.edges[i].second);
+        pqueue->insert(NodeLinkPair(graph.edges[i].first,static_cast<EdgeID>(i-adjListStart)),this->getEdgeWeight(graph, i));
     }
     
     // Note: That it is possible that the shortest path to one of the adjacent nodes
@@ -552,7 +552,7 @@ bool DijkstraSearch::colourizeMap(Graph& graph, NodeID source, std::vector<EdgeI
                 neighbourNodeID = graph.edges[i].first;
                 // Only update those we haven't already settled
                 if (!isNodeSettled[neighbourNodeID]) {
-                    pqueue->insert(NodeLinkPair(neighbourNodeID,minElement.second),minDist+graph.edges[i].second);
+                    pqueue->insert(NodeLinkPair(neighbourNodeID,minElement.second),minDist+this->getEdgeWeight(graph, i));
                 }
             }
         }
@@ -590,8 +590,8 @@ bool DijkstraSearch::colourizeMap(Graph& graph, NodeID source, std::vector<EdgeI
     // Initialize colours of the sources neighbours (as themselves)
     for (int i = adjListStart; i < nextAdjListStart; ++i) {
         colourMap[graph.edges[i].first] = static_cast<EdgeID>(i);
-//         pqueue.insert(NodeLinkPair(graph.edges[i].first,static_cast<EdgeID>(i-adjListStart)),graph.edges[i].second);
-        pqueue.push(graph.edges[i].second,NodeLinkPair(graph.edges[i].first,static_cast<EdgeID>(i-adjListStart)));
+//         pqueue.insert(NodeLinkPair(graph.edges[i].first,static_cast<EdgeID>(i-adjListStart)),this->getEdgeWeight(graph, i));
+        pqueue.push(this->getEdgeWeight(graph, i),NodeLinkPair(graph.edges[i].first,static_cast<EdgeID>(i-adjListStart)));
     }
     
     // Note: That it is possible that the shortest path to one of the adjacent nodes
@@ -627,8 +627,8 @@ bool DijkstraSearch::colourizeMap(Graph& graph, NodeID source, std::vector<EdgeI
                 neighbourNodeID = graph.edges[i].first;
                 // Only update those we haven't already settled
                 if (!isNodeSettled[neighbourNodeID]) {
-//                     pqueue.insert(NodeLinkPair(neighbourNodeID,minElement.second),minDist+graph.edges[i].second);
-                    pqueue.push(minDist+graph.edges[i].second,NodeLinkPair(neighbourNodeID,minElement.second));
+//                     pqueue.insert(NodeLinkPair(neighbourNodeID,minElement.second),minDist+this->getEdgeWeight(graph, i));
+                    pqueue.push(minDist+this->getEdgeWeight(graph, i),NodeLinkPair(neighbourNodeID,minElement.second));
                 }
             }
         }

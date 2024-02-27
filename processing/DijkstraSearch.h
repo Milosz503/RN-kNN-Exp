@@ -31,6 +31,8 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
+#include <iostream>
+#include <set>
 
 class DijkstraSearch {
 
@@ -71,6 +73,17 @@ class DijkstraSearch {
         bool colourizeMap(Graph& graph, NodeID source, std::vector<EdgeID>& colourMap,
                           std::vector<EdgeWeight>& distances);
 
+        EdgeWeight getEdgeWeight(Graph& graph, int i) {
+            edgesAccessed.insert(i);
+            return graph.edges[i].second;
+        }
+
+        void printEdgeAccess() {
+            std::cout << "Edge access number: " << edgesAccessed.size() << std::endl;
+        }
+
+private:
+    std::set<int> edgesAccessed;
 };
 
 #endif // _DIJKSTRASEARCH_H
