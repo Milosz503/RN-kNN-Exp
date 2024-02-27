@@ -232,12 +232,32 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
     std::vector<EdgeWeight> adjNodeWgts;
     std::vector<NodeID> *sourcesVec, *targetsVec;
 
+//    StopWatch sw;
+//    sw.start();
+//    for(auto& currentIdx : treeLevelIdxs.back()) {
+//        assert(this->treeNodes[currentIdx].isLeafNode());
+//        std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
+//        siblingBorderDistances.reserve(this->treeNodes[currentIdx].getBorders().size());
+//        auto borders = this->treeNodes[currentIdx].getBorders();
+//        auto bordersUset = std::unordered_set<NodeID>(borders.begin(), borders.end());
+//        for(auto& border : borders) {
+//            pqueue->clear();
+//            dijkstra.findSSMTDistances(graph, border, bordersUset, siblingBorderDistances, pqueue);
+//        }
+//    }
+//    sw.stop();
+//    std::cout << "Leaves borders calculation time: " << sw.getTimeMs() << std::endl;
+
     for (int i = treeLevelIdxs.size() - 1; i >= 0; --i) {
         // Clear memory in unordered_map or it will continue to grow
         // Note: According to the paper, total number of borders at each level should be O(n)
         // so if we clear this map for each level then we should it's total size should be O(n)
+        StopWatch sw;
+        sw.start();
+
 
         for (std::size_t j = 0; j < treeLevelIdxs[i].size(); ++j) {
+/**
             currentIdx = treeLevelIdxs[i][j];
             if (this->treeNodes[currentIdx].isLeafNode()) {
                 // In a leaf we find distances from border to all leaf vertices
@@ -255,7 +275,7 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
             siblingBorderDistances.reserve(targetsVec->size());
             //Using single std::unordered_map
-            int rowLength = targetsVec->size();
+            auto rowLength = targetsVec->size();
             this->treeNodes[currentIdx].matrixRowLength = rowLength;
             this->treeNodes[currentIdx].distanceMatrix.init(targetsVec->size(), sourcesVec->size());
 
@@ -290,52 +310,97 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
 //                    }
 //                }
 //            }
+**/
+            currentIdx = treeLevelIdxs[i][j];
+            sourcesVec = &this->treeNodes[currentIdx].getBorders();
+            if (this->treeNodes[currentIdx].isLeafNode()) {
+                // In a leaf we find distances from border to all leaf vertices
+                targets = &this->treeNodes[currentIdx].getLeafVerticesUset();
+                targetsVec = &this->treeNodes[currentIdx].getLeafVertices();
+            } else {
+                // In a non-leaf we get distances from all child borders to all other child borders
+                // Note: It's possible some of these distances have already been computed
+//                sourcesVec = &this->treeNodes[currentIdx].getChildBorders();
+                targets = &this->treeNodes[currentIdx].getChildBordersUset();
+                targetsVec = &this->treeNodes[currentIdx].getChildBorders();
+            }
+
+            auto borders = this->treeNodes[currentIdx].getBorders();
+            auto bordersUset = std::unordered_set<NodeID>(borders.begin(), borders.end());
+
+            std::unordered_map<NodeID,EdgeWeight> siblingBorderDistances;
+            siblingBorderDistances.reserve(borders.size());
+            //Using single std::unordered_map
+            this->treeNodes[currentIdx].distanceMatrix.init(borders.size(), sourcesVec->size());
+            if (this->treeNodes[currentIdx].isLeafNode()) {
+                // If it is a leaf node we can search using original Graph
+                // who's data structure is faster than DynamicGraph
+                for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
+                    pqueue->clear();
+                    dijkstra.findSSMTDistances(graph,(*sourcesVec)[i],bordersUset,siblingBorderDistances,pqueue);
+                    for (std::size_t j = 0; j < borders.size(); ++j) {
+                        this->treeNodes[currentIdx].distanceMatrix.push_back(siblingBorderDistances[borders[j]]);
+                    }
+                }
+            } else {
+                for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
+                    pqueue->clear();
+                    dijkstra.findSSMTDistances(tempGraph,(*sourcesVec)[i],bordersUset,siblingBorderDistances,pqueue);
+                    for (std::size_t j = 0; j < borders.size(); ++j) {
+                        this->treeNodes[currentIdx].distanceMatrix.push_back(siblingBorderDistances[borders[j]]);
+                    }
+                }
+            }
 
             // All future searches will be on this nodes border set (using closure property in paper)
             // because these will be the parent nodes child borders-> Therefore if we need only remove
             // unnecessary edges from these nodes (unimportant nodes will become disconnected)
             //sources = this->treeNodes[currentIdx].getBordersUset();
-//            sourcesVec = &this->treeNodes[currentIdx].getBorders();
-//
-//            NodeID border;
-//            int sourceIdx, targetIdx;
-//            for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
-//                border = (*sourcesVec)[i];
+            sourcesVec = &this->treeNodes[currentIdx].getBorders();
+
+            NodeID border;
+            int sourceIdx, targetIdx;
+            for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
+                border = (*sourcesVec)[i];
 //                if (this->treeNodes[currentIdx].isLeafNode()) {
-//                    sourceIdx = i;
+                    sourceIdx = i;
 //                } else {
 //                    sourceIdx = this->treeNodes[currentIdx].getBorderIdxInChildBorderVec(i);
 //                }
-//
-//                // Preserve edges to outside this gtree node (i.e. subgraph)
-//                adjNodes.clear();
-//                adjNodeWgts.clear();
-//                for (std::size_t i = 0; i < tempGraph.nodes[border].adjNodes.size(); ++i) {
-//                    if (targets->find(tempGraph.nodes[border].adjNodes[i]) == targets->end()) {
-//                        // This check whether the adj node is within the current gtree node
-//                        // if it is we do not need to preserve the edge
-//                        adjNodes.push_back(tempGraph.nodes[border].adjNodes[i]);
-//                        adjNodeWgts.push_back(tempGraph.nodes[border].adjNodeWgts[i]);
-//                    }
-//                }
-//                // Note: That this will make the graph disconnected but this doesn't
-//                // matter as removing disconnected node won't change search results and
-//                // we are only disconnecting nodes that are not borders of the subgraph
-//                // (i.e. they will not be needed again at higher levels)
-//
-//                tempGraph.nodes[border].adjNodes = std::move(adjNodes);
-//                tempGraph.nodes[border].adjNodeWgts = std::move(adjNodeWgts);
-//                for (std::size_t j = 0; j < sourcesVec->size(); ++j) {
-//                    targetIdx = this->treeNodes[currentIdx].getBorderIdxInChildBorderVec(j); // We will return dist matrix idx whether leaf or not
-//                    if (border != (*sourcesVec)[j]) {
-//                        tempGraph.insertImaginaryNonInvertibleEdge(border,(*sourcesVec)[j],this->treeNodes[currentIdx].distanceMatrix.get(sourceIdx, targetIdx));
-//                    }
-//                }
-//            }
+
+                // Preserve edges to outside this gtree node (i.e. subgraph)
+                adjNodes.clear();
+                adjNodeWgts.clear();
+                for (std::size_t i = 0; i < tempGraph.nodes[border].adjNodes.size(); ++i) {
+                    if (targets->find(tempGraph.nodes[border].adjNodes[i]) == targets->end()) {
+                        // This check whether the adj node is within the current gtree node
+                        // if it is we do not need to preserve the edge
+                        adjNodes.push_back(tempGraph.nodes[border].adjNodes[i]);
+                        adjNodeWgts.push_back(tempGraph.nodes[border].adjNodeWgts[i]);
+                    }
+                }
+                // Note: That this will make the graph disconnected but this doesn't
+                // matter as removing disconnected node won't change search results and
+                // we are only disconnecting nodes that are not borders of the subgraph
+                // (i.e. they will not be needed again at higher levels)
+
+                tempGraph.nodes[border].adjNodes = std::move(adjNodes);
+                tempGraph.nodes[border].adjNodeWgts = std::move(adjNodeWgts);
+                for (std::size_t j = 0; j < sourcesVec->size(); ++j) {
+                    targetIdx = j; //this->treeNodes[currentIdx].getBorderIdxInChildBorderVec(j); // We will return dist matrix idx whether leaf or not
+                    if (border != (*sourcesVec)[j]) {
+                        tempGraph.insertImaginaryNonInvertibleEdge(border,(*sourcesVec)[j],this->treeNodes[currentIdx].distanceMatrix.get(sourceIdx, targetIdx));
+                    }
+                }
+            }
         }
+        sw.stop();
+        std::cout << "Tree level: " << i << " time to calculate: " << sw.getTimeMs() << std::endl;
     }
 
     delete pqueue;
+
+    this->printDistanceMatrixConvergence();
 }
 
 void AdaptiveGtree::initialiseGtreeQueryStructure()
@@ -1700,32 +1765,43 @@ int AdaptiveGtree::getComputations(int leafIdx, int targetIdx)
 
 void AdaptiveGtree::printDistanceMatrixConvergence()
 {
-    unsigned leavesCellsNumber = 0;
-    unsigned leavesFilledCells = 0;
+    std::cout << "Distance matrix convergence" << std::endl;
+    std::vector<std::vector<int>> treeLevelIdxs = this->getTreeNodesByLevel();
+    int level = 0;
+    for(const auto& treeLevel : treeLevelIdxs) {
+        std::cout << " Level " << level << std::endl;
+        level++;
 
-    unsigned internalCellsNumber = 0;
-    unsigned internalFilledCells = 0;
+//        unsigned leavesCellsNumber = 0;
+//        unsigned leavesFilledCells = 0;
 
-    for(auto& node : treeNodes) {
-        auto& nodeDistanceMatrix = node.distanceMatrix;
-        if(node.isLeafNode()) {
-            leavesCellsNumber += nodeDistanceMatrix.size();
-            for(int i = 0; i < nodeDistanceMatrix.size(); ++i) {
-                if(nodeDistanceMatrix.isAssigned(i)) {
-                    leavesFilledCells++;
+        unsigned internalCellsNumber = 0;
+        unsigned internalFilledCells = 0;
+
+        for(const auto& currentIndex : treeLevel) {
+            auto& node = this->treeNodes[currentIndex];
+//        for (auto &node: treeNodes) {
+            auto &nodeDistanceMatrix = node.distanceMatrix;
+//            if (node.isLeafNode()) {
+//                leavesCellsNumber += nodeDistanceMatrix.size();
+//                for (int i = 0; i < nodeDistanceMatrix.size(); ++i) {
+//                    if (nodeDistanceMatrix.isAssigned(i)) {
+//                        leavesFilledCells++;
+//                    }
+//                }
+//            } else {
+                internalCellsNumber += nodeDistanceMatrix.size();
+                for (int i = 0; i < nodeDistanceMatrix.size(); ++i) {
+                    if (nodeDistanceMatrix.isAssigned(i)) {
+                        internalFilledCells++;
+                    }
                 }
-            }
+//            }
         }
-        else {
-            internalCellsNumber += nodeDistanceMatrix.size();
-            for(int i = 0; i < nodeDistanceMatrix.size(); ++i) {
-                if(nodeDistanceMatrix.isAssigned(i)) {
-                    internalFilledCells++;
-                }
-            }
-        }
+
+//        std::cout << "   Leaves distance matrix size: " << leavesFilledCells << "/" << leavesCellsNumber << "="
+//                  << ((double) leavesFilledCells) / leavesCellsNumber << std::endl;
+        std::cout << "   Internal distance matrix size: " << internalFilledCells << "/" << internalCellsNumber << "="
+                  << ((double) internalFilledCells) / internalCellsNumber << std::endl;
     }
-
-    std::cout << "Leaves distance matrix size: " << leavesFilledCells << "/" << leavesCellsNumber << "=" << ((double)leavesFilledCells)/leavesCellsNumber << std::endl;
-    std::cout << "Internal distance matrix size: " << internalFilledCells << "/" << internalCellsNumber << "=" << ((double)internalFilledCells)/internalCellsNumber << std::endl;
 }

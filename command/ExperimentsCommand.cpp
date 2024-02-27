@@ -1795,7 +1795,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                                 }
                             }
 
-                            if(nodeCounter % 1 == 0) {
+                            if(nodeCounter % 10 == 0) {
                                 std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
                                 agtree.printDistanceMatrixConvergence();
                             }
