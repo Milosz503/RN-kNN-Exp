@@ -27,6 +27,7 @@
 #include "../../utility/Statistics.h"
 #include "AdaptiveGtreeNode.h"
 #include "../DijkstraSearch.h"
+#include "DistanceMatrixBuilder.h"
 
 #include <vector>
 #include <unordered_map>
@@ -134,6 +135,7 @@ class AdaptiveGtree {
         friend class boost::serialization::access;
 
         DijkstraSearch dijkstra;
+        DistanceMatrixBuilder distanceMatrixBuilder;
         std::string networkName;
         int numNodes;
         int numEdges;

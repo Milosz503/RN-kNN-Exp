@@ -90,8 +90,8 @@ ignore_variable="1"
 
 # kNN Experimental Parameters
 #road_networks=("DE" "VT" "ME" "COL" "NW" "CAL" "E" "W" "CTR" "USA")
-road_networks=("DE" "VT" "ME" "NW")
-#road_networks=("DE" "VT" "ME")
+#road_networks=("DE" "VT" "ME" "NW")
+road_networks=("DE" "VT" "ME")
 if [[ $edge_type == "d" ]]; then
     index_parameters=("gtree=1,agtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$DE_index_parameters"
                       "gtree=1,agtree=1,road=1,silc=1,phl=1,ch=0,tnr=0,alt=0,$VT_index_parameters"

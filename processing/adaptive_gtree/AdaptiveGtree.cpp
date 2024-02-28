@@ -30,7 +30,8 @@
 #include <iostream>
 
 AdaptiveGtree::AdaptiveGtree(std::string networkName, int numNodes, int numEdges, int fanout, std::size_t maxLeafSize) :
-        networkName(networkName), numNodes(numNodes), numEdges(numEdges), fanout(fanout), maxLeafSize(maxLeafSize)
+        networkName(networkName), numNodes(numNodes), numEdges(numEdges), fanout(fanout), maxLeafSize(maxLeafSize),
+        distanceMatrixBuilder(&dijkstra)
 {
     this->nodeIDLeafVerticesVecIdx.assign(this->numNodes, -1);
     this->nodeIDLeafBordersVecIdx.assign(this->numNodes, -1);
@@ -38,7 +39,8 @@ AdaptiveGtree::AdaptiveGtree(std::string networkName, int numNodes, int numEdges
     this->nodeLeafIdxs.assign(this->numNodes, -1);
 }
 
-AdaptiveGtree::AdaptiveGtree()
+AdaptiveGtree::AdaptiveGtree() :
+        distanceMatrixBuilder(&dijkstra)
 {
 }
 
@@ -983,7 +985,7 @@ bool AdaptiveGtree::getSourceLeafkNNsByINE(NodeID queryNode, unsigned int k, std
                         localQueue.insert(this->treeNodes[leafNode].bordersVec[i],minDist+this->distanceMatrix[minDistNodeID][this->treeNodes[leafNode].bordersVec[i]]);
 #else
                         if (!this->treeNodes[leafNode].distanceMatrix.isAssigned(borderIdx, targetBorderIdx)) {
-                            DistanceMatrixBuilder::fillRow2(dijkstra, graph, this->treeNodes[leafNode], minDistNodeID, borderIdx,
+                            distanceMatrixBuilder.fillRow2(graph, this->treeNodes[leafNode], minDistNodeID, borderIdx,
                                                            this->treeNodes[leafNode].bordersVec);
                         }
                         localQueue.insert(this->treeNodes[leafNode].bordersVec[i], minDist +
@@ -1022,14 +1024,14 @@ EdgeWeight AdaptiveGtree::SPDistToSourceLeafNode(Graph &graph, NodeID u, int sou
     int uIdx = this->getIdxInLeafVerticesVec(u);
     if (!this->treeNodes[sourceLeafIdx].bordersVec.empty()) {
         if (!this->treeNodes[sourceLeafIdx].distanceMatrix.isAssigned(0, uIdx)) {
-            DistanceMatrixBuilder::fillColumn(dijkstra, graph, this->treeNodes[sourceLeafIdx].distanceMatrix, u,
+            distanceMatrixBuilder.fillColumn(graph, this->treeNodes[sourceLeafIdx].distanceMatrix, u,
                                               uIdx, this->treeNodes[sourceLeafIdx].bordersVec);
         }
         spDist = this->treeNodes[sourceLeafIdx].distanceMatrix.get(0, uIdx);
         this->sourceToTreeNodeBorderDist[sourceLeafIdx][0] = spDist;
         for (std::size_t i = 0; i < this->treeNodes[sourceLeafIdx].bordersVec.size(); ++i) {
             if (!this->treeNodes[sourceLeafIdx].distanceMatrix.isAssigned(i, uIdx)) {
-                DistanceMatrixBuilder::fillColumn(dijkstra, graph, this->treeNodes[sourceLeafIdx].distanceMatrix, u,
+                distanceMatrixBuilder.fillColumn(graph, this->treeNodes[sourceLeafIdx].distanceMatrix, u,
                                                   uIdx, this->treeNodes[sourceLeafIdx].bordersVec);
             }
             sourceToNextBorderDist = this->treeNodes[sourceLeafIdx].distanceMatrix.get(i, uIdx);
@@ -1088,7 +1090,7 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, in
             parentBorderIdx = this->treeNodes[parentTreeIdx].getBorderIdxInChildBorderVec(k);
             if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(childBorderIdx, parentBorderIdx)) {
                 Logger::debug(" > Distance matrix not assigned");
-                DistanceMatrixBuilder::fillRow2(dijkstra, graph, this->treeNodes[parentTreeIdx],
+                distanceMatrixBuilder.fillRow2(graph, this->treeNodes[parentTreeIdx],
                                                this->treeNodes[childTreeIdx].bordersVec[0],
                                                childBorderIdx,
                                                this->treeNodes[parentTreeIdx].bordersVec);
@@ -1108,7 +1110,7 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, in
                 parentBorderIdx = this->treeNodes[parentTreeIdx].getBorderIdxInChildBorderVec(k);
                 if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(childBorderIdx, parentBorderIdx)) {
                     Logger::debug(" >   Distance matrix not assigned");
-                    DistanceMatrixBuilder::fillRow2(dijkstra, graph, this->treeNodes[parentTreeIdx],
+                    distanceMatrixBuilder.fillRow2(graph, this->treeNodes[parentTreeIdx],
                                                    this->treeNodes[childTreeIdx].bordersVec[j],
                                                    childBorderIdx,
                                                    this->treeNodes[parentTreeIdx].bordersVec);
@@ -1182,7 +1184,7 @@ AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targe
             targetBorderIdx = targetBorderOffset + k;
             if (!this->treeNodes[LCAIdx].distanceMatrix.isAssigned(childBorderIdx, targetBorderIdx)) {
                 Logger::debug("SPDistToSiblingNode distanceMatrix not assigned");
-                DistanceMatrixBuilder::fillRow3(dijkstra, graph, this->treeNodes[LCAIdx],
+                distanceMatrixBuilder.fillRow3(graph, this->treeNodes[LCAIdx],
                                                this->treeNodes[firstLCAChildIdx].bordersVec[0],
                                                childBorderIdx,
                                                this->treeNodes[targetLCAChildIdx].bordersVec,
@@ -1199,7 +1201,7 @@ AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targe
             for (std::size_t k = 0; k < this->treeNodes[targetLCAChildIdx].bordersVec.size(); ++k) {
                 targetBorderIdx = targetBorderOffset + k;
                 if (!this->treeNodes[LCAIdx].distanceMatrix.isAssigned(childBorderIdx, targetBorderIdx)) {
-                    DistanceMatrixBuilder::fillRow3(dijkstra, graph, this->treeNodes[LCAIdx],
+                    distanceMatrixBuilder.fillRow3(graph, this->treeNodes[LCAIdx],
                                                    this->treeNodes[firstLCAChildIdx].bordersVec[j],
                                                    childBorderIdx,
                                                    this->treeNodes[targetLCAChildIdx].bordersVec,
@@ -1267,7 +1269,7 @@ EdgeWeight AdaptiveGtree::SPDistToChildNode(Graph &graph, int childTreeIdx, int 
         for (std::size_t k = 0; k < this->treeNodes[childTreeIdx].bordersVec.size(); ++k) {
             childBorderIdx = childBorderOffset + k;
             if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(parentBorderIdx, childBorderIdx)) {
-                DistanceMatrixBuilder::fillRow3(dijkstra, graph, this->treeNodes[parentTreeIdx],
+                distanceMatrixBuilder.fillRow3(graph, this->treeNodes[parentTreeIdx],
                                                this->treeNodes[parentTreeIdx].bordersVec[0],
                                                parentBorderIdx,
                                                this->treeNodes[childTreeIdx].bordersVec,
@@ -1284,7 +1286,7 @@ EdgeWeight AdaptiveGtree::SPDistToChildNode(Graph &graph, int childTreeIdx, int 
             for (std::size_t k = 0; k < this->treeNodes[childTreeIdx].bordersVec.size(); ++k) {
                 childBorderIdx = childBorderOffset + k;
                 if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(parentBorderIdx, childBorderIdx)) {
-                    DistanceMatrixBuilder::fillRow3(dijkstra, graph, this->treeNodes[parentTreeIdx],
+                    distanceMatrixBuilder.fillRow3(graph, this->treeNodes[parentTreeIdx],
                                                    this->treeNodes[parentTreeIdx].bordersVec[j],
                                                    parentBorderIdx,
                                                    this->treeNodes[childTreeIdx].bordersVec,
@@ -1340,13 +1342,13 @@ EdgeWeight AdaptiveGtree::SPDistToLeafTarget(Graph &graph, NodeID target, int le
         std::vector<NodeID> targetsVec = this->treeNodes[leafIdx].bordersVec;
 
         if (!this->treeNodes[leafIdx].distanceMatrix.isAssigned(0, vIdx)) {
-            DistanceMatrixBuilder::fillColumn(dijkstra, graph, this->treeNodes[leafIdx].distanceMatrix, target,
+            distanceMatrixBuilder.fillColumn(graph, this->treeNodes[leafIdx].distanceMatrix, target,
                                               vIdx, this->treeNodes[leafIdx].bordersVec);
         }
         spDist = this->sourceToTreeNodeBorderDist[leafIdx][0] + this->treeNodes[leafIdx].distanceMatrix.atIndex(vIdx);
         for (std::size_t i = 0; i < this->treeNodes[leafIdx].bordersVec.size(); ++i) {
             if (!this->treeNodes[leafIdx].distanceMatrix.isAssigned(i, vIdx)) {
-                DistanceMatrixBuilder::fillColumn(dijkstra, graph, this->treeNodes[leafIdx].distanceMatrix, target,
+                distanceMatrixBuilder.fillColumn(graph, this->treeNodes[leafIdx].distanceMatrix, target,
                                                   vIdx, this->treeNodes[leafIdx].bordersVec);
             }
 
