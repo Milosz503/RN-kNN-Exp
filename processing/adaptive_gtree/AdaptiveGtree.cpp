@@ -109,16 +109,18 @@ void AdaptiveGtree::buildTreeHierarchy(Graph &graph)
     METISWrapper metis(this->numNodes, this->numEdges, this->fanout);
 
     std::unordered_set<NodeID> subgraph = graph.getNodesIDsUset();
-    this->addNode(ROOT_PARENT_INDEX, subgraph, graph, metis);
+
+    this->addNode(ROOT_PARENT_INDEX, subgraph, graph, metis, 0);
 }
 
 void
-AdaptiveGtree::addNode(int parentIdx, std::unordered_set<NodeID> &subgraph, Graph &originalGraph, METISWrapper &metis)
+AdaptiveGtree::addNode(int parentIdx, std::unordered_set<NodeID> &subgraph, Graph &originalGraph, METISWrapper &metis,
+                       int level)
 {
     // Create Gtree node and add to tree
     int treeIdx = this->treeNodes.size();
     int childvecIdx;
-    AdaptiveGtreeNode treeNode(treeIdx, parentIdx, subgraph.size());
+    AdaptiveGtreeNode treeNode(treeIdx, parentIdx, subgraph.size(), level);
     this->treeNodes.push_back(treeNode);
 
     if (parentIdx != ROOT_PARENT_INDEX) {
@@ -133,7 +135,7 @@ AdaptiveGtree::addNode(int parentIdx, std::unordered_set<NodeID> &subgraph, Grap
 
     // Find and add children of this node
     if (subgraph.size() > this->maxLeafSize) {
-        this->addChildren(treeIdx, subgraph, originalGraph, metis);
+        this->addChildren(treeIdx, subgraph, originalGraph, metis, level+1);
     } else {
         // If this has less than tau graph node then we stop partitions
         this->treeNodes[treeIdx].setLeafNode();
@@ -190,7 +192,7 @@ AdaptiveGtree::addNode(int parentIdx, std::unordered_set<NodeID> &subgraph, Grap
 }
 
 void AdaptiveGtree::addChildren(int parentTreeIdx, std::unordered_set<NodeID> &parentGraph, Graph &originalGraph,
-                                METISWrapper &metis)
+                                METISWrapper &metis, int level)
 {
     // Assuming original graph is undirected graph (if not we must make undirected
     // in order for METIS to function)
@@ -213,7 +215,7 @@ void AdaptiveGtree::addChildren(int parentTreeIdx, std::unordered_set<NodeID> &p
 
     // Also add children of this node to Gtree
     for (std::size_t i = 0; i < childGraphs.size(); ++i) {
-        this->addNode(parentTreeIdx, childGraphs[i], originalGraph, metis);
+        this->addNode(parentTreeIdx, childGraphs[i], originalGraph, metis, level);
         // Note: We release child graph at this point as it is not need again
         // and this would improve overall memory usage (it won't affect vector size)
         utility::releaseSTLCollection(childGraphs[i]);
@@ -232,13 +234,14 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
     std::vector<EdgeWeight> adjNodeWgts;
     std::vector<NodeID> *sourcesVec, *targetsVec;
 
+    treeHeight = treeLevelIdxs.size();
+
     for (int i = treeLevelIdxs.size() - 1; i >= 0; --i) {
         // Clear memory in unordered_map or it will continue to grow
         // Note: According to the paper, total number of borders at each level should be O(n)
         // so if we clear this map for each level then we should it's total size should be O(n)
-        StopWatch sw;
-        sw.start();
 
+        int counter = 0;
         for (std::size_t j = 0; j < treeLevelIdxs[i].size(); ++j) {
 
             currentIdx = treeLevelIdxs[i][j];
@@ -368,8 +371,11 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
                 }
             }
         }
+        StopWatch sw;
+        sw.start();
+        simplifiedGraphs.push_back(tempGraph);
         sw.stop();
-//        std::cout << "Tree level: " << i << " time to calculate: " << sw.getTimeMs() << std::endl;
+        std::cout << "Tree level: " << i << " time to copy: " << sw.getTimeMs() << std::endl;
     }
 
     delete pqueue;
@@ -512,16 +518,16 @@ EdgeWeight AdaptiveGtree::getShortestPathDistance(Graph &graph, NodeID u, NodeID
         int x = i; // This is safe, depth of tree is O(log(n)) and n is at most 24 million in US dataset
         for (int k = uPathFromRoot.size() - 1; k > x; --k) {
             // Since k > x and x is at worst 0, k-1 is safe here
-            this->SPDistToParentNode(graph, uPathFromRoot[k], uPathFromRoot[k - 1], false);
+            this->SPDistToParentNode(uPathFromRoot[k], uPathFromRoot[k - 1], false);
         }
 
         // From first child of LCA to second child of LCA
-        this->SPDistToSiblingNode(graph, uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
+        this->SPDistToSiblingNode(uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
 
         // From second child of LCA to target leaf
         for (std::size_t k = j; k < vPathFromRoot.size() - 1; ++k) {
             // Note the size()-1 in the above condition
-            this->SPDistToChildNode(graph, vPathFromRoot[k + 1], vPathFromRoot[k], false);
+            this->SPDistToChildNode(vPathFromRoot[k + 1], vPathFromRoot[k], false);
         }
 
         // We assume target has not been visited
@@ -781,7 +787,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
             if (Tn != 0) {
                 // We don't set Tmin if Tn is the root because this represents
                 // infinite instead - it's faster to check Tn != 0 than Tmin < max int
-                Tmin = this->SPDistToParentNode(graph, prevTn, Tn);
+                Tmin = this->SPDistToParentNode(prevTn, Tn);
 #if defined(COLLECT_STATISTICS)
                 this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -791,7 +797,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
             for (int childIdx: occList.nonLeafOccurenceList[Tn]) {
                 if (childIdx != prevTn) {
                     // We only add children that we haven't already visited
-                    dist = this->SPDistToSiblingNode(graph, prevTn, childIdx, Tn);
+                    dist = this->SPDistToSiblingNode(prevTn, childIdx, Tn);
 #if defined(COLLECT_STATISTICS)
                     this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -819,7 +825,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
                 if (Tn != 0) {
                     // We don't set Tmin if Tn is the root because this represents
                     // infinite instead - it's faster to check Tn != 0 than Tmin < max int
-                    Tmin = this->SPDistToParentNode(graph, prevTn, Tn);
+                    Tmin = this->SPDistToParentNode(prevTn, Tn);
 #if defined(COLLECT_STATISTICS)
                     this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -828,7 +834,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
                 // Tn is guaranteed to be a non-leaf here because we move to parent
                 for (int childIdx: occList.nonLeafOccurenceList[Tn]) {
                     if (childIdx != prevTn) {
-                        dist = this->SPDistToSiblingNode(graph, prevTn, childIdx, Tn);
+                        dist = this->SPDistToSiblingNode(prevTn, childIdx, Tn);
 #if defined(COLLECT_STATISTICS)
                         this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,prevTn));
 #endif
@@ -858,7 +864,7 @@ void AdaptiveGtree::getKNNs(OccurenceList &occList, unsigned int k, NodeID query
                     }
                 } else {
                     for (int childIdx: occList.nonLeafOccurenceList[treeIdx]) {
-                        dist = this->SPDistToChildNode(graph, childIdx, treeIdx);
+                        dist = this->SPDistToChildNode(childIdx, treeIdx);
 #if defined(COLLECT_STATISTICS)
                         this->stats.incrementStatistic("computations_materialized",this->getComputations(sourceLeaf,treeIdx));
 #endif
@@ -1050,7 +1056,7 @@ EdgeWeight AdaptiveGtree::SPDistToSourceLeafNode(Graph &graph, NodeID u, int sou
     return spDist;
 }
 
-EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist)
+EdgeWeight AdaptiveGtree::SPDistToParentNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist)
 {
     Logger::debug("SPDistToParentNode start");
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToParentBorderDist;
@@ -1082,6 +1088,8 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, in
 
     childPos = this->treeNodes[childTreeIdx].getParentChildIdx();
     childBorderOffset = this->treeNodes[parentTreeIdx].getChildOffsetInChildBorderVec(childPos);
+
+    DynamicGraph& graph = simplifiedGraphs[this->getDynamicGraphIndexFromTreeNode(parentTreeIdx)];
 
     if (this->treeNodes[childTreeIdx].bordersVec.size() > 0) {
         childBorderIdx = childBorderOffset;
@@ -1143,7 +1151,7 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, in
 }
 
 EdgeWeight
-AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist)
+AdaptiveGtree::SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist)
 {
     Logger::debug("SPDistToSiblingNode start");
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToBorderDist;
@@ -1176,6 +1184,8 @@ AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targe
     childBorderOffset = this->treeNodes[LCAIdx].getChildOffsetInChildBorderVec(childPos);
     targetChildPos = this->treeNodes[targetLCAChildIdx].getParentChildIdx();
     targetBorderOffset = this->treeNodes[LCAIdx].getChildOffsetInChildBorderVec(targetChildPos);
+
+    DynamicGraph& graph = simplifiedGraphs[this->getDynamicGraphIndexFromTreeNode(LCAIdx)];
 
     if (this->treeNodes[firstLCAChildIdx].bordersVec.size() > 0) {
         childBorderIdx = childBorderOffset;
@@ -1233,7 +1243,7 @@ AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targe
     return spDist;
 }
 
-EdgeWeight AdaptiveGtree::SPDistToChildNode(Graph &graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist)
+EdgeWeight AdaptiveGtree::SPDistToChildNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist)
 {
 
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToBorderDist;
@@ -1262,6 +1272,8 @@ EdgeWeight AdaptiveGtree::SPDistToChildNode(Graph &graph, int childTreeIdx, int 
     int childPos, parentBorderIdx, childBorderOffset, childBorderIdx;
     childPos = this->treeNodes[childTreeIdx].getParentChildIdx();
     childBorderOffset = this->treeNodes[parentTreeIdx].getChildOffsetInChildBorderVec(childPos);
+
+    DynamicGraph& graph = simplifiedGraphs[this->getDynamicGraphIndexFromTreeNode(parentTreeIdx)];
 
     if (this->treeNodes[parentTreeIdx].bordersVec.size() > 0) {
         parentBorderIdx = this->treeNodes[parentTreeIdx].getBorderIdxInChildBorderVec(0);
@@ -1398,6 +1410,10 @@ void AdaptiveGtree::setEdgeNotInSubgraph(NodeID edge)
     this->edgeInLeafSubgraph[edge] = false;
 }
 
+int AdaptiveGtree::getDynamicGraphIndexFromTreeNode(int treeNodeIdx) {
+    return this->treeHeight - this->treeNodes[treeNodeIdx].getLevel() - 2;
+}
+
 double AdaptiveGtree::computeIndexSize()
 {
     double memoryUsage = 0;
@@ -1525,14 +1541,14 @@ EdgeWeight AdaptiveGtree::getRepeatedShortestPathDistance(Graph &graph, NodeID u
         for (int k = uPathFromRoot.size() - 1; k > x; --k) {
             // Since k > x and x is at worst 0, k-1 is safe here
             if (!visited[uPathFromRoot[k - 1]]) {
-                this->SPDistToParentNode(graph, uPathFromRoot[k], uPathFromRoot[k - 1], false);
+                this->SPDistToParentNode(uPathFromRoot[k], uPathFromRoot[k - 1], false);
                 visited[uPathFromRoot[k - 1]] = true;
             }
         }
 
         // From first child of LCA to second child of LCA
         if (!visited[vPathFromRoot[j]]) {
-            this->SPDistToSiblingNode(graph, uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
+            this->SPDistToSiblingNode(uPathFromRoot[i], vPathFromRoot[j], LCAIdx, false);
             visited[vPathFromRoot[j]] = true;
         }
 
@@ -1540,7 +1556,7 @@ EdgeWeight AdaptiveGtree::getRepeatedShortestPathDistance(Graph &graph, NodeID u
         for (std::size_t k = j; k < vPathFromRoot.size() - 1; ++k) {
             // Note the size()-1 in the above condition
             if (!visited[vPathFromRoot[k + 1]]) {
-                this->SPDistToChildNode(graph, vPathFromRoot[k + 1], vPathFromRoot[k], false);
+                this->SPDistToChildNode(vPathFromRoot[k + 1], vPathFromRoot[k], false);
                 visited[vPathFromRoot[k + 1]] = true;
             }
         }

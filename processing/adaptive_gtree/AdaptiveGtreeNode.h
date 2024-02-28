@@ -24,7 +24,7 @@
 class AdaptiveGtreeNode {
 
 public:
-    AdaptiveGtreeNode(int treeIdx, int parentIdx, int numVertices);
+    AdaptiveGtreeNode(int treeIdx, int parentIdx, int numVertices, int level);
     AdaptiveGtreeNode();
     bool isLeafNode();
     void setLeafNode();
@@ -32,6 +32,7 @@ public:
     int getParentIdx();
     int getNumVertices();
     int getParentChildIdx();
+    int getLevel();
     void setParentChildIdx(int idx);
     int addChild(int treeIdx);
     std::vector<int>& getChildren();
@@ -87,6 +88,7 @@ private:
     int numVertices;
     bool isLeaf;
     int parentChildIdx; // Index in parent child vector
+    int level;
 
     // Boost Serialization
     template<class Archive>

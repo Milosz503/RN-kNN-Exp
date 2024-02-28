@@ -63,8 +63,8 @@ class AdaptiveGtree {
         int getBorderToBorderRelationships();
         int getAvgPathCost(int treeIdx = 0); // By default starts at root
         std::vector<std::vector<int>> getTreeNodesByLevel();
-        void addNode(int parentTreeIdx, std::unordered_set<NodeID>& subgraph, Graph& originalGraph, METISWrapper& metis);
-        void addChildren(int parentTreeIdx, std::unordered_set<NodeID>& parentSubgraph, Graph& originalGraph, METISWrapper& metis);
+        void addNode(int parentTreeIdx, std::unordered_set<NodeID>& subgraph, Graph& originalGraph, METISWrapper& metis, int level);
+        void addChildren(int parentTreeIdx, std::unordered_set<NodeID>& parentSubgraph, Graph& originalGraph, METISWrapper& metis, int level);
         EdgeWeight getShortestPathDistance(Graph& graph, NodeID u, NodeID v);
 //        EdgeWeight SPDist(NodeID u, NodeID v, std::vector<int>& gtreePath, int firstLCAChild);
         EdgeWeight SPDistLeaf(NodeID u, NodeID v, int leafNode, Graph& graph);
@@ -73,9 +73,9 @@ class AdaptiveGtree {
         EdgeWeight DijkstraDist(NodeID u, NodeID v, int leafNode, Graph& graph);
         std::vector<int> getGtreePath(NodeID u, NodeID v, int& firstLCAChild);
         EdgeWeight SPDistToSourceLeafNode(Graph& graph, NodeID u, int treeIdx);
-        EdgeWeight SPDistToParentNode(Graph &graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
-        EdgeWeight SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist = true);
-        EdgeWeight SPDistToChildNode(Graph &graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
+        EdgeWeight SPDistToParentNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
+        EdgeWeight SPDistToSiblingNode(int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist = true);
+        EdgeWeight SPDistToChildNode(int childTreeIdx, int parentTreeIdx, bool computeSPDist = true);
         EdgeWeight SPDistToLeafTarget(Graph& graph, NodeID target, int leafIdx);
         void getKNNs(OccurenceList& occList, unsigned int k, NodeID queryNodeID, std::vector<NodeID>& kNNs,
                  std::vector<EdgeWeight>& kNNDistances, Graph& graph);
@@ -89,11 +89,14 @@ class AdaptiveGtree {
         void setLeafBordersVecIdx(NodeID u, int leafBordersVecIdx);
         bool isEdgeInLeafSubgraph(NodeID edge);
         void setEdgeNotInSubgraph(NodeID edge);
+        int getDynamicGraphIndexFromTreeNode(int treeNodeIdx);
+
         double computeIndexSize();
         double computeMemoryUsage();
         double computeDistanceMatrixMemoryUsage();
         void printInfo();
         int getComputations(int leafIdx, int currIdx);
+
 
         // getRepeatedShortestPathDistance is used to find the shortest path distance to multiple
         // target from the same query node. This assumes the G-tree index is not being used
@@ -136,11 +139,14 @@ class AdaptiveGtree {
 
         DijkstraSearch dijkstra;
         DistanceMatrixBuilder distanceMatrixBuilder;
+        std::vector<DynamicGraph> simplifiedGraphs;
+
         std::string networkName;
         int numNodes;
         int numEdges;
         int fanout;
         std::size_t maxLeafSize;
+        int treeHeight;
 
         // Non-Serialized Members
         static const int ROOT_PARENT_INDEX = -1;

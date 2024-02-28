@@ -14,8 +14,8 @@
  * AdaptiveGtreeNode
  */
 
-AdaptiveGtreeNode::AdaptiveGtreeNode(int treeIdx, int parentIdx, int numVertices):
-        treeIdx(treeIdx), parentIdx(parentIdx), numVertices(numVertices), isLeaf(false) {}
+AdaptiveGtreeNode::AdaptiveGtreeNode(int treeIdx, int parentIdx, int numVertices, int level):
+        treeIdx(treeIdx), parentIdx(parentIdx), numVertices(numVertices), isLeaf(false), level(level) {}
 
 AdaptiveGtreeNode::AdaptiveGtreeNode() {}
 
@@ -47,6 +47,11 @@ int AdaptiveGtreeNode::getNumVertices()
 int AdaptiveGtreeNode::getParentChildIdx()
 {
     return this->parentChildIdx;
+}
+
+int AdaptiveGtreeNode::getLevel()
+{
+    return level;
 }
 
 void AdaptiveGtreeNode::setParentChildIdx(int idx)
@@ -284,3 +289,5 @@ double AdaptiveGtreeNode::computeDistanceMatrixMemoryUsageBytes()
     memoryUsage += sizeof(EdgeWeight)*this->distanceMatrix.capacity();
     return memoryUsage;
 }
+
+

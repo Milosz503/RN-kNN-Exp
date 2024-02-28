@@ -40,6 +40,29 @@ public:
     }
 
     // TODO: make a better name
+    void fillRow2(DynamicGraph &graph, AdaptiveGtreeNode &node, NodeID sourceNodeID, int sourceIdx,
+                  const std::vector<NodeID> &targetsVec)
+    {
+        clearState();
+        DistanceMatrix &matrix = node.distanceMatrix;
+
+        for (std::size_t j = 0; j < targetsVec.size(); ++j) {
+            auto column = node.getBorderIdxInChildBorderVec(j);
+            if (!matrix.isAssigned(sourceIdx, column)) {
+                unassignedNodes.push_back(targetsVec[j]);
+                nodesMapper.push_back(column);
+            }
+        }
+        calculateDistances(graph, sourceNodeID);
+
+        for (std::size_t j = 0; j < unassignedNodes.size(); ++j) {
+            auto weight = distances[unassignedNodes[j]];
+            auto column = nodesMapper[j];
+            Logger::debug(" > setting weight: ", column, ",", sourceIdx, " ", weight);
+            matrix.set(sourceIdx, column, weight);
+        }
+    }
+
     void fillRow2(Graph &graph, AdaptiveGtreeNode &node, NodeID sourceNodeID, int sourceIdx,
                   const std::vector<NodeID> &targetsVec)
     {
@@ -63,8 +86,9 @@ public:
         }
     }
 
+
     // TODO: make a better name
-    void fillRow3(Graph &graph, AdaptiveGtreeNode &node, NodeID sourceNodeID, int sourceIdx,
+    void fillRow3(DynamicGraph &graph, AdaptiveGtreeNode &node, NodeID sourceNodeID, int sourceIdx,
                   const std::vector<NodeID> &targetsVec, int targetOffset)
     {
         clearState();
@@ -93,6 +117,15 @@ public:
     }
 
     inline void calculateDistances(Graph &graph, NodeID sourceNodeID)
+    {
+        distances.clear();
+        BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
+        std::unordered_set<NodeID> targetsUset(unassignedNodes.begin(), unassignedNodes.end());
+        Logger::debug(" > row not assigned, borders size: ", unassignedNodes.size());
+        dijkstra->findSSMTDistances(graph, sourceNodeID, targetsUset, distances, &pqueue_local);
+    }
+
+    inline void calculateDistances(DynamicGraph &graph, NodeID sourceNodeID)
     {
         distances.clear();
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
