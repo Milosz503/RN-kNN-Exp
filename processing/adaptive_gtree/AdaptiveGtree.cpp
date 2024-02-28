@@ -1013,7 +1013,7 @@ EdgeWeight AdaptiveGtree::SPDistToSourceLeafNode(Graph &graph, NodeID u, int sou
 
 EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, int parentTreeIdx, bool computeSPDist)
 {
-    Logger::log("SPDistToParentNode start");
+    Logger::debug("SPDistToParentNode start");
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToParentBorderDist;
 
     // Note: We assume we have already calculated distance to childTreeIdx from source
@@ -1050,7 +1050,7 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, in
         for (std::size_t k = 0; k < this->treeNodes[parentTreeIdx].bordersVec.size(); ++k) {
             parentBorderIdx = this->treeNodes[parentTreeIdx].getBorderIdxInChildBorderVec(k);
             if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(childBorderIdx, parentBorderIdx)) {
-                Logger::log(" > Distance matrix not assigned");
+                Logger::debug(" > Distance matrix not assigned");
                 DistanceMatrixBuilder::fillRow2(dijkstra, graph, this->treeNodes[parentTreeIdx],
                                                this->treeNodes[childTreeIdx].bordersVec[0],
                                                childBorderIdx,
@@ -1063,14 +1063,14 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, in
             this->sourceToTreeNodeBorderDist[parentTreeIdx][k] = sourceToParentBorderDist;
         }
         for (std::size_t j = 0; j < this->treeNodes[childTreeIdx].bordersVec.size(); ++j) {
-            Logger::log(" > For ", j);
+            Logger::debug(" > For ", j);
             childBorderIdx = childBorderOffset + j;
             sourceToChildBorderDist = this->sourceToTreeNodeBorderDist[childTreeIdx][j];
             for (std::size_t k = 0; k < this->treeNodes[parentTreeIdx].bordersVec.size(); ++k) {
-                Logger::log(" >   Inner for ", k);
+                Logger::debug(" >   Inner for ", k);
                 parentBorderIdx = this->treeNodes[parentTreeIdx].getBorderIdxInChildBorderVec(k);
                 if (!this->treeNodes[parentTreeIdx].distanceMatrix.isAssigned(childBorderIdx, parentBorderIdx)) {
-                    Logger::log(" >   Distance matrix not assigned");
+                    Logger::debug(" >   Distance matrix not assigned");
                     DistanceMatrixBuilder::fillRow2(dijkstra, graph, this->treeNodes[parentTreeIdx],
                                                    this->treeNodes[childTreeIdx].bordersVec[j],
                                                    childBorderIdx,
@@ -1106,7 +1106,7 @@ EdgeWeight AdaptiveGtree::SPDistToParentNode(Graph & graph, int childTreeIdx, in
 EdgeWeight
 AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targetLCAChildIdx, int LCAIdx, bool computeSPDist)
 {
-    Logger::log("SPDistToSiblingNode start");
+    Logger::debug("SPDistToSiblingNode start");
     EdgeWeight spDist = 0, sourceToNextBorderDist, sourceToChildBorderDist, sourceToBorderDist;
 
 #if defined(GTREE_STL_HASH_TABLE_DIST_MATRIX) || defined(GTREE_GOOGLE_DENSEHASH_DIST_MATRIX)
@@ -1144,7 +1144,7 @@ AdaptiveGtree::SPDistToSiblingNode(Graph &graph, int firstLCAChildIdx, int targe
         for (std::size_t k = 0; k < this->treeNodes[targetLCAChildIdx].bordersVec.size(); ++k) {
             targetBorderIdx = targetBorderOffset + k;
             if (!this->treeNodes[LCAIdx].distanceMatrix.isAssigned(childBorderIdx, targetBorderIdx)) {
-                Logger::log("SPDistToSiblingNode distanceMatrix not assigned");
+                Logger::debug("SPDistToSiblingNode distanceMatrix not assigned");
                 DistanceMatrixBuilder::fillRow3(dijkstra, graph, this->treeNodes[LCAIdx],
                                                this->treeNodes[firstLCAChildIdx].bordersVec[0],
                                                childBorderIdx,

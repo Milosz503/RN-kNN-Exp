@@ -375,7 +375,7 @@ void ExperimentsCommand::buildIndexes(std::string bgrFileName, std::string param
         parameterKeys.push_back("maxleafsize");
         parameterValues.push_back(parameterMap["gtree_maxleafsize"]);
         idxOutputFile = filePathPrefix + "/indexes/" + utility::constructIndexFileName(graph.getNetworkName(),constants::IDX_AGTREE_CMD,parameterKeys,parameterValues);
-        this->buildAGtree(graph,fanout,maxLeafSize,idxOutputFile,statsOutputFile,specialFields);
+        delete this->buildAGtree(graph,fanout,maxLeafSize,idxOutputFile,statsOutputFile,specialFields);
     }
     
     if (buildRoadIdx) {
@@ -741,25 +741,25 @@ void ExperimentsCommand::buildGtree(Graph& graph, int fanout, std::size_t maxLea
 }
 
 
-void ExperimentsCommand::buildAGtree(Graph &graph, int fanout, std::size_t maxLeafSize, std::string idxOutputFile,
+AdaptiveGtree* ExperimentsCommand::buildAGtree(Graph &graph, int fanout, std::size_t maxLeafSize, std::string idxOutputFile,
                                      std::string statsOutputFile, std::vector<std::string> specialFields) {
     StopWatch sw;
 
     sw.start();
-    AdaptiveGtree agtree(graph.getNetworkName(),graph.getNumNodes(),graph.getNumEdges(),fanout,maxLeafSize);
-    agtree.buildGtree(graph);
+    AdaptiveGtree* agtree = new AdaptiveGtree(graph.getNetworkName(),graph.getNumNodes(),graph.getNumEdges(),fanout,maxLeafSize);
+    agtree->buildGtree(graph);
     sw.stop();
 
     double processingTimeMs = sw.getTimeMs();
     // Note: G-tree uses Graph to search for object within leaf (only edges and edge weights same parts as INE)
-    double memoryUsage = agtree.computeIndexSize() + graph.computeINEIndexSize();
+    double memoryUsage = agtree->computeIndexSize() + graph.computeINEIndexSize();
 
-    IndexTuple stats(agtree.getNetworkName(),agtree.getNumNodes(),agtree.getNumEdges(),
+    IndexTuple stats(agtree->getNetworkName(),agtree->getNumNodes(),agtree->getNumEdges(),
                      constants::IDX_GTREE_CMD,processingTimeMs,memoryUsage);
     stats.addSupplementaryFields("max_leaf_size",std::to_string(maxLeafSize));
     stats.addSupplementaryFields("fanout",std::to_string(fanout));
-    stats.addSupplementaryFields("levels",std::to_string(agtree.getNumLevels()));
-    int numTreeNodes = agtree.getTreeSize(), numBorders = agtree.getNumBorders(), b2bRelationships = agtree.getBorderToBorderRelationships(), avgPathCost = agtree.getAvgPathCost();
+    stats.addSupplementaryFields("levels",std::to_string(agtree->getNumLevels()));
+    int numTreeNodes = agtree->getTreeSize(), numBorders = agtree->getNumBorders(), b2bRelationships = agtree->getBorderToBorderRelationships(), avgPathCost = agtree->getAvgPathCost();
     stats.addSupplementaryFields("num_tree_nodes",std::to_string(numTreeNodes));
     stats.addSupplementaryFields("num_borders",std::to_string(numBorders));
     stats.addSupplementaryFields("num_b2b_rel",std::to_string(b2bRelationships));
@@ -768,11 +768,13 @@ void ExperimentsCommand::buildAGtree(Graph &graph, int fanout, std::size_t maxLe
 
     std::cout << stats.getMultilineTupleString();
 
-    serialization::outputIndexToBinaryFile<AdaptiveGtree>(agtree,idxOutputFile);
+    serialization::outputIndexToBinaryFile<AdaptiveGtree>(*agtree,idxOutputFile);
 
     this->outputCommandStats(statsOutputFile,stats.getTupleString());
 
     std::cout << "AdaptiveGtree index successfully created!" << std::endl;
+
+    return agtree;
 }
 
 
@@ -1660,7 +1662,7 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                         }
 
                         int nodeCounter = 0;
-                        
+
                         for (auto queryNodeIt = queryNodes.begin(); queryNodeIt != queryNodes.end(); ++queryNodeIt) {
                             kNNs.clear();
                             kNNDistances.clear();
@@ -1692,7 +1694,7 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                             }
 
                             nodeCounter++;
-                        }        
+                        }
                     }
 
                     double queryTimeMs = totalQueryTime/totalQueries;
@@ -1747,7 +1749,8 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
     Statistics knnStats;
     std::string message;
 
-    AdaptiveGtree agtree = serialization::getIndexFromBinaryFile<AdaptiveGtree>(gtreeIdxFile);
+    AdaptiveGtree* agtree = buildAGtree(graph, std::stoi(parameterValues[0]), std::stoi(parameterValues[1]), gtreeIdxFile, statsOutputFile, specialFields);
+//            serialization::getIndexFromBinaryFile<AdaptiveGtree>(gtreeIdxFile);
 #if defined(GTREE_STL_HASH_TABLE_DIST_MATRIX) || defined(GTREE_GOOGLE_DENSEHASH_DIST_MATRIX)
     // We create hash-table versions of distance matrix for different testing
     sw.reset();
@@ -1768,13 +1771,15 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                     knnStats.clear();
 #endif
                     for (std::size_t l = 0; l < numSets; ++l) {
-                        std::string objIdxFilePath = filePathPrefix + "/obj_indexes/" + utility::constructObjectIndexFileName(agtree.getNetworkName(), constants::OBJ_IDX_GTREE, objTypes[i], objDensities[j], objVariable[m], l, parameterKeys, parameterValues);
+                        std::string objIdxFilePath = filePathPrefix + "/obj_indexes/" + utility::constructObjectIndexFileName(
+                                agtree->getNetworkName(), constants::OBJ_IDX_GTREE, objTypes[i], objDensities[j], objVariable[m], l, parameterKeys, parameterValues);
                         OccurenceList occList = serialization::getIndexFromBinaryFile<OccurenceList>(objIdxFilePath);
                         totalObjects += occList.getObjSetSize();
 
                         if (verifyKNN) {
                             graph.resetAllObjects();
-                            std::string objSetFile = filePathPrefix + "/obj_indexes/" + utility::constructObjsectSetFileName(graph.getNetworkName(),objTypes[i],objDensities[j],objVariable[m],l);
+                            std::string objSetFile = filePathPrefix + "/obj_indexes/" + utility::constructObjsectSetFileName(
+                                    graph.getNetworkName(),objTypes[i],objDensities[j],objVariable[m],l);
                             graph.parseObjectFile(objSetFile,objSetType,objSetDensity,objSetVariable,objSetSize);
                         }
 
@@ -1786,7 +1791,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                             kNNDistances.reserve(kValues[k]);
                             sw.reset();
                             sw.start();
-                            agtree.getKNNs(occList, kValues[k], *queryNodeIt, kNNs, kNNDistances, graph);
+                            agtree->getKNNs(occList, kValues[k], *queryNodeIt, kNNs, kNNDistances, graph);
                             sw.stop();
                             totalQueryTime += sw.getTimeUs();
 #if defined(COLLECT_STATISTICS)
@@ -1806,7 +1811,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
 
                             if(nodeCounter % 10 == 0) {
                                 std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
-                                agtree.printInfo();
+                                agtree->printInfo();
                             }
 
                             nodeCounter++;
@@ -1821,14 +1826,14 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                     // Collect stats and return to output to file
                     kNNs.clear(); // Clear so that we don't pass last executed queries results to stats tuple
                     kNNDistances.clear();
-                    KnnQueryTuple stats(agtree.getNetworkName(), agtree.getNumNodes(), agtree.getNumEdges(), totalQueries, constants::AGTREE_KNN_QUERY,
+                    KnnQueryTuple stats(agtree->getNetworkName(), agtree->getNumNodes(), agtree->getNumEdges(), totalQueries, constants::AGTREE_KNN_QUERY,
                                         kValues[k], queryTimeMs, objTypes[i], objDensities[j], objVariable[m], static_cast<int>(totalObjects/numSets), kNNs, kNNDistances);
                     stats.setAdditionalFields(specialFields);
-                    stats.addSupplementaryFields("max_leaf_size",std::to_string(agtree.getMaxLeafSize()));
-                    stats.addSupplementaryFields("fanout",std::to_string(agtree.getFanout()));
+                    stats.addSupplementaryFields("max_leaf_size",std::to_string(agtree->getMaxLeafSize()));
+                    stats.addSupplementaryFields("fanout",std::to_string(agtree->getFanout()));
                     std::cout << "STATS time:" << stats.getTupleString() << std::endl;
                     std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << totalQueries << std::endl;
-                    agtree.printInfo();
+                    agtree->printInfo();
 #if defined(COLLECT_STATISTICS)
                     knnStats.populateTupleFields(stats,0);
 #endif
@@ -1837,10 +1842,12 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
             }
         }
     }
-    std::cout << "AdaptiveGtree kNN queries successfully executed for " << agtree.getNetworkName() << std::endl;
+    std::cout << "AdaptiveGtree kNN queries successfully executed for " << agtree->getNetworkName() << std::endl;
     if (verifyKNN) {
         std::cout << "AdaptiveGtree kNN verification completed for " << graph.getNetworkName() << std::endl;
     }
+
+    delete agtree;
 }
 
 void ExperimentsCommand::runROADQueries(Graph& graph, std::string routeOverlayIdxFile, std::vector<NodeID>& queryNodes, 

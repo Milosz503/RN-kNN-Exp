@@ -23,6 +23,14 @@ public:
         log(logs...);
 #endif
     }
+
+    template<typename T, typename... Args>
+    static void debug(const T& firstLog, const Args&... logs) {
+#ifdef LOGGING
+//        std::cout << firstLog;
+//        log(logs...);
+#endif
+    }
 };
 
 #endif //ND_KNN_LOGGER_H

@@ -34,12 +34,12 @@ public:
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
-        Logger::log(" > row not assigned, borders size: ", targetsVec.size());
+        Logger::debug(" > row not assigned, borders size: ", targetsVec.size());
         dijkstra.findSSMTDistances(graph, sourceNodeID, targetsUset, siblingBorderDistances, &pqueue_local);
 
         for (std::size_t j = 0; j < targetsVec.size(); ++j) {
             auto weight = siblingBorderDistances[targetsVec[j]];
-            Logger::log(" > setting weight: ", j, ",",  sourceIdx, " ", weight);
+            Logger::debug(" > setting weight: ", j, ",", sourceIdx, " ", weight);
             matrix.set(sourceIdx, j, siblingBorderDistances[targetsVec[j]]);
         }
     }
@@ -51,13 +51,13 @@ public:
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
-        Logger::log(" > row not assigned, borders size: ", targetsVec.size());
+        Logger::debug(" > row not assigned, borders size: ", targetsVec.size());
         dijkstra.findSSMTDistances(graph, sourceNodeID, targetsUset, siblingBorderDistances, &pqueue_local);
 
         for (std::size_t j = 0; j < targetsVec.size(); ++j) {
             auto weight = siblingBorderDistances[targetsVec[j]];
             int targetBorderIdx = node.getBorderIdxInChildBorderVec(j);
-            Logger::log(" > setting weight: ", targetBorderIdx, ",",  sourceIdx, " ", weight);
+            Logger::debug(" > setting weight: ", targetBorderIdx, ",", sourceIdx, " ", weight);
             matrix.set(sourceIdx, targetBorderIdx, siblingBorderDistances[targetsVec[j]]);
         }
     }
@@ -69,12 +69,12 @@ public:
         BinaryMinHeap<EdgeWeight, NodeID> pqueue_local = BinaryMinHeap<EdgeWeight, NodeID>();
         std::unordered_set<NodeID> targetsUset(targetsVec.begin(), targetsVec.end());
         std::unordered_map<NodeID, EdgeWeight> siblingBorderDistances;
-        Logger::log(" > row not assigned, borders size: ", targetsVec.size());
+        Logger::debug(" > row not assigned, borders size: ", targetsVec.size());
         dijkstra.findSSMTDistances(graph, sourceNodeID, targetsUset, siblingBorderDistances, &pqueue_local);
 
         for (std::size_t j = 0; j < targetsVec.size(); ++j) {
             auto weight = siblingBorderDistances[targetsVec[j]];
-            Logger::log(" > setting weight: ", j, ",",  sourceIdx, " ", weight);
+            Logger::debug(" > setting weight: ", j, ",", sourceIdx, " ", weight);
             matrix.set(sourceIdx, j + targetOffset, siblingBorderDistances[targetsVec[j]]);
         }
     }

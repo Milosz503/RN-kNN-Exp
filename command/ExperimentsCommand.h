@@ -22,6 +22,7 @@
 
 #include "Command.h"
 #include "../processing/Graph.h"
+#include "../processing/adaptive_gtree/AdaptiveGtree.h"
 
 #include <unordered_map>
 
@@ -37,7 +38,7 @@ class ExperimentsCommand: public Command {
         void buildExternalIndexes(std::string bgrFileName, std::string parameters, std::string filePathPrefix, std::string statsOutputFile);
         std::unordered_map<std::string,std::string> getParameters(std::string parameters);
         void buildGtree(Graph& graph, int fanout, std::size_t maxLeafSize, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
-        void buildAGtree(Graph& graph, int fanout, std::size_t maxLeafSize, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
+        AdaptiveGtree* buildAGtree(Graph& graph, int fanout, std::size_t maxLeafSize, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
         void buildRouteOverlay(Graph& graph, int fanout, int levels, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
         void buildSILC(Graph& graph, int maxQuadtreeLeafSize, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);
         void buildPHL(std::string networkName, int numNodes, int numEdges, std::string dataOutputFile, std::string idxOutputFile, std::string statsOutputFile, std::vector<std::string> specialFields);

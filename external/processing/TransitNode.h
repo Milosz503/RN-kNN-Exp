@@ -592,7 +592,9 @@ public:
 				//EdgeWeight res = dijkstraBIDTest.bidirSearch(src, trg);
 				//dijkstraBIDTest.clear();
 				//return res;	
-			}		
+			}
+            // TODO: MISSING RETURN VALUE
+            return 0;
 		}
 
 
