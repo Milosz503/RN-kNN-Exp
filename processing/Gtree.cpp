@@ -222,6 +222,8 @@ void Gtree::computeDistanceMatrix(Graph& graph)
     std::vector<NodeID> *sourcesVec, *targetsVec;
     
     for (int i = treeLevelIdxs.size()-1; i >= 0; --i) {
+        StopWatch sw;
+        sw.start();
         // Clear memory in unordered_map or it will continue to grow
         // Note: According to the paper, total number of borders at each level should be O(n)
         // so if we clear this map for each level then we should it's total size should be O(n)
@@ -311,6 +313,8 @@ void Gtree::computeDistanceMatrix(Graph& graph)
                 }
             }
         }
+        sw.stop();
+//        std::cout << "Tree level: " << i << " time to calculate: " << sw.getTimeMs() << std::endl;
     }
     
     delete pqueue;

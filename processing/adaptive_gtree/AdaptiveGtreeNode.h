@@ -69,7 +69,7 @@ public:
     std::vector<int> borderOffsetsInChildBorderVec;
     // The index of the first border of each of this node's children in childBordersVec (will have same size as fanout)
     std::vector<int> childOffsetsInChildBorderVec;
-    int matrixRowLength;
+    unsigned matrixRowLength;
 
     // Non-Serialized Members
     std::vector<NodeID> childBordersVec; // This doesn't need to serialized because we retrieve them from child nodes
