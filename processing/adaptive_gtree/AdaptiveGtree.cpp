@@ -27,6 +27,7 @@
 #include "../../utils/Logger.h"
 
 #include <assert.h>
+#include <boost/iterator/counting_iterator.hpp>
 #include <iostream>
 
 AdaptiveGtree::AdaptiveGtree(std::string networkName, int numNodes, int numEdges, int fanout, std::size_t maxLeafSize) :
@@ -233,13 +234,20 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
     std::vector<NodeID> adjNodes;
     std::vector<EdgeWeight> adjNodeWgts;
     std::vector<NodeID> *sourcesVec, *targetsVec;
+    StopWatch swVector;
+    swVector.start();
+    std::vector<NodeID> remainingNodes(boost::counting_iterator<NodeID>(0), boost::counting_iterator<NodeID>(tempGraph.nodes.size()));
+
 
     treeHeight = treeLevelIdxs.size();
+    std::unordered_set<NodeID> levelBorders;
 
     for (int i = treeLevelIdxs.size() - 1; i >= 0; --i) {
         // Clear memory in unordered_map or it will continue to grow
         // Note: According to the paper, total number of borders at each level should be O(n)
         // so if we clear this map for each level then we should it's total size should be O(n)
+
+        levelBorders.clear();
 
         int counter = 0;
         for (std::size_t j = 0; j < treeLevelIdxs[i].size(); ++j) {
@@ -304,6 +312,7 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             for(std::size_t k = 0; k < borders.size(); ++k) {
                 bordersUmap[borders[k]] = k;
             }
+            levelBorders.insert(targets->begin(), targets->end());
 
 //            std::unordered_map<NodeID,EdgeWeight> siblingBorderDistances;
 //            siblingBorderDistances.reserve(borders.size());
@@ -342,15 +351,6 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
 
             NodeID border;
 
-//            for (std::size_t m = 0; m < tempGraph.nodes.size(); ++m) {
-//                auto iter = bordersUmap.find(m);
-//                if(iter == bordersUmap.end()) {
-//                    tempGraph.nodes[m].clear();
-//                    continue;
-//                }
-//                border = m;
-//                auto k = (*iter).second;
-
             for (std::size_t k = 0; k < borders.size(); ++k) {
                 border = (borders)[k];
                 if (this->treeNodes[currentIdx].isLeafNode()) {
@@ -383,6 +383,22 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
                         tempGraph.insertImaginaryNonInvertibleEdge(border,(borders)[l],this->treeNodes[currentIdx].distanceMatrix.get(sourceIdx, targetIdx));
                     }
                 }
+            }
+
+        }
+        if (i < treeLevelIdxs.size() - 1) {
+            size_t m = 0;
+            while (m < remainingNodes.size()) {
+                auto node = remainingNodes[m];
+                auto iter = levelBorders.find(node);
+                if (iter == levelBorders.end()) {
+                    tempGraph.nodes[node].clear();
+                    std::swap(remainingNodes[m], remainingNodes.back());
+                    remainingNodes.pop_back();
+                    continue;
+                }
+                m++;
+
             }
         }
         StopWatch sw;
