@@ -299,6 +299,11 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
 
             auto borders = this->treeNodes[currentIdx].getBorders();
             auto bordersUset = std::unordered_set<NodeID>(borders.begin(), borders.end());
+            auto bordersUmap = std::unordered_map<NodeID, size_t>();
+            bordersUmap.reserve(borders.size());
+            for(std::size_t k = 0; k < borders.size(); ++k) {
+                bordersUmap[borders[k]] = k;
+            }
 
 //            std::unordered_map<NodeID,EdgeWeight> siblingBorderDistances;
 //            siblingBorderDistances.reserve(borders.size());
@@ -336,6 +341,15 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
 //            sourcesVec = &this->treeNodes[currentIdx].getBorders();
 
             NodeID border;
+
+//            for (std::size_t m = 0; m < tempGraph.nodes.size(); ++m) {
+//                auto iter = bordersUmap.find(m);
+//                if(iter == bordersUmap.end()) {
+//                    tempGraph.nodes[m].clear();
+//                    continue;
+//                }
+//                border = m;
+//                auto k = (*iter).second;
 
             for (std::size_t k = 0; k < borders.size(); ++k) {
                 border = (borders)[k];

@@ -73,13 +73,13 @@ class DijkstraSearch {
         bool colourizeMap(Graph& graph, NodeID source, std::vector<EdgeID>& colourMap,
                           std::vector<EdgeWeight>& distances);
 
-        EdgeWeight getEdgeWeight(Graph& graph, int i) {
-            edgesAccessed.insert(i);
+        inline EdgeWeight getEdgeWeight(Graph& graph, int i) {
+//            edgesAccessed.insert(i);
             return graph.edges[i].second;
         }
 
         void printEdgeAccess() {
-            std::cout << "Edge access number: " << edgesAccessed.size() << std::endl;
+//            std::cout << "Edge access number: " << edgesAccessed.size() << std::endl;
         }
 
 private:

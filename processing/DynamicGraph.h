@@ -43,10 +43,16 @@ class Node {
         NodeID getNeighbourAndEdgeWeightByPosition(EdgeID pos, EdgeWeight& edgeWeight);
         void getCoordinates(Coordinate& x, Coordinate& y);
         bool edgeExists(NodeID neighbour);
+        inline void clear() {
+            adjNodes.clear();
+            adjNodeWgts.clear();
+            invAdjNodes.clear();
+            invAdjNodeWgts.clear();
+        }
         double computeIndexSizeBytes();
         double computeINEIndexSizeBytes();
         double computeMemoryUsageBytes();
-        
+
         NodeID id;
         Coordinate x, y;
         std::vector<NodeID> adjNodes;
@@ -56,7 +62,7 @@ class Node {
 
     private:
         friend class boost::serialization::access;
-        
+
         // Boost Serialization
         template<class Archive>
         void serialize(Archive & ar, const unsigned int version)
@@ -72,7 +78,7 @@ class Node {
 };
 
 class DynamicGraph {
-    
+
     public:
         DynamicGraph() {}
         DynamicGraph(const DynamicGraph &obj);
@@ -112,18 +118,18 @@ class DynamicGraph {
         double computeINEIndexSize();
         double computeMemoryUsage();
         double computeObjectSetIndexSize();
-        
+
         std::vector<Node> nodes;
         std::vector<bool> nodeObjects;
-         
+
     private:
         friend class boost::serialization::access;
-        
+
         std::string networkName = "Unknown";
         int numNodes;
         int numEdges;
         std::string type;
-        
+
         Coordinate minXCoord, maxXCoord, minYCoord, maxYCoord;
         NodeID minXNode = 0, maxXNode = 0, minYNode = 0, maxYNode = 0;
 
@@ -145,7 +151,7 @@ class DynamicGraph {
             ar & this->minYNode;
             ar & this->maxYNode;
         }
-        
+
 };
 
 #endif // _FASTGRAPH_H
