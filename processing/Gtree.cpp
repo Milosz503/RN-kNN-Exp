@@ -26,6 +26,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <boost/iterator/counting_iterator.hpp>
 
 Gtree::Gtree(std::string networkName, int numNodes, int numEdges, int fanout, std::size_t maxLeafSize): 
     networkName(networkName), numNodes(numNodes), numEdges(numEdges), fanout(fanout), maxLeafSize(maxLeafSize) {
@@ -220,10 +221,14 @@ void Gtree::computeDistanceMatrix(Graph& graph)
     std::vector<NodeID> adjNodes;
     std::vector<EdgeWeight> adjNodeWgts;
     std::vector<NodeID> *sourcesVec, *targetsVec;
+
+    std::vector<NodeID> remainingNodes(boost::counting_iterator<NodeID>(0), boost::counting_iterator<NodeID>(tempGraph.nodes.size()));
+    std::unordered_set<NodeID> levelBorders;
     
     for (int i = treeLevelIdxs.size()-1; i >= 0; --i) {
         StopWatch sw;
         sw.start();
+        levelBorders.clear();
         // Clear memory in unordered_map or it will continue to grow
         // Note: According to the paper, total number of borders at each level should be O(n)
         // so if we clear this map for each level then we should it's total size should be O(n)
@@ -242,6 +247,7 @@ void Gtree::computeDistanceMatrix(Graph& graph)
                 targets = &this->treeNodes[currentIdx].getChildBordersUset();
                 targetsVec = &this->treeNodes[currentIdx].getChildBorders();
             }
+            levelBorders.insert(targets->begin(), targets->end());
             
             std::unordered_map<NodeID,EdgeWeight> siblingBorderDistances;
             siblingBorderDistances.reserve(targetsVec->size());
@@ -315,6 +321,22 @@ void Gtree::computeDistanceMatrix(Graph& graph)
         }
         sw.stop();
 //        std::cout << "Tree level: " << i << " time to calculate: " << sw.getTimeMs() << std::endl;
+
+        if (i < treeLevelIdxs.size() - 1) {
+            size_t m = 0;
+            while (m < remainingNodes.size()) {
+                auto node = remainingNodes[m];
+                auto iter = levelBorders.find(node);
+                if (iter == levelBorders.end()) {
+                    tempGraph.nodes[node].clear();
+                    std::swap(remainingNodes[m], remainingNodes.back());
+                    remainingNodes.pop_back();
+                    continue;
+                }
+                m++;
+
+            }
+        }
     }
     
     delete pqueue;
