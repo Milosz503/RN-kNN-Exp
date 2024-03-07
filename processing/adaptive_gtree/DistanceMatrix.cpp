@@ -6,7 +6,7 @@
 
 void DistanceMatrix::init(unsigned int targetsLength, unsigned int sourcesLength) {
     rowLength = targetsLength;
-    distanceMatrix.reserve(sourcesLength*rowLength);
+    distanceMatrix.assign(sourcesLength*rowLength, -1);
 }
 
 size_t DistanceMatrix::capacity() {

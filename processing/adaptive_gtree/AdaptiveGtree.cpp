@@ -94,11 +94,8 @@ void AdaptiveGtree::buildGtree(Graph &graph)
     sw.stop();
     std::cout << " [AdaptiveGtree] buildTreeHierarchy " << sw.getTimeMs() << std::endl;
 
-    sw.reset();
-    sw.start();
     this->computeDistanceMatrix(graph);
-    sw.stop();
-    std::cout << " [AdaptiveGtree] computeDistanceMatrix " << sw.getTimeMs() << std::endl;
+
 
     this->initialiseGtreeQueryStructure();
 
@@ -225,6 +222,8 @@ void AdaptiveGtree::addChildren(int parentTreeIdx, std::unordered_set<NodeID> &p
 
 void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
 {
+    StopWatch swAll;
+    swAll.start();
     std::vector<std::vector<int>> treeLevelIdxs = this->getTreeNodesByLevel();
 
     BinaryMinHeap<EdgeWeight, NodeID> *pqueue = new BinaryMinHeap<EdgeWeight, NodeID>();
@@ -241,6 +240,7 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
 
     treeHeight = treeLevelIdxs.size();
     std::unordered_set<NodeID> levelBorders;
+    long timeToCopy = 0;
 
     for (int i = treeLevelIdxs.size() - 1; i >= 0; --i) {
         // Clear memory in unordered_map or it will continue to grow
@@ -273,38 +273,6 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             this->treeNodes[currentIdx].matrixRowLength = rowLength;
             this->treeNodes[currentIdx].distanceMatrix.init(targetsVec->size(), sourcesVec->size());
 
-            // distances for leaves are calculated adaptively
-            for (std::size_t k = 0; k < sourcesVec->size(); ++k) {
-                for (std::size_t l = 0; l < targetsVec->size(); ++l) {
-                    this->treeNodes[currentIdx].distanceMatrix.pushBackNotAssigned();
-                }
-            }
-
-//            } else {
-//                // distances for internal nodes are precalculated at the moment
-//                for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
-////                    pqueue->clear();
-////                    dijkstra.findSSMTDistances(graph, (*sourcesVec)[i], (*targets), siblingBorderDistances, pqueue);
-//                    for (std::size_t j = 0; j < targetsVec->size(); ++j) {
-////                        this->treeNodes[currentIdx].distanceMatrix.push_back(siblingBorderDistances[(*targetsVec)[j]]);
-//                        this->treeNodes[currentIdx].distanceMatrix.pushBackNotAssigned();
-//                    }
-//                }
-//            }
-//            if (this->treeNodes[currentIdx].isLeafNode()) {
-            // If it is a leaf node we can search using original Graph
-            // who's data structure is faster than DynamicGraph
-
-//            } else {
-//                for (std::size_t i = 0; i < sourcesVec->size(); ++i) {
-//                    pqueue->clear();
-//                    dijkstra.findSSMTDistances(tempGraph,(*sourcesVec)[i],(*targets),siblingBorderDistances,pqueue);
-//                    for (std::size_t j = 0; j < targetsVec->size(); ++j) {
-//                        this->treeNodes[currentIdx].distanceMatrix.push_back(siblingBorderDistances[(*targetsVec)[j]]);
-//                    }
-//                }
-//            }
-
             auto borders = this->treeNodes[currentIdx].getBorders();
             auto bordersUset = std::unordered_set<NodeID>(borders.begin(), borders.end());
             auto bordersUmap = std::unordered_map<NodeID, size_t>();
@@ -314,10 +282,6 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             }
             levelBorders.insert(targets->begin(), targets->end());
 
-//            std::unordered_map<NodeID,EdgeWeight> siblingBorderDistances;
-//            siblingBorderDistances.reserve(borders.size());
-//            //Using single std::unordered_map
-//            this->treeNodes[currentIdx].distanceMatrix.init(borders.size(), sourcesVec->size());
             int sourceIdx, targetIdx;
             if (this->treeNodes[currentIdx].isLeafNode()) {
                 // If it is a leaf node we can search using original Graph
@@ -346,8 +310,6 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             // All future searches will be on this nodes border set (using closure property in paper)
             // because these will be the parent nodes child borders-> Therefore if we need only remove
             // unnecessary edges from these nodes (unimportant nodes will become disconnected)
-            //sources = this->treeNodes[currentIdx].getBordersUset();
-//            sourcesVec = &this->treeNodes[currentIdx].getBorders();
 
             NodeID border;
 
@@ -405,12 +367,17 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
         sw.start();
         simplifiedGraphs.push_back(tempGraph);
         sw.stop();
-        std::cout << "Tree level: " << i << " time to copy: " << sw.getTimeMs() << std::endl;
+        timeToCopy += sw.getTimeMs();
+//        std::cout << "Tree level: " << i << " time to copy: " << sw.getTimeMs() << std::endl;
     }
 
     delete pqueue;
 
-    this->printInfo();
+    swAll.stop();
+    std::cout << " [AdaptiveGtree] computeDistanceMatrix " << swAll.getTimeMs() << std::endl;
+
+    std::cout << "Time to copy: " << timeToCopy << std::endl;
+//    this->printInfo();
 }
 
 void AdaptiveGtree::initialiseGtreeQueryStructure()

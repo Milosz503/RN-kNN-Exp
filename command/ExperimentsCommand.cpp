@@ -41,6 +41,8 @@
 #include <cstdio>
 #include <cmath>
 
+static const int STATS_STEP = 100;
+
 void ExperimentsCommand::execute(int argc, char* argv[])
 {
     std::string experiment = "";
@@ -731,7 +733,7 @@ void ExperimentsCommand::buildGtree(Graph& graph, int fanout, std::size_t maxLea
     stats.addSupplementaryFields("avg_path_cost",std::to_string(avgPathCost));
     stats.setAdditionalFields(specialFields);
 
-     std::cout << stats.getMultilineTupleString();
+//     std::cout << stats.getMultilineTupleString();
 
     serialization::outputIndexToBinaryFile<Gtree>(gtree,idxOutputFile);
 
@@ -766,7 +768,7 @@ AdaptiveGtree* ExperimentsCommand::buildAGtree(Graph &graph, int fanout, std::si
     stats.addSupplementaryFields("avg_path_cost",std::to_string(avgPathCost));
     stats.setAdditionalFields(specialFields);
 
-    std::cout << stats.getMultilineTupleString();
+//    std::cout << stats.getMultilineTupleString();
 
     serialization::outputIndexToBinaryFile<AdaptiveGtree>(*agtree,idxOutputFile);
 
@@ -1541,6 +1543,7 @@ void ExperimentsCommand::runINEQueries(Graph& graph, std::vector<NodeID>& queryN
 
     INE ine;
     Statistics knnStats;
+    int nodeCounter = 0;
     
     for (std::size_t i = 0; i < objTypes.size(); ++i) {
         if (objTypes[i] == constants::MINND_OBJ_SET || objTypes[i] == constants::MINMAXND_OBJ_SET) {
@@ -1583,6 +1586,11 @@ void ExperimentsCommand::runINEQueries(Graph& graph, std::vector<NodeID>& queryN
 #if defined(COLLECT_STATISTICS)
                             knnStats.mergeStatistics(ine.stats);
 #endif
+
+                            nodeCounter++;
+                            if(nodeCounter % STATS_STEP == 0) {
+                                std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
+                            }
                         }        
                     }
 
@@ -1687,13 +1695,11 @@ void ExperimentsCommand::runGtreeQueries(Graph& graph, std::string gtreeIdxFile,
                                     exit(1);
                                 }
                             }
-
-                            if(nodeCounter % 10 == 0) {
+                            nodeCounter++;
+                            if(nodeCounter % STATS_STEP == 0) {
                                 std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
                                 gtree.printInfo();
                             }
-
-                            nodeCounter++;
                         }
                     }
 
@@ -1808,13 +1814,11 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                                     exit(1);
                                 }
                             }
-
-                            if(nodeCounter % 10 == 0) {
+                            nodeCounter++;
+                            if(nodeCounter % STATS_STEP == 0) {
                                 std::cout << "STATS totalQueryTime: " << (int)totalQueryTime << " " << nodeCounter << std::endl;
                                 agtree->printInfo();
                             }
-
-                            nodeCounter++;
                         }
                     }
 
