@@ -348,7 +348,7 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             }
 
         }
-        if (i < treeLevelIdxs.size() - 1) {
+        if (i < treeLevelIdxs.size() - 2) {
             size_t m = 0;
             while (m < remainingNodes.size()) {
                 auto node = remainingNodes[m];

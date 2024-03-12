@@ -15,6 +15,8 @@ file(GLOB MAIN_SRC
     "main.cpp"
     "command/*.h"
     "command/*.cpp"
+    "command/adaptive/*.h"
+    "command/adaptive/*.cpp"
     "tuple/*.h"
     "tuple/*.cpp"
     "utility/*.h"

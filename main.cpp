@@ -34,6 +34,7 @@
 #include "command/TransformInputCommand.h"
 #include "command/ExperimentsCommand.h"
 #include "command/RoadNetworkIndexCommand.h"
+#include "command/adaptive/AdaptiveExperimentsCommand.h"
 
 void showUsage(std::string programName);
 Command* getCommand(std::string);
@@ -117,6 +118,8 @@ Command* getCommand(std::string commandName) {
         command = new ExperimentsCommand();
     } else if (commandName == constants::NETWORK_IDX_CMD) {
         command = new RoadNetworkIndexCommand();
+    } else if (commandName == constants::ADAPTIVE_EXPERIMENTS_CMD) {
+        command = new AdaptiveExperimentsCommand();
     }
     return command;
 }

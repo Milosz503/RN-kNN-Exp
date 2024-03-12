@@ -97,9 +97,9 @@ num_sets="1"
 num_points="10000"
 k_values="10"
 for i in "${!road_networks[@]}"; do 
-    echo -e "\nRun kNN queries for ${road_networks[$i]}..."
+    echo -e "\nRun kNN queries for ${road_networks[$i]} with $1..."
     pts_filename="$(printf "%03d" $num_points)"
     args="-c adaptive_exp -e knn_special -m $1 -g $idx_dir/${road_networks[$i]}.bin -q $sets_dir/${road_networks[$i]}_$pts_filename.txt -k $k_values -n $num_sets -d $densities -t $default_type -v $ignore_variable -p ${knn_parameters[$i]} -f $output_path -s $stats_dir/$3"
-    echo $exe_path $2 $args
+#    echo $exe_path $2 $args
     ${exe_path}/$2 $args
 done

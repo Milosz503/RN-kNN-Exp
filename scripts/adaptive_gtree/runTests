@@ -1,3 +1,4 @@
 #!/bin/bash
 
-bash runSingleKnnExperiment agtree nd_knn agtree_stats_file.txt array DE default default 0.001
+#bash ./adaptive_gtree/runSingleAdaptiveExperiment agtree nd_knn agtree_stats_file.txt array all default default 0.001
+bash ./adaptive_gtree/runSingleAdaptiveExperiment agtree nd_knn agtree_stats_file.txt array DE default default 0.001

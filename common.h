@@ -64,6 +64,7 @@ namespace constants
     std::string const SAMPLE_SET_CMD = "sample_set";
     std::string const TRANSFORM_INPUT_CMD = "transform";
     std::string const EXPERIMENTS_CMD = "exp";
+    std::string const ADAPTIVE_EXPERIMENTS_CMD = "adaptive_exp";
 
     // Point/Object Set Types
     std::string const RAND_OBJ_SET = "random";
