@@ -36,6 +36,7 @@
 #include "command/RoadNetworkIndexCommand.h"
 #include "command/adaptive/AdaptiveExperimentsCommand.h"
 #include "command/adaptive/TestsCommand.h"
+#include "command/shortest_distance/DistanceExperimentCommand.h"
 
 void showUsage(std::string programName);
 Command* getCommand(std::string);
@@ -123,6 +124,8 @@ Command* getCommand(std::string commandName) {
         command = new AdaptiveExperimentsCommand();
     } else if (commandName == constants::TESTS_CMD) {
         command = new TestsCommand();
+    } else if (commandName == constants::DISTANCE_EXPERIMENTS_CMD) {
+        command = new DistanceExperimentCommand();
     }
     return command;
 }

@@ -358,6 +358,17 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
         this->runAGtreeQueries(graph, gtreeIdxFile, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec,
                                objVariableVec, filePathPrefix, statsOutputFile, verifykNN, parameterKeys,
                                parameterValues, specialFields);
+    } else if (method == constants::IER_DIJKSTRA_KNN_QUERY) {
+        for (auto branchFactor : {8, 16, 32}) {
+            std::cout << "Branch factor: " << branchFactor << std::endl;
+            parameterKeys.clear();
+            parameterValues.clear();
+            parameterKeys.push_back("branchfactor");
+            parameterValues.push_back(std::to_string(branchFactor));
+            this->runIERQueries(graph, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec,
+                                objVariableVec, filePathPrefix, statsOutputFile, verifykNN, parameterKeys,
+                                parameterValues, specialFields);
+        }
     } else {
         std::cerr << "Could not recognise method - check kNN query command" << std::endl;
         exit(1);
@@ -496,10 +507,11 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment, Graph &gr
     sw.start();
     experiment.buildIndex(graph);
     sw.stop();
-    std::cout << "Time to build index" << std::endl << sw.getTimeMs() << std::endl;
+    experiment.printInfo();
+    std::cout << "Time to build index and query times" << std::endl << sw.getTimeMs() << std::endl;
     sw.reset();
 
-    std::cout << "numberOfQueries, totalQueryTime" << std::endl;
+//    std::cout << "numberOfQueries, totalQueryTime" << std::endl;
 
     for (std::size_t i = 0; i < objTypes.size(); ++i) {
         for (std::size_t j = 0; j < objDensities.size(); ++j) {
@@ -543,7 +555,8 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment, Graph &gr
                             }
                             queryCounter++;
                             if (queryCounter == 5 || queryCounter == 10 || queryCounter == 100 || queryCounter == 1000 || queryCounter == 10000) {
-                                std::cout << queryCounter << ", " << totalQueryTime << std::endl;
+//                                std::cout << queryCounter << ", " << totalQueryTime << std::endl;
+                                std::cout << totalQueryTime << std::endl;
                             }
                         }
                     }
@@ -629,5 +642,18 @@ AdaptiveExperimentsCommand::runAGtreeQueries(Graph &graph, std::string gtreeIdxF
     AdaptiveGTreeExperiment adaptiveGTreeExperiment(std::stoi(parameterValues[0]),
                                                     std::stoi(parameterValues[1]));
     this->runExperiment(adaptiveGTreeExperiment, graph, queryNodes, kValues, numSets, objDensities, objTypes, objVariable,
+                        filePathPrefix, statsOutputFile, verifyKNN, parameterKeys, parameterValues, specialFields);
+}
+
+void AdaptiveExperimentsCommand::runIERQueries(Graph &graph, std::vector<NodeID> &queryNodes,
+                                               std::vector<int> &kValues, std::size_t numSets,
+                                               std::vector<double> objDensities, std::vector<std::string> objTypes,
+                                               std::vector<int> objVariable, std::string filePathPrefix,
+                                               std::string statsOutputFile, bool verifyKNN, std::vector<std::string> &parameterKeys,
+                                               std::vector<std::string> &parameterValues,
+                                               std::vector<std::string> specialFields)
+{
+    IERExperiment ierExperiment;
+    this->runExperiment(ierExperiment, graph, queryNodes, kValues, numSets, objDensities, objTypes, objVariable,
                         filePathPrefix, statsOutputFile, verifyKNN, parameterKeys, parameterValues, specialFields);
 }

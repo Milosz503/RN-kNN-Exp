@@ -28,6 +28,9 @@ namespace serialization
     T getIndexFromBinaryFile(std::string idxFilePath);
 
     template <typename T>
+    T* getIndexFromBinaryFileDynamic(std::string idxFilePath);
+
+    template <typename T>
     void populateIndexFromBinaryFile(std::string idxFilePath, T& index);
 
     template <typename T>

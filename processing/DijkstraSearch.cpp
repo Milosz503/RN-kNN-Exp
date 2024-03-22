@@ -178,7 +178,6 @@ EdgeWeight DijkstraSearch::findShortestPathDistance(Graph& graph, NodeID source,
     }
 
     return distanceToTarget;
-
 }
 
 // We assume priority has been cleared

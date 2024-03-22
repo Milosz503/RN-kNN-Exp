@@ -60,7 +60,29 @@ namespace serialization
         
         return index;
     }
-    
+
+    template <typename T>
+    T* getIndexFromBinaryFileDynamic(std::string idxFilePath) {
+        T* index = new T();
+        //StopWatch sw;
+
+        std::ifstream binaryIndexFS(idxFilePath,std::ios::in | std::ios::binary);
+        if (binaryIndexFS.is_open()) {
+            boost::archive::binary_iarchive ia(binaryIndexFS);
+            //sw.start();
+            ia >> *index;
+            //sw.stop();
+        } else {
+            std::cerr << "Cannot open binary index file " << idxFilePath << std::endl;
+            exit(1);
+        }
+        binaryIndexFS.close();
+
+        //std::cout << "Binary index deserialized in " << sw.getTimeMs() << "ms" << std::endl;
+
+        return index;
+    }
+
     template <typename T>
     void populateIndexFromBinaryFile(std::string idxFilePath, T& index) {
         //StopWatch sw;
@@ -120,6 +142,7 @@ namespace serialization
     template Junction getIndexFromBinaryFile<Junction>(std::string idxFilePath);
     template void outputIndexToBinaryFile<Junction>(Junction& index, std::string idxFilePath);
     template StaticRtree getIndexFromBinaryFile<StaticRtree>(std::string idxFilePath);
+    template StaticRtree* getIndexFromBinaryFileDynamic<StaticRtree>(std::string idxFilePath);
     template void outputIndexToBinaryFile<StaticRtree>(StaticRtree& index, std::string idxFilePath);
     template ALT getIndexFromBinaryFile<ALT>(std::string idxFilePath);
     template void outputIndexToBinaryFile<ALT>(ALT& index, std::string idxFilePath);

@@ -70,6 +70,12 @@ private:
                      std::string statsOutputFile, bool verifyKNN, std::vector<std::string> &parameterKeys,
                      std::vector<std::string> &parameterValues,
                      std::vector<std::string> specialFields = {});
+
+    void runIERQueries(Graph& graph,
+                       std::vector<NodeID>& queryNodes, std::vector<int>& kValues, std::size_t numSets,
+                       std::vector<double> objDensities, std::vector<std::string> objTypes, std::vector<int> objVariable, std::string filePathPrefix,
+                       std::string statsOutputFile, bool verifyKNN, std::vector<std::string> &parameterKeys,
+                       std::vector<std::string> &parameterValues, std::vector<std::string> specialFields = {});
 };
 
 
