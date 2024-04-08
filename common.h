@@ -107,6 +107,8 @@ namespace constants
     std::string const OPT_DISTBRWS_KNN_QUERY = "opt_db";
     std::string const DB_RTREE_KNN_QUERY = "db_rtree";
     std::string const IER_DIJKSTRA_KNN_QUERY = "ier_dijk";
+    std::string const IER_ASTAR_KNN_QUERY = "ier_astar";
+    std::string const IER_ALT_KNN_QUERY = "ier_alt";
     std::string const IER_GTREE_KNN_QUERY = "ier_gtree";
     std::string const IER_SILC_KNN_QUERY = "ier_silc";
     std::string const IER_PHL_KNN_QUERY = "ier_phl";

@@ -10,6 +10,7 @@
 #include "../Command.h"
 #include "../../common.h"
 #include "../../processing/Graph.h"
+#include "../../processing/ALT.h"
 
 class Query {
 public:
@@ -30,6 +31,11 @@ private:
     unsigned long numQueries;
     unsigned long maxDist;
     unsigned long numTargets;
+    unsigned long numLandmarks;
+
+    ALT alt;
+
+    void buildIndexes();
 
     void loadQueries();
 
@@ -43,7 +49,7 @@ private:
 
     void runAStar();
 
-
+    void runALT();
 };
 
 

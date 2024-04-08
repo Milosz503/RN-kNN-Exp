@@ -112,27 +112,7 @@ void AdaptiveExperimentsCommand::execute(int argc, char *argv[])
         this->showCommandUsage(argv[0]);
         exit(1);
     }
-    if (experiment == constants::EXP_RUN_KNN) {
-        if (argc < 25) {
-            // Arguments: -g <binary graph file> -q <query node file> -k <k values> -p <parameters> -n <num sets> -d <list of object densities> -t <list of object types>
-            // -v <list of some object variable> -f <index output file path prefix> -s <stats output file>
-            std::cerr << "Too few arguments!\n\n";
-            this->showPhaseUsage(experiment, argv[0]);
-            exit(1);
-        }
-
-        if (bgrFilePath == "" || parameters == "" || filePathPrefix == "" || statsOutputFile == ""
-            || numSets == 0 || objDensities == "" || objTypes == "" || queryNodeFile == "" || kValues == "" ||
-            objVariable == "") {
-            std::cerr << "Invalid argument(s)!\n\n";
-            this->showPhaseUsage(experiment, argv[0]);
-            exit(1);
-        }
-
-        this->runQueries(bgrFilePath, queryNodeFile, kValues, parameters, numSets, objDensities, objTypes, objVariable,
-                         filePathPrefix, statsOutputFile);
-
-    } else if (experiment == constants::EXP_RUN_KNN_OPTIMIZATIONS) {
+    if (experiment == constants::EXP_RUN_KNN_OPTIMIZATIONS) {
         if (argc < 27) {
             // Arguments: -m <method> -g <binary graph file> -q <query node file>
             // -k <k values> -p <parameters> -n <num sets> -d <list of object densities> -t <list of object types> -v <list of some object variable>
@@ -224,15 +204,16 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
                                                         std::string objTypes, std::string objVariable,
                                                         std::string filePathPrefix, std::string statsOutputFile)
 {
-    Graph graph = serialization::getIndexFromBinaryFile<Graph>(bgrFileName);
+    graph = serialization::getIndexFromBinaryFile<Graph>(bgrFileName);
 
-    std::cout << "--- Running experiment, method: " << method << ", network: " << graph.getNetworkName() << " ---" << std::endl;
+    std::cout << "--- Running experiment, method: " << method << ", network: " << graph.getNetworkName() << " ---"
+              << std::endl;
 
     std::unordered_map<std::string, std::string> parameterMap = this->getParameters(parameters);
 
-    std::vector<NodeID> queryNodes = utility::getPointSetFromFile(queryNodeFile);
+    queryNodes = utility::getPointSetFromFile(queryNodeFile);
 
-    bool verifykNN = parameterMap["verify"] == "1";
+    this->verifyKNN = parameterMap["verify"] == "1";
 
     // Find all additional fields we need to add to kNN stats tuples
     std::vector<std::string> specialFields;
@@ -248,17 +229,17 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
     }
 
     std::vector<std::string> strObjDensitiesVec = utility::splitByDelim(objDensities, ',');
-    std::vector<double> objDensitiesVec;
+    this->objDensities.clear();
     for (std::size_t i = 0; i < strObjDensitiesVec.size(); ++i) {
         double density = std::stod(strObjDensitiesVec[i]);
         if (density > 0) {
-            objDensitiesVec.push_back(density);
+            this->objDensities.push_back(density);
         } else {
             std::cerr << "Invalid density in list provided!\n";
             exit(1);
         }
     }
-    std::vector<std::string> objTypesVec = utility::splitByDelim(objTypes, ',');
+    this->objTypes = utility::splitByDelim(objTypes, ',');
     std::vector<std::string> strKValuesVec = utility::splitByDelim(kValues, ',');
     std::vector<int> kValuesVec;
     for (std::size_t i = 0; i < strKValuesVec.size(); ++i) {
@@ -271,17 +252,17 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
         }
     }
     std::vector<std::string> strObjVariables = utility::splitByDelim(objVariable, ',');
-    std::vector<int> objVariableVec;
+    this->objVariable.clear();
     for (std::size_t i = 0; i < strObjVariables.size(); ++i) {
         int variable = std::stoi(strObjVariables[i]);
         if (variable > 0) {
-            objVariableVec.push_back(variable);
+            this->objVariable.push_back(variable);
         } else {
             std::cerr << "Invalid variable in list provided (must be greater than zero)!\n";
             exit(1);
         }
     }
-    if (objDensitiesVec.size() == 0 || objTypesVec.size() == 0 || objVariableVec.size() == 0 ||
+    if (this->objDensities.size() == 0 || this->objTypes.size() == 0 || this->objVariable.size() == 0 ||
         kValuesVec.size() == 0) {
         std::cerr << "Not enough densities or types provided!\n";
         exit(1);
@@ -290,36 +271,12 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
     std::string gtreeIdxFile, roadIdxFile, silcIdxFile, juncIdxFile, phlIdxFile, altIdxFile;
     std::vector<std::string> parameterKeys, parameterValues;
 
+    this->kValues = kValuesVec;
+    this->numSets = numSets;
+    this->filePathPrefix = filePathPrefix;
+
     if (method == constants::INE_KNN_QUERY) {
-        this->runINEQueries(graph, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec, objVariableVec,
-                            filePathPrefix, statsOutputFile, specialFields);
-    } 
-//    else if (method == "bad_ine") {
-//        // Note: This is to compare INE when non-ideal data structures are chosen
-//        std::string dynBgrFileName = filePathPrefix + "/indexes/" + graph.getNetworkName() + "_dynamic.bin";
-//        this->runINEQueriesByDynamicGraph(graph, dynBgrFileName, queryNodes, kValuesVec, numSets, objDensitiesVec,
-//                                          objTypesVec, objVariableVec, filePathPrefix, statsOutputFile, verifykNN,
-//                                          specialFields);
-//    } 
-    else if (method == constants::GTREE_KNN_QUERY_BUILD) {
-        int fanout = std::stoi(parameterMap["gtree_fanout"]);
-        std::size_t maxLeafSize = std::stoi(parameterMap["gtree_maxleafsize"]);
-        if (fanout < 2 || maxLeafSize < 32) {
-            std::cerr << "Invalid Gtree parameters!\n";
-            exit(1);
-        }
-        parameterKeys.clear();
-        parameterValues.clear();
-        parameterKeys.push_back("fanout");
-        parameterValues.push_back(parameterMap["gtree_fanout"]);
-        parameterKeys.push_back("maxleafsize");
-        parameterValues.push_back(parameterMap["gtree_maxleafsize"]);
-        gtreeIdxFile = filePathPrefix + "/indexes/" +
-                       utility::constructIndexFileName(graph.getNetworkName(), constants::IDX_GTREE_CMD, parameterKeys,
-                                                       parameterValues);
-        this->runGtreeQueries(graph, gtreeIdxFile, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec,
-                              objVariableVec, filePathPrefix, statsOutputFile, verifykNN, parameterKeys,
-                              parameterValues, specialFields);
+        this->runINEQueries();
     } else if (method == constants::GTREE_KNN_QUERY) {
         int fanout = std::stoi(parameterMap["gtree_fanout"]);
         std::size_t maxLeafSize = std::stoi(parameterMap["gtree_maxleafsize"]);
@@ -327,18 +284,7 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
             std::cerr << "Invalid Gtree parameters!\n";
             exit(1);
         }
-        parameterKeys.clear();
-        parameterValues.clear();
-        parameterKeys.push_back("fanout");
-        parameterValues.push_back(parameterMap["gtree_fanout"]);
-        parameterKeys.push_back("maxleafsize");
-        parameterValues.push_back(parameterMap["gtree_maxleafsize"]);
-        gtreeIdxFile = filePathPrefix + "/indexes/" +
-                       utility::constructIndexFileName(graph.getNetworkName(), constants::IDX_GTREE_CMD, parameterKeys,
-                                                       parameterValues);
-        this->runGtreeQueries(graph, gtreeIdxFile, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec,
-                              objVariableVec, filePathPrefix, statsOutputFile, verifykNN, parameterKeys,
-                              parameterValues, specialFields);
+        this->runGtreeQueries(fanout, maxLeafSize);
     } else if (method == constants::AGTREE_KNN_QUERY) {
         int fanout = std::stoi(parameterMap["gtree_fanout"]);
         std::size_t maxLeafSize = std::stoi(parameterMap["gtree_maxleafsize"]);
@@ -346,28 +292,21 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
             std::cerr << "Invalid Gtree parameters!\n";
             exit(1);
         }
-        parameterKeys.clear();
-        parameterValues.clear();
-        parameterKeys.push_back("fanout");
-        parameterValues.push_back(parameterMap["gtree_fanout"]);
-        parameterKeys.push_back("maxleafsize");
-        parameterValues.push_back(parameterMap["gtree_maxleafsize"]);
-        gtreeIdxFile = filePathPrefix + "/indexes/" +
-                       utility::constructIndexFileName(graph.getNetworkName(), constants::IDX_AGTREE_CMD, parameterKeys,
-                                                       parameterValues);
-        this->runAGtreeQueries(graph, gtreeIdxFile, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec,
-                               objVariableVec, filePathPrefix, statsOutputFile, verifykNN, parameterKeys,
-                               parameterValues, specialFields);
+        this->runAGtreeQueries(fanout, maxLeafSize);
     } else if (method == constants::IER_DIJKSTRA_KNN_QUERY) {
-        for (auto branchFactor : {8, 16, 32}) {
+        for (auto branchFactor: {8}) {
             std::cout << "Branch factor: " << branchFactor << std::endl;
-            parameterKeys.clear();
-            parameterValues.clear();
-            parameterKeys.push_back("branchfactor");
-            parameterValues.push_back(std::to_string(branchFactor));
-            this->runIERQueries(graph, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec,
-                                objVariableVec, filePathPrefix, statsOutputFile, verifykNN, parameterKeys,
-                                parameterValues, specialFields);
+            this->runIERQueries(branchFactor);
+        }
+    } else if (method == constants::IER_ASTAR_KNN_QUERY) {
+        for (auto branchFactor: {8}) {
+            std::cout << "Branch factor: " << branchFactor << std::endl;
+            this->runIERAStarQueries(branchFactor);
+        }
+    }else if (method == constants::IER_ALT_KNN_QUERY) {
+        for (auto branchFactor: {8}) {
+            std::cout << "Branch factor: " << branchFactor << std::endl;
+            this->runIERALTQueries(branchFactor, 16);
         }
     } else {
         std::cerr << "Could not recognise method - check kNN query command" << std::endl;
@@ -377,121 +316,12 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
     std::cout << "-------" << std::endl;
 }
 
-
-void AdaptiveExperimentsCommand::runQueries(std::string bgrFileName, std::string queryNodeFile, std::string kValues,
-                                            std::string parameters, std::size_t numSets, std::string objDensities,
-                                            std::string objTypes, std::string objVariable, std::string filePathPrefix,
-                                            std::string statsOutputFile)
-{
-    Graph graph = serialization::getIndexFromBinaryFile<Graph>(bgrFileName);
-    std::unordered_map<std::string, std::string> parameterMap = this->getParameters(parameters);
-
-    std::vector<NodeID> queryNodes = utility::getPointSetFromFile(queryNodeFile);
-    if (queryNodes.size() == 0) {
-        std::cerr << "No query points were provided!\n";
-        exit(1);
-    }
-    if (numSets == 0) {
-        std::cerr << "No object sets were provided!\n";
-        exit(1);
-    }
-
-    bool verifykNN = parameterMap["verify"] == "1";
-    bool queryINE = parameterMap["ine"] == "1";
-    bool queryGtree = parameterMap["gtree"] == "1";
-    bool queryRoad = parameterMap["road"] == "1";
-    bool queryIER = parameterMap["ier"] == "1";
-    bool querySILC = parameterMap["silc"] == "1";
-    bool queryDistBrws = parameterMap["dist_brws"] == "1";
-    bool queryIERPHL = parameterMap["ier_phl"] == "1";
-
-    std::vector<std::string> strObjDensitiesVec = utility::splitByDelim(objDensities, ',');
-    std::vector<double> objDensitiesVec;
-    for (std::size_t i = 0; i < strObjDensitiesVec.size(); ++i) {
-        double density = std::stod(strObjDensitiesVec[i]);
-        if (density > 0) {
-            objDensitiesVec.push_back(density);
-        } else {
-            std::cerr << "Invalid density in list provided!\n";
-            exit(1);
-        }
-    }
-    std::vector<std::string> objTypesVec = utility::splitByDelim(objTypes, ',');
-    std::vector<std::string> strKValuesVec = utility::splitByDelim(kValues, ',');
-    std::vector<int> kValuesVec;
-    for (std::size_t i = 0; i < strKValuesVec.size(); ++i) {
-        int k = std::stoi(strKValuesVec[i]);
-        if (k > 0) {
-            kValuesVec.push_back(k);
-        } else {
-            std::cerr << "Invalid k value in list provided!\n";
-            exit(1);
-        }
-    }
-    std::vector<std::string> strObjVariables = utility::splitByDelim(objVariable, ',');
-    std::vector<int> objVariableVec;
-    for (std::size_t i = 0; i < strObjVariables.size(); ++i) {
-        int variable = std::stoi(strObjVariables[i]);
-        if (variable > 0) {
-            objVariableVec.push_back(variable);
-        } else {
-            std::cerr << "Invalid variable in list provided (must be greater than zero)!\n";
-            exit(1);
-        }
-    }
-    if (objDensitiesVec.size() == 0 || objTypesVec.size() == 0 || objVariableVec.size() == 0 ||
-        kValuesVec.size() == 0) {
-        std::cerr << "Not enough densities or types provided!\n";
-        exit(1);
-    }
-
-    if (queryINE) {
-        this->runINEQueries(graph, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec, objVariableVec,
-                            filePathPrefix, statsOutputFile);
-    }
-
-    std::string gtreeIdxFile, roadIdxFile, silcIdxFile, juncIdxFile, phlIdxFile;
-    std::vector<std::string> parameterKeys, parameterValues;
-
-    if (queryGtree) {
-        int fanout = std::stoi(parameterMap["gtree_fanout"]);
-        std::size_t maxLeafSize = std::stoi(parameterMap["gtree_maxleafsize"]);
-        if (fanout < 2 || maxLeafSize < 32) {
-            std::cerr << "Invalid Gtree parameters!\n";
-            exit(1);
-        }
-        parameterKeys.clear();
-        parameterValues.clear();
-        parameterKeys.push_back("fanout");
-        parameterValues.push_back(parameterMap["gtree_fanout"]);
-        parameterKeys.push_back("maxleafsize");
-        parameterValues.push_back(parameterMap["gtree_maxleafsize"]);
-        gtreeIdxFile = filePathPrefix + "/indexes/" +
-                       utility::constructIndexFileName(graph.getNetworkName(), constants::IDX_GTREE_CMD, parameterKeys,
-                                                       parameterValues);
-        this->runGtreeQueries(graph, gtreeIdxFile, queryNodes, kValuesVec, numSets, objDensitiesVec, objTypesVec,
-                              objVariableVec, filePathPrefix, statsOutputFile, verifykNN, parameterKeys,
-                              parameterValues);
-    }
-
-    std::cout << "Query testing complete!" << std::endl;
-}
-
-void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment, Graph &graph, std::vector<NodeID> &queryNodes,
-                                               std::vector<int> &kValues, std::size_t numSets,
-                                               std::vector<double> objDensities, std::vector<std::string> objTypes,
-                                               std::vector<int> objVariable, std::string filePathPrefix,
-                                               std::string statsOutputFile, bool verifyKNN,
-                                               std::vector<std::string> &parameterKeys,
-                                               std::vector<std::string> &parameterValues,
-                                               std::vector<std::string> specialFields)
+void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment)
 {
     std::vector<NodeID> kNNs, ineKNNs;
     std::vector<EdgeWeight> kNNDistances, ineKNNDistances;
 
     std::string objSetType;
-    double objSetDensity;
-    int objSetSize, objSetVariable;
 
     StopWatch sw;
     double totalQueryTime;
@@ -522,8 +352,25 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment, Graph &gr
                     knnStats.clear();
 #endif
                     for (std::size_t l = 0; l < numSets; ++l) {
-                        experiment.loadObjects(graph, filePathPrefix, objTypes[i],objDensities[j],objVariable[m],l,
-                                               parameterKeys, parameterValues);
+                        std::string objSetFile = filePathPrefix + "/obj_indexes/" +
+                                                 utility::constructObjsectSetFileName(graph.getNetworkName(),
+                                                                                      objTypes[i], objDensities[j],
+                                                                                      objVariable[m], l);
+                        int setSize;
+                        std::vector<NodeID> objectNodes = utility::getPointSetFromFile(objSetFile, objTypes[i],
+                                                                                       objDensities[j], setSize,
+                                                                                       objVariable[m]);
+                        graph.resetAllObjects();
+                        graph.parseObjectSet(objectNodes);
+
+                        experiment.clearObjects();
+
+                        StopWatch objectsSw;
+                        objectsSw.start();
+                        experiment.loadObjects(graph, objectNodes);
+                        objectsSw.stop();
+                        std::cout << "Time to load objects" << std::endl << objectsSw.getTimeMs() << std::endl;
+                        std::cout << "Query times" << std::endl;
 
                         for (auto queryNodeIt = queryNodes.begin(); queryNodeIt != queryNodes.end(); ++queryNodeIt) {
                             kNNs.clear();
@@ -541,8 +388,8 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment, Graph &gr
                             if (verifyKNN) {
                                 ineKNNs.clear();
                                 ineKNNDistances.clear();
-                                verifyExperiment.loadObjects(graph, filePathPrefix, objTypes[i],objDensities[j],objVariable[m],l,
-                                                       parameterKeys, parameterValues);
+                                verifyExperiment.clearObjects();
+                                verifyExperiment.loadObjects(graph, objectNodes);
                                 verifyExperiment.runQuery(graph, kValues[k], *queryNodeIt, ineKNNs, ineKNNDistances);
                                 if (!utility::verifyKNN(ineKNNs, ineKNNDistances, kNNs, kNNDistances, false, kValues[k],
                                                         message, true)) {
@@ -554,9 +401,13 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment, Graph &gr
                                 }
                             }
                             queryCounter++;
-                            if (queryCounter == 5 || queryCounter == 10 || queryCounter == 100 || queryCounter == 1000 || queryCounter == 10000) {
+                            if (queryCounter == 5 || queryCounter == 10 || queryCounter == 100 ||
+                                queryCounter == 1000 || queryCounter == 10000) {
 //                                std::cout << queryCounter << ", " << totalQueryTime << std::endl;
                                 std::cout << totalQueryTime << std::endl;
+                                if (queryCounter == 1000) {
+                                    break;
+                                }
                             }
                         }
                     }
@@ -569,91 +420,50 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment, Graph &gr
                     // Collect stats and return to output to file
                     kNNs.clear(); // Clear so that we don't pass last executed queries results to stats tuple
                     kNNDistances.clear();
-                    KnnQueryTuple stats(graph.getNetworkName(), graph.getNumNodes(), graph.getNumEdges(), totalQueries,
-                                        constants::INE_KNN_QUERY,
-                                        kValues[k], queryTimeMs, objTypes[i], objDensities[j], objVariable[m],
-                                        0, kNNs, kNNDistances);
-                    stats.setAdditionalFields(specialFields);
-#if defined(COLLECT_STATISTICS)
-                    knnStats.populateTupleFields(stats,0);
-#endif
-                    this->outputCommandStats(statsOutputFile, stats.getTupleString());
                 }
             }
         }
     }
+    experiment.printSummary();
     std::cout << experiment.getName() << " kNN queries successfully executed for " << graph.getNetworkName()
               << std::endl;
 }
 
-void AdaptiveExperimentsCommand::runINEQueries(Graph &graph, std::vector<NodeID> &queryNodes, std::vector<int> &kValues,
-                                               std::size_t numSets,
-                                               std::vector<double> objDensities, std::vector<std::string> objTypes,
-                                               std::vector<int> objVariable, std::string filePathPrefix,
-                                               std::string statsOutputFile, std::vector<std::string> specialFields)
+void AdaptiveExperimentsCommand::runINEQueries()
 {
     INEExperiment ineExperiment;
     std::vector<std::string> tempVec;
-    this->runExperiment(ineExperiment, graph, queryNodes, kValues, numSets, objDensities, objTypes, objVariable,
-                       filePathPrefix, statsOutputFile, false, specialFields, tempVec, tempVec);
-}
-
-
-
-// TODO: implement INE queries by dynamic graph
-//void AdaptiveExperimentsCommand::runINEQueriesByDynamicGraph(Graph &graph, std::string dynBgrFileName,
-//                                                             std::vector<NodeID> &queryNodes, std::vector<int> &kValues,
-//                                                             std::size_t numSets,
-//                                                             std::vector<double> objDensities,
-//                                                             std::vector<std::string> objTypes,
-//                                                             std::vector<int> objVariable, std::string filePathPrefix,
-//                                                             std::string statsOutputFile, bool verifyKNN,
-//                                                             std::vector<std::string> specialFields)
-//{
-//
-//}
-
-
-void
-AdaptiveExperimentsCommand::runGtreeQueries(Graph &graph, std::string gtreeIdxFile, std::vector<NodeID> &queryNodes,
-                                            std::vector<int> &kValues, std::size_t numSets,
-                                            std::vector<double> objDensities,
-                                            std::vector<std::string> objTypes, std::vector<int> objVariable,
-                                            std::string filePathPrefix, std::string statsOutputFile,
-                                            bool verifyKNN, std::vector<std::string> &parameterKeys,
-                                            std::vector<std::string> &parameterValues,
-                                            std::vector<std::string> specialFields)
-{
-    GTreeExperiment gtreeExperiment(std::stoi(parameterValues[0]), std::stoi(parameterValues[1]));
-    this->runExperiment(gtreeExperiment, graph, queryNodes, kValues, numSets, objDensities, objTypes, objVariable,
-                        filePathPrefix, statsOutputFile, verifyKNN, parameterKeys, parameterValues, specialFields);
+    this->runExperiment(ineExperiment);
 }
 
 void
-AdaptiveExperimentsCommand::runAGtreeQueries(Graph &graph, std::string gtreeIdxFile, std::vector<NodeID> &queryNodes,
-                                             std::vector<int> &kValues, std::size_t numSets,
-                                             std::vector<double> objDensities,
-                                             std::vector<std::string> objTypes, std::vector<int> objVariable,
-                                             std::string filePathPrefix, std::string statsOutputFile,
-                                             bool verifyKNN, std::vector<std::string> &parameterKeys,
-                                             std::vector<std::string> &parameterValues,
-                                             std::vector<std::string> specialFields)
+AdaptiveExperimentsCommand::runGtreeQueries(int fanout, int maxLeafSize)
 {
-    AdaptiveGTreeExperiment adaptiveGTreeExperiment(std::stoi(parameterValues[0]),
-                                                    std::stoi(parameterValues[1]));
-    this->runExperiment(adaptiveGTreeExperiment, graph, queryNodes, kValues, numSets, objDensities, objTypes, objVariable,
-                        filePathPrefix, statsOutputFile, verifyKNN, parameterKeys, parameterValues, specialFields);
+    GTreeExperiment gtreeExperiment(fanout, maxLeafSize);
+    this->runExperiment(gtreeExperiment);
 }
 
-void AdaptiveExperimentsCommand::runIERQueries(Graph &graph, std::vector<NodeID> &queryNodes,
-                                               std::vector<int> &kValues, std::size_t numSets,
-                                               std::vector<double> objDensities, std::vector<std::string> objTypes,
-                                               std::vector<int> objVariable, std::string filePathPrefix,
-                                               std::string statsOutputFile, bool verifyKNN, std::vector<std::string> &parameterKeys,
-                                               std::vector<std::string> &parameterValues,
-                                               std::vector<std::string> specialFields)
+void
+AdaptiveExperimentsCommand::runAGtreeQueries(int fanout, int maxLeafSize)
 {
-    IERExperiment ierExperiment;
-    this->runExperiment(ierExperiment, graph, queryNodes, kValues, numSets, objDensities, objTypes, objVariable,
-                        filePathPrefix, statsOutputFile, verifyKNN, parameterKeys, parameterValues, specialFields);
+    AdaptiveGTreeExperiment adaptiveGTreeExperiment(fanout, maxLeafSize);
+    this->runExperiment(adaptiveGTreeExperiment);
+}
+
+void AdaptiveExperimentsCommand::runIERQueries(unsigned int branchFactor)
+{
+    IERExperiment ierExperiment(branchFactor);
+    this->runExperiment(ierExperiment);
+}
+
+void AdaptiveExperimentsCommand::runIERAStarQueries(unsigned int branchFactor)
+{
+    IERAStarExperiment experiment(branchFactor);
+    this->runExperiment(experiment);
+}
+
+void AdaptiveExperimentsCommand::runIERALTQueries(unsigned int branchFactor, unsigned int numLandmarks)
+{
+    IERALTExperiment experiment(branchFactor, numLandmarks);
+    this->runExperiment(experiment);
 }

@@ -27,6 +27,7 @@
 #include "pruned_highway_labeling.h"
 #include "../common.h"
 #include "../utility/Statistics.h"
+#include "ALT.h"
 
 #include <vector>
 
@@ -39,6 +40,14 @@ class IER {
         void getKNNsByDijkstraTravelTimes(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
                                           std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
                                           Graph& graph);
+    void getKNNsByAStar(StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
+                           std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances,
+                           Graph& graph);
+
+    void getKNNsByALT(ALT& alt, StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
+                        std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances,
+                        Graph& graph);
+
         void getKNNsByGtree(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
                                std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
                                Graph& graph, Gtree& gtree);
@@ -55,6 +64,8 @@ class IER {
                                      std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
                                      Graph& graph, PrunedHighwayLabeling& phl);
         Statistics stats;
+
+        int numCandidates = 0;
 
 };
 

@@ -11,6 +11,8 @@
 
 void DistanceExperimentCommand::execute(int argc, char **argv)
 {
+    srand(0); // NOLINT(*-msc51-cpp) it is supposed to be predictable
+
     std::string bgrFilePath;
     int opt;
     while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:")) != -1) {
@@ -27,13 +29,16 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             case 'k':
                 numTargets = std::stoul(optarg);
                 break;
+            case 'l':
+                numLandmarks = std::stoul(optarg);
+                break;
             default:
                 std::cerr << "Unknown option(s) provided!\n\n";
                 showCommandUsage(argv[0]);
                 exit(1);
         }
     }
-    if (numQueries == 0 || bgrFilePath.empty() || maxDist == 0 || numTargets == 0) {
+    if (numQueries == 0 || bgrFilePath.empty() || maxDist == 0 || numTargets == 0 || numLandmarks == 0) {
         std::cerr << "Missing required arguments!\n\n";
         showCommandUsage(argv[0]);
         exit(1);
@@ -41,6 +46,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
 
+    buildIndexes();
     loadQueries();
     runAll();
     validateAll();
@@ -52,13 +58,18 @@ void DistanceExperimentCommand::showCommandUsage(std::string programName)
                                              " -g <graph_file_name>" +
                                              " -q <num_of_queries>" +
                                              " -k <k>" +
+                                             " -l <num_of_landmarks>" +
                                              " \n\n";
+}
+
+void DistanceExperimentCommand::buildIndexes()
+{
+    alt.buildALT(graph, LANDMARK_TYPE::RANDOM, numLandmarks);
 }
 
 void DistanceExperimentCommand::loadQueries()
 {
     std::cout << "Generating queries..." << "numQueries: " << numQueries << " numTargets: " << numTargets << std::endl;
-    srand(0); // NOLINT(*-msc51-cpp) it is supposed to be predictable
 
 
     for (int i = 0; i < numQueries; i++) {
@@ -83,6 +94,7 @@ void DistanceExperimentCommand::runAll()
 {
     runMethod([this]() { runDijkstra(); }, "Dijkstra");
     runMethod([this]() { runAStar(); }, "A*");
+    runMethod([this]() { runALT(); }, "ALT");
 }
 
 void DistanceExperimentCommand::validateAll()
@@ -115,6 +127,7 @@ void DistanceExperimentCommand::validateAll()
         auto source = query.source;
         for (auto target: query.targets) {
             EdgeWeight dijkstraDist = DijkstraSearch().findShortestPathDistance(graph, source, target);
+            EdgeWeight altDist = alt.findShortestPathDistance(graph, query.source, target);
             auto path = DijkstraSearch().findShortestPath(graph, source, target, pathTree);
             avgNodesInPath += path.getNumLinks();
             EdgeWeight astarDist = AStarSearch().findShortestPathDistance(graph, source, target);
@@ -122,6 +135,11 @@ void DistanceExperimentCommand::validateAll()
                 validationFailed = true;
                 std::cerr << "Validation failed for query: " << source << " -> " << target << std::endl;
                 std::cerr << "Dijkstra: " << dijkstraDist << ", A*: " << astarDist << std::endl;
+            }
+            if (dijkstraDist != altDist) {
+                validationFailed = true;
+                std::cerr << "Validation failed for query: " << source << " -> " << target << std::endl;
+                std::cerr << "Dijkstra: " << dijkstraDist << ", ALT: " << altDist << std::endl;
             }
         }
     }
@@ -159,6 +177,15 @@ void DistanceExperimentCommand::runAStar()
     for (auto query: queries) {
         for (auto target: query.targets) {
             astar.findShortestPathDistance(graph, query.source, target);
+        }
+    }
+}
+
+void DistanceExperimentCommand::runALT()
+{
+    for (auto query: queries) {
+        for (auto target: query.targets) {
+            alt.findShortestPathDistance(graph, query.source, target);
         }
     }
 }

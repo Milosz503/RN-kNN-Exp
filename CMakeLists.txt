@@ -29,6 +29,8 @@ file(GLOB MAIN_SRC
     "processing/*.cpp"
     "processing/adaptive_gtree/*.h"
     "processing/adaptive_gtree/*.cpp"
+    "processing/ier/*.h"
+    "processing/ier/*.cpp"
     "external/*.h"
     "external/*.cpp"
     "external/command/*.h"

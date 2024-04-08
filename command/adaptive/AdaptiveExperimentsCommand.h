@@ -23,6 +23,16 @@ public:
     void showPhaseUsage(std::string phase, std::string programName);
 
 private:
+    std::vector<NodeID> queryNodes;
+    std::vector<int> kValues;
+    std::size_t numSets;
+    std::vector<double> objDensities;
+    std::vector<std::string> objTypes;
+    std::vector<int> objVariable;
+    std::string filePathPrefix;
+    bool verifyKNN;
+    Graph graph;
+
     std::unordered_map<std::string, std::string> getParameters(std::string parameters);
 
     void
@@ -31,51 +41,19 @@ private:
                            std::string objVariable,
                            std::string filePathPrefix, std::string statsOutputFile);
 
-    void runQueries(std::string bgrFileName, std::string queryNodeFile, std::string kValues, std::string parameters,
-                    std::size_t numSets,
-                    std::string objDensities, std::string objTypes, std::string objVariable, std::string filePathPrefix,
-                    std::string statsOutputFile);
+    void runINEQueries();
 
-    void runINEQueries(Graph &graph, std::vector<NodeID> &queryNodes, std::vector<int> &kValues, std::size_t numSets,
-                       std::vector<double> objDensities, std::vector<std::string> objTypes,
-                       std::vector<int> objVariable, std::string filePathPrefix,
-                       std::string statsOutputFile, std::vector<std::string> specialFields = {});
-
-    void runExperiment(Experiment &experiment, Graph &graph, std::vector<NodeID> &queryNodes, std::vector<int> &kValues,
-                       std::size_t numSets, std::vector<double> objDensities, std::vector<std::string> objTypes,
-                       std::vector<int> objVariable, std::string filePathPrefix, std::string statsOutputFile,
-                       bool verifyKNN, std::vector<std::string> &parameterKeys,
-                       std::vector<std::string> &parameterValues, std::vector<std::string> specialFields = {});
-
-// TODO: Implement INE queries by dynamic graph
-//    void runINEQueriesByDynamicGraph(Graph &graph, std::string dynBgrFileName, std::vector<NodeID> &queryNodes,
-//                                     std::vector<int> &kValues, std::size_t numSets,
-//                                     std::vector<double> objDensities, std::vector<std::string> objTypes,
-//                                     std::vector<int> objVariable, std::string filePathPrefix,
-//                                     std::string statsOutputFile, bool verifyKNN,
-//                                     std::vector<std::string> specialFields = {});
+    void runExperiment(Experiment &experiment);
 
     void
-    runGtreeQueries(Graph &graph, std::string gtreeIdxFile, std::vector<NodeID> &queryNodes, std::vector<int> &kValues,
-                    std::size_t numSets, std::vector<double> objDensities, std::vector<std::string> objTypes,
-                    std::vector<int> objVariable, std::string filePathPrefix,
-                    std::string statsOutputFile, bool verifyKNN, std::vector<std::string> &parameterKeys,
-                    std::vector<std::string> &parameterValues,
-                    std::vector<std::string> specialFields = {});
+    runGtreeQueries(int fanout, int maxLeafSize);
 
     void
-    runAGtreeQueries(Graph &graph, std::string gtreeIdxFile, std::vector<NodeID> &queryNodes, std::vector<int> &kValues,
-                     std::size_t numSets, std::vector<double> objDensities, std::vector<std::string> objTypes,
-                     std::vector<int> objVariable, std::string filePathPrefix,
-                     std::string statsOutputFile, bool verifyKNN, std::vector<std::string> &parameterKeys,
-                     std::vector<std::string> &parameterValues,
-                     std::vector<std::string> specialFields = {});
+    runAGtreeQueries(int fanout, int maxLeafSize);
 
-    void runIERQueries(Graph& graph,
-                       std::vector<NodeID>& queryNodes, std::vector<int>& kValues, std::size_t numSets,
-                       std::vector<double> objDensities, std::vector<std::string> objTypes, std::vector<int> objVariable, std::string filePathPrefix,
-                       std::string statsOutputFile, bool verifyKNN, std::vector<std::string> &parameterKeys,
-                       std::vector<std::string> &parameterValues, std::vector<std::string> specialFields = {});
+    void runIERQueries(unsigned int branchFactor);
+    void runIERAStarQueries(unsigned int branchFactor);
+    void runIERALTQueries(unsigned int branchFactor, unsigned int numLandmarks);
 };
 
 
