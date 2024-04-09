@@ -26,14 +26,30 @@
 #include "../utility/Statistics.h"
 
 #include <vector>
+#include <set>
 
 class INE {
 
-    public:
-        void getKNNsByDynamicGraph(DynamicGraph& graph, unsigned int k, NodeID queryNodeID, std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances);
-        void getKNNs(Graph& graph, unsigned int k, NodeID queryNodeID, std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances);
-        Statistics stats;
+public:
+    void getKNNsByDynamicGraph(DynamicGraph &graph, unsigned int k, NodeID queryNodeID, std::vector<NodeID> &kNNs,
+                               std::vector<EdgeWeight> &kNNDistances);
 
+    void getKNNs(Graph &graph, unsigned int k, NodeID queryNodeID, std::vector<NodeID> &kNNs,
+                 std::vector<EdgeWeight> &kNNDistances);
+
+    Statistics stats;
+
+    unsigned long edgesAccessedCount = 0;
+    unsigned long distanceSum = 0;
+
+    inline EdgeWeight getEdgeWeight(Graph &graph, int i)
+    {
+//        edgesAccessed.insert(i);
+        return graph.edges[i].second;
+    }
+
+private:
+    std::set<int> edgesAccessed;
 };
 
 #endif // _INE_H

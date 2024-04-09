@@ -1,10 +1,10 @@
 #!/bin/bash
 
-bash ./adaptive_gtree/runSingleAdaptiveExperiment ier_dijk nd_knn agtree_stats_file.txt array all default default 0.001
-#bash ./adaptive_gtree/runSingleAdaptiveExperiment ier_alt nd_knn agtree_stats_file.txt array all default default 0.001
-bash ./adaptive_gtree/runSingleAdaptiveExperiment ier_astar nd_knn agtree_stats_file.txt array all default default 0.001
+#bash ./adaptive_gtree/runSingleAdaptiveExperiment ier_dijk nd_knn agtree_stats_file.txt array all default default 0.001
+bash ./adaptive_gtree/runSingleAdaptiveExperiment ier_alt nd_knn agtree_stats_file.txt array all default default 0.001
+#bash ./adaptive_gtree/runSingleAdaptiveExperiment ier_astar nd_knn agtree_stats_file.txt array all default default 0.001
 bash ./adaptive_gtree/runSingleAdaptiveExperiment ine nd_knn agtree_stats_file.txt array all default default 0.001
+#bash ./adaptive_gtree/runSingleAdaptiveExperiment gtree nd_knn agtree_stats_file.txt array all default default 0.001
 #bash ./adaptive_gtree/runSingleAdaptiveExperiment agtree nd_knn agtree_stats_file.txt array all default default 0.001
-#bash ./adaptive_gtree/runSingleAdaptiveExperiment gtree nd_knn agtree_stats_file.txt array all default default 0.01
 #bash ./adaptive_gtree/runSingleAdaptiveExperiment agtree nd_knn agtree_stats_file.txt array all default default 0.01
 #bash ./adaptive_gtree/runSingleAdaptiveExperiment ine nd_knn agtree_stats_file.txt array all default default 0.01

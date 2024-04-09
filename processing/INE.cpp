@@ -122,6 +122,7 @@ void INE::getKNNsByDynamicGraph(DynamicGraph& graph, unsigned int k, NodeID quer
 
 void INE::getKNNs(Graph& graph, unsigned int k, NodeID queryNodeID, std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances)
 {
+    edgesAccessed.clear();
     // Note: We assumpe vectors passed to this method are empty
 #if defined(COLLECT_STATISTICS)
     this->stats.clear();
@@ -159,6 +160,7 @@ void INE::getKNNs(Graph& graph, unsigned int k, NodeID queryNodeID, std::vector<
                 if (kNNs.size() == k) {
                     // If this is the kth nearest neighbour object
                     // then we no longer need to inspect neighbours
+                    distanceSum += minDist;
                     break;
                 }
             }
@@ -173,7 +175,7 @@ void INE::getKNNs(Graph& graph, unsigned int k, NodeID queryNodeID, std::vector<
                 if (!isNodeSettled[adjNode]) {
 //                 if (settledNodeIDs.find(adjNode) == settledNodeIDs.end()) {
                     // Only update those we haven't already settled
-                    newDistance = minDist + graph.edges[i].second;
+                    newDistance = minDist + this->getEdgeWeight(graph, i);
                     pqueue.insert(adjNode,newDistance);
 #if defined(COLLECT_STATISTICS)
                     this->stats.incrementStatistic("edges_relaxed",1);
@@ -182,6 +184,8 @@ void INE::getKNNs(Graph& graph, unsigned int k, NodeID queryNodeID, std::vector<
             }
         }
     }
+
+    edgesAccessedCount += edgesAccessed.size();
     
 }
 

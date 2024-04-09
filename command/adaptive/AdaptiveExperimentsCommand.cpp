@@ -22,6 +22,7 @@
 #include "../../utility/Statistics.h"
 #include "../../utility/utility.h"
 #include "../../utility/serialization.h"
+#include "IERExperiment.h"
 
 #include <cstdio>
 #include <cmath>
@@ -304,9 +305,10 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
             this->runIERAStarQueries(branchFactor);
         }
     }else if (method == constants::IER_ALT_KNN_QUERY) {
+        int numLandmarks = std::stoi(parameterMap["landmarks"]);
         for (auto branchFactor: {8}) {
             std::cout << "Branch factor: " << branchFactor << std::endl;
-            this->runIERALTQueries(branchFactor, 16);
+            this->runIERALTQueries(branchFactor, numLandmarks);
         }
     } else {
         std::cerr << "Could not recognise method - check kNN query command" << std::endl;
@@ -403,11 +405,11 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment)
                             queryCounter++;
                             if (queryCounter == 5 || queryCounter == 10 || queryCounter == 100 ||
                                 queryCounter == 1000 || queryCounter == 10000) {
-//                                std::cout << queryCounter << ", " << totalQueryTime << std::endl;
-                                std::cout << totalQueryTime << std::endl;
-                                if (queryCounter == 1000) {
-                                    break;
-                                }
+                                std::cout << queryCounter << ", " << totalQueryTime << std::endl;
+//                                std::cout << totalQueryTime << std::endl;
+//                                if (queryCounter == 1000) {
+//                                    break;
+//                                }
                             }
                         }
                     }

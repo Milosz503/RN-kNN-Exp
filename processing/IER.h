@@ -33,39 +33,52 @@
 
 class IER {
 
-    public:
-        void getKNNsByDijkstra(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
-                               std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
-                               Graph& graph);
-        void getKNNsByDijkstraTravelTimes(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
-                                          std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
-                                          Graph& graph);
-    void getKNNsByAStar(StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
-                           std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances,
-                           Graph& graph);
+public:
+    void getKNNsByDijkstra(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                           std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                           Graph &graph);
 
-    void getKNNsByALT(ALT& alt, StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
-                        std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances,
-                        Graph& graph);
+    void getKNNsByDijkstraTravelTimes(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                                      std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                                      Graph &graph);
 
-        void getKNNsByGtree(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
-                               std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
-                               Graph& graph, Gtree& gtree);
-        void getKNNsBySILC(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
-                           std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
-                           Graph& graph, SILCPathOracle& silc);
-        void getKNNsByGtreeTravelTimes(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
-                               std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
-                               Graph& graph, Gtree& gtree);
-        void getKNNsByPHL(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
-                          std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
-                          Graph& graph, PrunedHighwayLabeling& phl);
-        void getKNNsByPHLTravelTimes(StaticRtree& rtree, unsigned int k, NodeID queryNodeID, 
-                                     std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, 
-                                     Graph& graph, PrunedHighwayLabeling& phl);
-        Statistics stats;
+    void getKNNsByAStar(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                        std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                        Graph &graph);
 
-        int numCandidates = 0;
+    void getKNNsByALT(ALT &alt, StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                      std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                      Graph &graph);
+
+    void getKNNsByALTOL(ALT &alt, unsigned int k, NodeID queryNodeID,
+                      std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                      Graph &graph);
+
+    void getKNNsByGtree(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                        std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                        Graph &graph, Gtree &gtree);
+
+    void getKNNsBySILC(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                       std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                       Graph &graph, SILCPathOracle &silc);
+
+    void getKNNsByGtreeTravelTimes(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                                   std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                                   Graph &graph, Gtree &gtree);
+
+    void getKNNsByPHL(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                      std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                      Graph &graph, PrunedHighwayLabeling &phl);
+
+    void getKNNsByPHLTravelTimes(StaticRtree &rtree, unsigned int k, NodeID queryNodeID,
+                                 std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,
+                                 Graph &graph, PrunedHighwayLabeling &phl);
+
+    Statistics stats;
+
+    unsigned long numCandidates = 0;
+    unsigned long edgesAccessedCount = 0;
+    unsigned long distanceSum = 0;
 
 };
 

@@ -133,10 +133,11 @@ Path DijkstraSearch::findShortestPath(Graph& graph, NodeID source, NodeID target
 
 EdgeWeight DijkstraSearch::findShortestPathDistance(Graph& graph, NodeID source, NodeID target)
 {
+    edgesAccessed.clear();
     BinaryMinHeap<EdgeWeight,NodeID> pqueue;
     
-//    std::vector<bool> isNodeSettled(graph.getNumNodes(),false);
-     std::unordered_set<NodeID> settledNodeIDs;
+    std::vector<bool> isNodeSettled(graph.getNumNodes(),false);
+//     std::unordered_set<NodeID> settledNodeIDs;
     
     EdgeWeight minDist, distanceToTarget = 0;
     NodeID minDistNodeID, adjNode;
@@ -150,10 +151,10 @@ EdgeWeight DijkstraSearch::findShortestPathDistance(Graph& graph, NodeID source,
         // and mark it as "settled" so we do not inspect again
         minDist = pqueue.getMinKey();
         minDistNodeID = pqueue.extractMinElement();
-//        if (!isNodeSettled[minDistNodeID]) {
-//            isNodeSettled[minDistNodeID] = true;
-         if (settledNodeIDs.find(minDistNodeID) == settledNodeIDs.end()) {
-             settledNodeIDs.insert(minDistNodeID); // Mark it as "seen" so we can avoid later
+        if (!isNodeSettled[minDistNodeID]) {
+            isNodeSettled[minDistNodeID] = true;
+//         if (settledNodeIDs.find(minDistNodeID) == settledNodeIDs.end()) {
+//             settledNodeIDs.insert(minDistNodeID); // Mark it as "seen" so we can avoid later
 
             if (minDistNodeID == target) {
                 // If the minimum is the target we have finished searching
@@ -168,8 +169,8 @@ EdgeWeight DijkstraSearch::findShortestPathDistance(Graph& graph, NodeID source,
             for (int i = adjListStart; i < nextAdjListStart; ++i) {
                 adjNode = graph.edges[i].first;
                 // Only update those we haven't already settled
-//                if (!isNodeSettled[adjNode]) {
-                 if (settledNodeIDs.find(adjNode) == settledNodeIDs.end()) {
+                if (!isNodeSettled[adjNode]) {
+//                 if (settledNodeIDs.find(adjNode) == settledNodeIDs.end()) {
                     // This is the first time we have seen this node (i.e. distance infinity)
                     pqueue.insert(adjNode,minDist+this->getEdgeWeight(graph, i));
                 }
@@ -177,6 +178,7 @@ EdgeWeight DijkstraSearch::findShortestPathDistance(Graph& graph, NodeID source,
         }
     }
 
+    edgesAccessedCount += edgesAccessed.size();
     return distanceToTarget;
 }
 

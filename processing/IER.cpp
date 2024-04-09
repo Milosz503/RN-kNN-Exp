@@ -54,6 +54,7 @@ void IER::getKNNsByDijkstra(StaticRtree& rtree, unsigned int k, NodeID queryNode
     for (std::size_t i = 0; i < euclideanKNNs.size(); ++i) {
         spDist = dijkstra.findShortestPathDistance(graph,queryNodeID,euclideanKNNs[i]);
         knnCandidates.insert(euclideanKNNs[i],spDist);
+        distanceSum += spDist;
         numCandidates++;
 
 //        graph.getCoordinates(euclideanKNNs[i], x, y);
@@ -82,6 +83,7 @@ void IER::getKNNsByDijkstra(StaticRtree& rtree, unsigned int k, NodeID queryNode
             euclidDist = std::floor(std::sqrt(currEuclidDistSqrd)); // Floor as it's a lowerbound
             if (euclidDist < Dk) {
                 spDist = dijkstra.findShortestPathDistance(graph,queryNodeID,nextEuclidNN);
+                distanceSum += spDist;
                 numCandidates++;
                 if (spDist < Dk) {
                     // Only insert if it is a better kNN candidate
@@ -100,6 +102,7 @@ void IER::getKNNsByDijkstra(StaticRtree& rtree, unsigned int k, NodeID queryNode
     }
 
     knnCandidates.populateKNNs(kNNs,kNNDistances);
+    edgesAccessedCount += dijkstra.edgesAccessedCount;
 //    for(auto knn : kNNs) {
 //        graph.getCoordinates(knn, x, y);
 //        std::cout << x << ", " << y << "\n";
@@ -166,8 +169,84 @@ void IER::getKNNsByDijkstraTravelTimes(StaticRtree& rtree, unsigned int k, NodeI
 void IER::getKNNsByAStar(StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
                             std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, Graph& graph)
 {
+//    StopWatch methodTime;
+//    methodTime.start();
+//    StopWatch sw;
+//    double time = 0;
+
+
     AStarSearch astar;
 
+    // Retrieve kNN by euclidean distance
+    std::vector<NodeID> euclideanKNNs;
+    std::vector<EuclideanDistanceSqrd> euclideanKNNDistances;
+    Coordinate queryNodeX, queryNodeY;
+    graph.getCoordinates(queryNodeID,queryNodeX,queryNodeY);
+
+
+    BinaryMinHeap<EuclideanDistanceSqrd,RtreeDataTuple> heap = rtree.getKNNs(k,queryNodeX,queryNodeY,euclideanKNNs,euclideanKNNDistances);
+
+    // Note: We keep heap so that we incrementally retrieve further euclidean NNs
+
+    // We compute the network distances to each of these
+    BinaryMaxHeap<EdgeWeight,NodeID> knnCandidates;
+    EdgeWeight spDist, Dk, euclidDist;
+    for (std::size_t i = 0; i < euclideanKNNs.size(); ++i) {
+//        sw.reset();
+//        sw.start();
+        spDist = astar.findShortestPathDistance(graph,queryNodeID,euclideanKNNs[i]);
+//        sw.stop();
+//        time += sw.getTimeMs();
+        knnCandidates.insert(euclideanKNNs[i],spDist);
+    }
+
+    // While the euclidean distance to the next euclidean nearest neigbour
+    // is smaller than than network distance to the current kth neighbour
+    // we can potentially find a closer nearest neighbour. Keep searching
+    // until this lower bound exceed the kth neighbour network distance.
+    Dk = knnCandidates.getMaxKey();
+    NodeID nextEuclidNN;
+    EuclideanDistanceSqrd currEuclidDistSqrd;
+    while (true) {
+
+        auto hasNext = rtree.getNextNearestNeighbour(heap,queryNodeX,queryNodeY,nextEuclidNN,currEuclidDistSqrd);
+        if (hasNext) {
+            // Note: If there were less than k objects to begin with then getNextNearestNeighbour
+            // would return false (as the heap is empty) and we not reach here
+            euclidDist = std::floor(std::sqrt(currEuclidDistSqrd)); // Floor as it's a lowerbound
+            if (euclidDist < Dk) {
+
+//                sw.reset();
+//                sw.start();
+                spDist = astar.findShortestPathDistance(graph,queryNodeID,nextEuclidNN);
+//                sw.stop();
+//                time += sw.getTimeMs();
+
+                if (spDist < Dk) {
+                    // Only insert if it is a better kNN candidate
+                    knnCandidates.insert(nextEuclidNN,spDist);
+                    knnCandidates.extractMaxElement();
+                    Dk = knnCandidates.getMaxKey();
+                }
+            } else {
+                break;
+            }
+        } else {
+            // This mean no nearest neighbours were found (we have reported
+            // all objects) so we can stop the search
+            break;
+        }
+    }
+    knnCandidates.populateKNNs(kNNs,kNNDistances);
+//    methodTime.stop();
+//    std::cout << "Time to compute distances " << time << " ms" << std::endl;
+//    std::cout << "Method time " << methodTime.getTimeMs() << " ms" << std::endl;
+
+}
+
+void IER::getKNNsByALT(ALT& alt, StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
+                         std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, Graph& graph)
+{
     // Retrieve kNN by euclidean distance
     std::vector<NodeID> euclideanKNNs;
     std::vector<EuclideanDistanceSqrd> euclideanKNNDistances;
@@ -180,7 +259,9 @@ void IER::getKNNsByAStar(StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
     BinaryMaxHeap<EdgeWeight,NodeID> knnCandidates;
     EdgeWeight spDist, Dk, euclidDist;
     for (std::size_t i = 0; i < euclideanKNNs.size(); ++i) {
-        spDist = astar.findShortestPathDistance(graph,queryNodeID,euclideanKNNs[i]);
+        spDist = alt.findShortestPathDistance(graph,queryNodeID,euclideanKNNs[i]);
+        distanceSum += spDist;
+        numCandidates++;
         knnCandidates.insert(euclideanKNNs[i],spDist);
     }
 
@@ -197,7 +278,9 @@ void IER::getKNNsByAStar(StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
             // would return false (as the heap is empty) and we not reach here
             euclidDist = std::floor(std::sqrt(currEuclidDistSqrd)); // Floor as it's a lowerbound
             if (euclidDist < Dk) {
-                spDist = astar.findShortestPathDistance(graph,queryNodeID,nextEuclidNN);
+                spDist = alt.findShortestPathDistance(graph,queryNodeID,nextEuclidNN);
+                distanceSum += spDist;
+                numCandidates++;
                 if (spDist < Dk) {
                     // Only insert if it is a better kNN candidate
                     knnCandidates.insert(nextEuclidNN,spDist);
@@ -218,23 +301,30 @@ void IER::getKNNsByAStar(StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
 
 }
 
-void IER::getKNNsByALT(ALT& alt, StaticRtree& rtree, unsigned int k, NodeID queryNodeID,
-                         std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, Graph& graph)
+void IER::getKNNsByALTOL(ALT& alt, unsigned int k, NodeID queryNodeID,
+                       std::vector<NodeID>& kNNs, std::vector<EdgeWeight>& kNNDistances, Graph& graph)
 {
     // Retrieve kNN by euclidean distance
-    std::vector<NodeID> euclideanKNNs;
-    std::vector<EuclideanDistanceSqrd> euclideanKNNDistances;
-    Coordinate queryNodeX, queryNodeY;
-    graph.getCoordinates(queryNodeID,queryNodeX,queryNodeY);
-    BinaryMinHeap<EuclideanDistanceSqrd,RtreeDataTuple> heap = rtree.getKNNs(k,queryNodeX,queryNodeY,euclideanKNNs,euclideanKNNDistances);
+//    std::vector<NodeID> euclideanKNNs;
+//    std::vector<EuclideanDistanceSqrd> euclideanKNNDistances;
     // Note: We keep heap so that we incrementally retrieve further euclidean NNs
 
     // We compute the network distances to each of these
     BinaryMaxHeap<EdgeWeight,NodeID> knnCandidates;
-    EdgeWeight spDist, Dk, euclidDist;
-    for (std::size_t i = 0; i < euclideanKNNs.size(); ++i) {
-        spDist = alt.findShortestPathDistance(graph,queryNodeID,euclideanKNNs[i]);
-        knnCandidates.insert(euclideanKNNs[i],spDist);
+    EdgeWeight spDist, Dk;//, euclidDist;
+    for (std::size_t i = 0; i < k; ++i) {
+        NodeID candidate;
+        if(i == 0) {
+            candidate = alt.getClosestCandidate(queryNodeID);
+        } else {
+            EdgeWeight lbDistance;
+            candidate = alt.getNextCandidate(queryNodeID, lbDistance);
+        }
+
+        spDist = alt.findShortestPathDistance(graph,queryNodeID,candidate);
+        distanceSum += spDist;
+        numCandidates++;
+        knnCandidates.insert(candidate,spDist);
     }
 
     // While the euclidean distance to the next euclidean nearest neigbour
@@ -242,18 +332,23 @@ void IER::getKNNsByALT(ALT& alt, StaticRtree& rtree, unsigned int k, NodeID quer
     // we can potentially find a closer nearest neighbour. Keep searching
     // until this lower bound exceed the kth neighbour network distance.
     Dk = knnCandidates.getMaxKey();
-    NodeID nextEuclidNN;
-    EuclideanDistanceSqrd currEuclidDistSqrd;
+//    NodeID nextEuclidNN;
+//    EuclideanDistanceSqrd currEuclidDistSqrd;
     while (true) {
-        if (rtree.getNextNearestNeighbour(heap,queryNodeX,queryNodeY,nextEuclidNN,currEuclidDistSqrd)) {
+        EdgeWeight lbDistance;
+        auto nextCandidate = alt.getNextCandidate(queryNodeID, lbDistance);
+//        if (rtree.getNextNearestNeighbour(heap,queryNodeX,queryNodeY,nextEuclidNN,currEuclidDistSqrd)) {
+        if(true) {
             // Note: If there were less than k objects to begin with then getNextNearestNeighbour
             // would return false (as the heap is empty) and we not reach here
-            euclidDist = std::floor(std::sqrt(currEuclidDistSqrd)); // Floor as it's a lowerbound
-            if (euclidDist < Dk) {
-                spDist = alt.findShortestPathDistance(graph,queryNodeID,nextEuclidNN);
+//            euclidDist = std::floor(std::sqrt(currEuclidDistSqrd)); // Floor as it's a lowerbound
+            if (lbDistance < Dk) {
+                spDist = alt.findShortestPathDistance(graph,queryNodeID,nextCandidate);
+                distanceSum += spDist;
+                numCandidates++;
                 if (spDist < Dk) {
                     // Only insert if it is a better kNN candidate
-                    knnCandidates.insert(nextEuclidNN,spDist);
+                    knnCandidates.insert(nextCandidate,spDist);
                     knnCandidates.extractMaxElement();
                     Dk = knnCandidates.getMaxKey();
                 }

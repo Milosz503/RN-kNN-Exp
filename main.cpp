@@ -35,7 +35,7 @@
 #include "command/ExperimentsCommand.h"
 #include "command/RoadNetworkIndexCommand.h"
 #include "command/adaptive/AdaptiveExperimentsCommand.h"
-#include "command/adaptive/TestsCommand.h"
+#include "command/tests/TestsCommand.h"
 #include "command/shortest_distance/DistanceExperimentCommand.h"
 
 void showUsage(std::string programName);

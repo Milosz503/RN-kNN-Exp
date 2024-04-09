@@ -22,54 +22,94 @@
 
 #include "Graph.h"
 #include "Path.h"
+#include "ier/ObjectList.h"
+#include "../queue/BinaryMinHeap.h"
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <set>
 
-enum LANDMARK_TYPE
-{
+enum LANDMARK_TYPE {
     RANDOM
 };
 
+
 class ALT {
 
-    public:
-        ALT(std::string networkName, int numNodes, int numEdges);
-        ALT() {};
-        void buildALT(Graph& graph, LANDMARK_TYPE landmarkType, unsigned int numLandmarks);
-        std::string getNetworkName();
-        unsigned int getNumNodes();
-        unsigned int getNumEdges();
-        double computeIndexSize();
-        EdgeWeight getLowerBound(NodeID s, NodeID t);
-        void getLowerAndUpperBound(NodeID s, NodeID t, EdgeWeight& lb, EdgeWeight& ub);
-        Path findShortestPath(Graph& graph, NodeID source, NodeID target, std::vector<NodeID>& shortestPathTree);
-        PathDistance findShortestPathDistance(Graph& graph, NodeID source, NodeID target);
-        LANDMARK_TYPE getLandmarkType(std::string selectionMethod, bool& success);
-        
-    private:
-        friend class boost::serialization::access;
-        
-        std::string networkName;
-        unsigned int numNodes;
-        unsigned int numEdges;
-        unsigned int numLandmarks;
-        std::vector<NodeID> landmarks;
-        std::vector<int> vertexFromLandmarkDistances;
-        
-        // Non-Serialized Members
-    
-        // Boost Serialization
-        template<class Archive>
-        void serialize(Archive & ar, const unsigned int version)
-        {
-            ar & networkName;
-            ar & numNodes;
-            ar & numEdges;
-            ar & numLandmarks;
-            ar & landmarks;
-            ar & vertexFromLandmarkDistances;
-        }    
+public:
+    ALT(std::string networkName, int numNodes, int numEdges);
+
+    ALT()
+    {};
+
+    void buildALT(Graph &graph, LANDMARK_TYPE landmarkType, unsigned int numLandmarks);
+
+    void
+    buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE landmarkType, unsigned int numLandmarks);
+
+    std::string getNetworkName();
+
+    unsigned int getNumNodes();
+
+    unsigned int getNumEdges();
+
+    double computeIndexSize();
+
+    EdgeWeight getLowerBound(NodeID s, NodeID t);
+
+    void getLowerAndUpperBound(NodeID s, NodeID t, EdgeWeight &lb, EdgeWeight &ub);
+
+    Path findShortestPath(Graph &graph, NodeID source, NodeID target, std::vector<NodeID> &shortestPathTree);
+
+    PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
+
+    LANDMARK_TYPE getLandmarkType(std::string selectionMethod, bool &success);
+
+    NodeID getClosestCandidate(NodeID q);
+
+    NodeID getNextCandidate(NodeID q, EdgeWeight &lbDistance);
+
+    unsigned long edgesAccessedCount = 0;
+private:
+    friend class boost::serialization::access;
+
+    std::string networkName;
+    unsigned int numNodes;
+    unsigned int numEdges;
+    unsigned int numLandmarks;
+    std::vector<NodeID> landmarks;
+    std::vector<int> vertexFromLandmarkDistances;
+    ObjectList objectList;
+
+    // Non-Serialized Members
+
+    // state for candidate generation
+    BinaryMinHeap<EdgeWeight, NodeID> pqueue;
+    int queryClosestLandmark;
+    int queryLandmarkDistance;
+    int candidateLeftIndex;
+    int candidateRightIndex;
+
+    void updateCandidatesQueue(NodeID q);
+
+    std::set<int> edgesAccessed;
+    inline EdgeWeight getEdgeWeight(Graph &graph, int i)
+    {
+        edgesAccessed.insert(i);
+        return graph.edges[i].second;
+    }
+
+    // Boost Serialization
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+        ar & networkName;
+        ar & numNodes;
+        ar & numEdges;
+        ar & numLandmarks;
+        ar & landmarks;
+        ar & vertexFromLandmarkDistances;
+    }
 };
 
 

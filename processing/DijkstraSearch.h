@@ -78,9 +78,13 @@ class DijkstraSearch {
             return graph.edges[i].second;
         }
 
+
+
         void printEdgeAccess() {
 //            std::cout << "Edge access number: " << edgesAccessed.size() << std::endl;
         }
+
+        unsigned long edgesAccessedCount = 0;
 
 private:
     std::set<int> edgesAccessed;

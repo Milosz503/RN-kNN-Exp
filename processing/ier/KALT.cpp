@@ -6,7 +6,7 @@
 
 void KALT::build(Graph &graph, unsigned int numLandmarks)
 {
-    alt.buildALT(graph, LANDMARK_TYPE::RANDOM, numLandmarks);
+//    alt.buildALT(graph, LANDMARK_TYPE::RANDOM, numLandmarks);
 }
 
 void KALT::getKNNs(unsigned int k, NodeID queryNodeID, std::vector<NodeID> &kNNs, std::vector<EdgeWeight> &kNNDistances,

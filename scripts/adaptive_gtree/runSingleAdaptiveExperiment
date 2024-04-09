@@ -16,17 +16,17 @@
 . globalVariables
 
 # Concatenate special parameters to pass to program
-special_knn_parameters=""
-if [[ $4 != "none" ]]; then
-    IFS=',' read -a special_fields <<< "$4"
-    for i in "${!special_fields[@]}"
-    do
-        if [[ $i != 0 ]]; then
-            special_knn_parameters="$special_knn_parameters,"
-        fi
-        special_knn_parameters="${special_knn_parameters}special_field_$i=${special_fields[$i]}"
-    done
-fi
+special_knn_parameters="landmarks=16"
+#if [[ $4 != "none" ]]; then
+#    IFS=',' read -a special_fields <<< "$4"
+#    for i in "${!special_fields[@]}"
+#    do
+#        if [[ $i != 0 ]]; then
+#            special_knn_parameters="$special_knn_parameters,"
+#        fi
+#        special_knn_parameters="${special_knn_parameters}special_field_$i=${special_fields[$i]}"
+#    done
+#fi
 # echo $special_knn_parameters
 
 # We overwrite global variables here to re-run specific cases
@@ -94,8 +94,8 @@ if [[ ${10} != "" && ${10} != "default" ]]; then
 fi
 
 num_sets="1"
-num_points="10000"
-k_values="10"
+num_points="1000"
+k_values="1"
 for i in "${!road_networks[@]}"; do 
     echo -e "\nRun kNN queries for ${road_networks[$i]} with $1..."
     pts_filename="$(printf "%03d" $num_points)"

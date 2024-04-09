@@ -15,6 +15,8 @@ file(GLOB MAIN_SRC
     "main.cpp"
     "command/*.h"
     "command/*.cpp"
+    "command/tests/*.h"
+    "command/tests/*.cpp"
     "command/adaptive/*.h"
     "command/adaptive/*.cpp"
     "command/shortest_distance/*.h"
