@@ -306,9 +306,10 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string method, std:
         }
     }else if (method == constants::IER_ALT_KNN_QUERY) {
         int numLandmarks = std::stoi(parameterMap["landmarks"]);
+        int landmarksType = std::stoi(parameterMap["landmarks_type"]);
         for (auto branchFactor: {8}) {
             std::cout << "Branch factor: " << branchFactor << std::endl;
-            this->runIERALTQueries(branchFactor, numLandmarks);
+            this->runIERALTQueries(branchFactor, numLandmarks, static_cast<LANDMARK_TYPE>(landmarksType));
         }
     } else {
         std::cerr << "Could not recognise method - check kNN query command" << std::endl;
@@ -464,8 +465,8 @@ void AdaptiveExperimentsCommand::runIERAStarQueries(unsigned int branchFactor)
     this->runExperiment(experiment);
 }
 
-void AdaptiveExperimentsCommand::runIERALTQueries(unsigned int branchFactor, unsigned int numLandmarks)
+void AdaptiveExperimentsCommand::runIERALTQueries(unsigned int branchFactor, unsigned int numLandmarks, LANDMARK_TYPE landmarkType)
 {
-    IERALTExperiment experiment(branchFactor, numLandmarks);
+    IERALTExperiment experiment(branchFactor, numLandmarks, landmarkType);
     this->runExperiment(experiment);
 }

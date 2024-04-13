@@ -53,7 +53,7 @@ private:
 
     void runIERQueries(unsigned int branchFactor);
     void runIERAStarQueries(unsigned int branchFactor);
-    void runIERALTQueries(unsigned int branchFactor, unsigned int numLandmarks);
+    void runIERALTQueries(unsigned int branchFactor, unsigned int numLandmarks, LANDMARK_TYPE landmarkType);
 };
 
 

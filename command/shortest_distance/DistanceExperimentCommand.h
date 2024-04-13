@@ -50,6 +50,7 @@ private:
     void runAStar();
 
     void runALT();
+    void runMultiTargetALT();
 };
 
 

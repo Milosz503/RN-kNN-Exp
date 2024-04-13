@@ -134,10 +134,11 @@ private:
 class IERALTExperiment : public Experiment {
 public:
 
-    explicit IERALTExperiment(unsigned int branchFactor, unsigned int numLandmarks) :
+    explicit IERALTExperiment(unsigned int branchFactor, unsigned int numLandmarks, LANDMARK_TYPE landmarkType) :
             branchFactor(branchFactor),
             numLandmarks(numLandmarks),
-            rtree(nullptr)
+            rtree(nullptr),
+            landmarkType(landmarkType)
     {}
 
     void buildIndex(Graph &graph) override
@@ -147,7 +148,7 @@ public:
     void
     loadObjects(Graph &graph, std::vector<NodeID>& objectNodes) override
     {
-        alt.buildALT(graph, objectNodes, LANDMARK_TYPE::RANDOM, numLandmarks);
+        alt.buildALT(graph, objectNodes, landmarkType, numLandmarks);
 
         std::vector<CoordinatePair> objectCoords;
         for (std::size_t i = 0; i < objectNodes.size(); ++i) {
@@ -187,12 +188,25 @@ public:
 
     void printInfo() override
     {
-        std::cout << "landmarks: " << numLandmarks << std::endl;
+        std::string landmarkTypeStr;
+        switch (landmarkType) {
+            case LANDMARK_TYPE::RANDOM:
+                landmarkTypeStr = "RANDOM";
+                break;
+            case LANDMARK_TYPE::RANDOM_OBJECTS:
+                landmarkTypeStr = "RANDOM_OBJECTS";
+                break;
+            default:
+                landmarkTypeStr = "UNKNOWN!";
+                break;
+        }
+        std::cout << "landmarks: " << numLandmarks << " landmarks type: " << landmarkTypeStr << std::endl;
     }
 
 private:
     unsigned int branchFactor;
     unsigned int numLandmarks;
+    LANDMARK_TYPE landmarkType;
     ALT alt;
     IER ier;
     StaticRtree* rtree;

@@ -30,7 +30,8 @@
 #include <set>
 
 enum LANDMARK_TYPE {
-    RANDOM
+    RANDOM = 0,
+    RANDOM_OBJECTS = 1,
 };
 
 
@@ -57,11 +58,15 @@ public:
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
 
+    EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID>& targets);
+
     void getLowerAndUpperBound(NodeID s, NodeID t, EdgeWeight &lb, EdgeWeight &ub);
 
     Path findShortestPath(Graph &graph, NodeID source, NodeID target, std::vector<NodeID> &shortestPathTree);
 
     PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
+
+    std::vector<std::pair<NodeID, EdgeWeight>> findShortestPathDistances(Graph &graph, NodeID source, std::vector<NodeID>& targets);
 
     LANDMARK_TYPE getLandmarkType(std::string selectionMethod, bool &success);
 
@@ -95,7 +100,7 @@ private:
     std::set<int> edgesAccessed;
     inline EdgeWeight getEdgeWeight(Graph &graph, int i)
     {
-        edgesAccessed.insert(i);
+//        edgesAccessed.insert(i);
         return graph.edges[i].second;
     }
 

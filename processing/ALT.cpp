@@ -76,7 +76,16 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         SetGenerator sg;
         std::vector<NodeID> randomVertices = sg.generateRandomSampleSet(numNodes, numLandmarks);
         landmarks.swap(randomVertices);
-    } else {
+    } else if (landmarkType == LANDMARK_TYPE::RANDOM_OBJECTS) {
+        SetGenerator sg;
+        std::vector<NodeID> randomVertices = sg.generateRandomSampleSet(objectNodes.size(), numLandmarks);
+        landmarks.clear();
+        landmarks.reserve(randomVertices.size());
+        for(auto vert : randomVertices) {
+            landmarks.push_back(objectNodes[vert]);
+        }
+    }
+    else {
         std::cerr << "Unknown landmark type" << std::endl;
         std::exit(1);
     }
@@ -130,6 +139,18 @@ EdgeWeight ALT::getLowerBound(NodeID s, NodeID t)
         }
     }
     return globalLB;
+}
+
+EdgeWeight ALT::getLowestLowerBound(NodeID s, std::vector<NodeID> &targets)
+{
+    EdgeWeight lowestLowerBound = getLowerBound(s, targets.front());
+    for(int i = 1; i < targets.size(); ++i) {
+        EdgeWeight lb = getLowerBound(s, targets[i]);
+        if(lb < lowestLowerBound) {
+            lowestLowerBound = lb;
+        }
+    }
+    return lowestLowerBound;
 }
 
 void ALT::getLowerAndUpperBound(NodeID s, NodeID t, EdgeWeight &lb, EdgeWeight &ub)
@@ -204,7 +225,7 @@ Path ALT::findShortestPath(Graph &graph, NodeID source, NodeID target,
 //                     }
                     //assert (currentToTargetEst <= adjNodeWgt+neighbourToTargetEst && "Heuristic function is not consistent");
 
-                    sourceToAdjNodeDist = minDist + graph.edges[i].second;
+                    sourceToAdjNodeDist = minDist + getEdgeWeight(graph, i);
                     minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target);
                     pqueue.insert(AStarHeapElement(adjNode, minDistNodeID, sourceToAdjNodeDist), minSourceTargetDist);
                 }
@@ -273,7 +294,7 @@ EdgeWeight ALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID tar
 //                     }
                     //assert (currentToTargetEst <= adjNodeWgt+neighbourToTargetEst && "Heuristic function is not consistent");
 
-                    sourceToAdjNodeDist = minDist + graph.edges[i].second;
+                    sourceToAdjNodeDist = minDist + getEdgeWeight(graph, i);
                     minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target);
                     pqueue.insert(NodeDistancePair(adjNode, sourceToAdjNodeDist), minSourceTargetDist);
                 }
@@ -283,6 +304,78 @@ EdgeWeight ALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID tar
 
     edgesAccessedCount += edgesAccessed.size();
     return distanceToTarget;
+}
+
+std::vector<std::pair<NodeID, EdgeWeight>> ALT::findShortestPathDistances(Graph &graph, NodeID source, std::vector<NodeID>& targets)
+{
+    edgesAccessed.clear();
+
+    std::vector<std::pair<NodeID, EdgeWeight>> results;
+    results.reserve(targets.size());
+    BinaryMinHeap<EdgeWeight, NodeDistancePair> pqueue;
+    std::vector<bool> isNodeSettled(graph.getNumNodes(), false);
+
+//     EdgeWeight adjNodeWgt;
+    EdgeWeight minDist, sourceToAdjNodeDist;
+    NodeID minDistNodeID, adjNode;
+    int adjListStart, adjListSize;
+
+    // Initialize priority queue with source node
+    EdgeWeight minSourceTargetDist = getLowestLowerBound(source, targets);
+    pqueue.insert(NodeDistancePair(source, 0), minSourceTargetDist);
+
+    while (pqueue.size() > 0) {
+        // Extract and remove node with smallest possible distance to target
+        // and mark it as "settled" so we do not inspect again
+        // Note: In A* search this willl still lead to a optimal solution
+        // if the heuristic function we use is consistent (i.e. never overestimates)
+        NodeDistancePair minElement = pqueue.extractMinElement();
+        minDistNodeID = minElement.first;
+        if (!isNodeSettled[minDistNodeID]) {
+            isNodeSettled[minDistNodeID] = true; // Mark it as "settled" so we can avoid later
+            minDist = minElement.second;
+
+            if (std::find(targets.begin(), targets.end(), minDistNodeID) != targets.end()) {
+                // If the minimum is the target we have finished searching
+                results.emplace_back(minDistNodeID, minDist);
+                if(results.size() >= targets.size()) {
+                    break;
+                }
+            }
+
+            // Inspect each neighbour and update pqueue using edge weights
+            adjListStart = graph.getEdgeListStartIndex(minDistNodeID);
+            adjListSize = graph.getEdgeListSize(minDistNodeID);
+
+            for (int i = adjListStart; i < adjListSize; ++i) {
+                adjNode = graph.edges[i].first;
+                // Only consider neighbours we haven't already settled
+                if (!isNodeSettled[adjNode]) {
+//                     // Heuristic Consistency Test Output
+//                     EdgeWeight currentToTargetEst = getLowerBound(minDistNodeID,target);
+//                     EdgeWeight neighbourToTargetEst = getLowerBound(adjNode,target);
+//                     if (currentToTargetEst > graph.edges[i].second+neighbourToTargetEst) {
+//                         std::cout << "currentToTargetEst = " << currentToTargetEst << std::endl;
+//                         std::cout << "adjNodeWgt = " << graph.edges[i].second << std::endl;
+//                         std::cout << "neighbourToTargetEst = " << neighbourToTargetEst << std::endl;
+//                         std::cout << "Diff = " << currentToTargetEst - graph.edges[i].second - neighbourToTargetEst << std::endl;
+//                     }
+                    //assert (currentToTargetEst <= adjNodeWgt+neighbourToTargetEst && "Heuristic function is not consistent");
+
+                    sourceToAdjNodeDist = minDist + getEdgeWeight(graph, i);
+                    minSourceTargetDist = sourceToAdjNodeDist + getLowestLowerBound(adjNode, targets);
+                    pqueue.insert(NodeDistancePair(adjNode, sourceToAdjNodeDist), minSourceTargetDist);
+                }
+            }
+        }
+    }
+
+    edgesAccessedCount += edgesAccessed.size();
+
+    if(results.size() < targets.size()) {
+        std::cout << "Did not break early" << std::endl;
+    }
+    return results;
 }
 
 LANDMARK_TYPE ALT::getLandmarkType(std::string selectionMethod, bool &success)
@@ -359,3 +452,5 @@ void ALT::updateCandidatesQueue(NodeID q)
     }
 
 }
+
+

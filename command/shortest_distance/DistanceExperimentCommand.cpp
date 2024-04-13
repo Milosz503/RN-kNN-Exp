@@ -64,7 +64,11 @@ void DistanceExperimentCommand::showCommandUsage(std::string programName)
 
 void DistanceExperimentCommand::buildIndexes()
 {
+    StopWatch sw;
+    sw.start();
     alt.buildALT(graph, LANDMARK_TYPE::RANDOM, numLandmarks);
+    sw.stop();
+    std::cout << "Time to generate ALT index" << ": " << sw.getTimeMs() << " ms" << std::endl;
 }
 
 void DistanceExperimentCommand::loadQueries()
@@ -83,6 +87,10 @@ void DistanceExperimentCommand::loadQueries()
                 j--;
                 continue;
             }
+            if (std::find(query.targets.begin(), query.targets.end(), end) != query.targets.end()) {
+                j--;
+                continue;
+            }
             query.targets.push_back(end);
         }
         queries.push_back(query);
@@ -95,6 +103,7 @@ void DistanceExperimentCommand::runAll()
     runMethod([this]() { runDijkstra(); }, "Dijkstra");
     runMethod([this]() { runAStar(); }, "A*");
     runMethod([this]() { runALT(); }, "ALT");
+//    runMethod([this]() { runMultiTargetALT(); }, "multi-target ALT");
 }
 
 void DistanceExperimentCommand::validateAll()
@@ -125,6 +134,8 @@ void DistanceExperimentCommand::validateAll()
     std::vector<NodeID> pathTree(graph.getNumNodes());
     for (auto query: queries) {
         auto source = query.source;
+
+        auto multiTargetAltResults = alt.findShortestPathDistances(graph, source, query.targets);
         for (auto target: query.targets) {
             EdgeWeight dijkstraDist = DijkstraSearch().findShortestPathDistance(graph, source, target);
             EdgeWeight altDist = alt.findShortestPathDistance(graph, query.source, target);
@@ -141,6 +152,19 @@ void DistanceExperimentCommand::validateAll()
                 std::cerr << "Validation failed for query: " << source << " -> " << target << std::endl;
                 std::cerr << "Dijkstra: " << dijkstraDist << ", ALT: " << altDist << std::endl;
             }
+
+            long multiTargetAltDistance = -1;
+            for(auto result : multiTargetAltResults) {
+                if (result.first == target) {
+                    multiTargetAltDistance = result.second;
+                    break;
+                }
+            }
+//            if (dijkstraDist != multiTargetAltDistance) {
+//                validationFailed = true;
+//                std::cerr << "Validation failed for query: " << source << " -> " << target << std::endl;
+//                std::cerr << "Dijkstra: " << dijkstraDist << ", multi-target ALT: " << altDist << std::endl;
+//            }
         }
     }
     avgNodesInPath /= queries.size();
@@ -183,11 +207,22 @@ void DistanceExperimentCommand::runAStar()
 
 void DistanceExperimentCommand::runALT()
 {
+    alt.edgesAccessedCount = 0;
     for (auto query: queries) {
         for (auto target: query.targets) {
             alt.findShortestPathDistance(graph, query.source, target);
         }
     }
+//    std::cout << "Edges accessed: " << alt.edgesAccessedCount << std::endl;
+}
+
+void DistanceExperimentCommand::runMultiTargetALT()
+{
+    alt.edgesAccessedCount = 0;
+    for (auto query: queries) {
+        alt.findShortestPathDistances(graph, query.source, query.targets);
+    }
+//    std::cout << "Edges accessed: " << alt.edgesAccessedCount << std::endl;
 }
 
 
