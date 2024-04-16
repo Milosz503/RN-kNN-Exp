@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 
-//#define LOGGING
+#define LOGGING
 
 class Logger {
 public:
