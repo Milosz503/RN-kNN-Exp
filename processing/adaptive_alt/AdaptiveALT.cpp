@@ -11,8 +11,8 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks) :
     numEdges(numEdges),
     maxNumLandmarks(maxNumLandmarks),
     landmarkDistances(numNodes, 0),
-//    landmarksQueryAnswered(maxNumLandmarks, 0),
-//    landmarksQueryNumber(maxNumLandmarks, 0),
+    landmarksQueryAnswered(maxNumLandmarks, 0),
+    landmarksQueryNumber(maxNumLandmarks, 0),
 //    landmarks(maxNumLandmarks, -1),
     landmarksMaxDistances(maxNumLandmarks, 0),
     numLandmarks(0)
@@ -23,7 +23,7 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks) :
 
 bool AdaptiveALT::shouldCreateLandmark(NodeID node)
 {
-    return closestLandmarkQuality(node) > 0.33 && numLandmarks < maxNumLandmarks;
+    return closestLandmarkQuality(node) > 0.25 && numLandmarks < maxNumLandmarks;
 }
 
 PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID target)
@@ -50,12 +50,12 @@ EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t)
 //            continue;
 //        }
         auto landmarkIndex = landmarks[i].index;
-//        landmarksQueryNumber[i]++;
+//        landmarksQueryNumber[landmarkIndex]++;
         currentLB = std::abs(
                 vertexFromLandmarkDistances[s * maxNumLandmarks + landmarkIndex] - vertexFromLandmarkDistances[t * maxNumLandmarks + landmarkIndex]);
         if (currentLB > globalLB) {
             globalLB = currentLB;
-//            bestLandmarkIndex = i;
+//            bestLandmarkIndex = landmarkIndex;
         }
     }
 //    landmarksQueryAnswered[bestLandmarkIndex]++;

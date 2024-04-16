@@ -30,7 +30,7 @@ public:
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
 
-    void deleteLowestScoreLandmark();
+//    void deleteLowestScoreLandmark();
 
     unsigned long getEdgesAccessedCount()
     {
@@ -39,8 +39,10 @@ public:
 
     void printStatistics() {
 //        for(unsigned i = 0; i < landmarks.size(); ++i) {
-//            std::cout << "Landmark " << i << " score: " << landmarkScore(i) << std::endl;
+//            unsigned landmark = landmarks[i].index;
+//            std::cout << "Landmark " << landmark << " score: " << landmarkScore(landmark) << std::endl;
 //        }
+        std::cout << "Number of landmarks: " << landmarks.size() << std::endl;
     }
 
 private:
@@ -51,8 +53,8 @@ private:
 
     std::vector<Landmark> landmarks;
     std::vector<EdgeWeight> landmarksMaxDistances;
-//    std::vector<unsigned> landmarksQueryAnswered;
-//    std::vector<unsigned> landmarksQueryNumber;
+    std::vector<unsigned> landmarksQueryAnswered;
+    std::vector<unsigned> landmarksQueryNumber;
     std::vector<int> vertexFromLandmarkDistances;
     DijkstraSearch dijkstra;
 
@@ -63,12 +65,12 @@ private:
     unsigned createLandmark(Graph &graph, NodeID node);
     PathDistance shortestPathDistanceALT(Graph &graph, NodeID source, NodeID target);
 
-//    inline double landmarkScore(unsigned landmark) {
-//        if(landmarksQueryNumber[landmark] == 0) {
-//            return 0;
-//        }
-//        return landmarksQueryAnswered[landmark] / (double)landmarksQueryNumber[landmark];
-//    }
+    inline double landmarkScore(unsigned landmark) {
+        if(landmarksQueryNumber[landmark] == 0) {
+            return 0;
+        }
+        return landmarksQueryAnswered[landmark] / (double)landmarksQueryNumber[landmark];
+    }
 
     double closestLandmarkQuality(NodeID node);
 

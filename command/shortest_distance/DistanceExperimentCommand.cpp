@@ -48,8 +48,8 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 
 //    methods.push_back(new DijkstraMethod());
 //    methods.push_back(new AStarMethod());
+    methods.push_back(new AdaptiveALTMethod(20));
     methods.push_back(new ALTMethod(numLandmarks));
-    methods.push_back(new AdaptiveALTMethod(1000));
     buildIndexes();
     loadQueries();
     runAll();
@@ -107,11 +107,11 @@ void DistanceExperimentCommand::loadQueries()
 
 void DistanceExperimentCommand::runAll()
 {
-    for(int i = 0; i < 3; ++i) {
+//    for(int i = 0; i < 3; ++i) {
         for(auto method : methods) {
             runMethod(method);
         }
-    }
+//    }
 
 //    auto alt  = new AdaptiveALT(graph.getNumNodes(), graph.getNumNodes(), numLandmarks);
 //    for(int i = 0; i < 1000; ++i) {
@@ -139,6 +139,7 @@ void DistanceExperimentCommand::runAll()
 
 void DistanceExperimentCommand::validateAll()
 {
+    std::cout << "*** Validating ***" << std::endl;
     std::cout << "Validating edge weights..." << std::endl;
 
     for (auto node: graph.getNodesIDsVector()) {
@@ -199,14 +200,37 @@ void DistanceExperimentCommand::validateAll()
 
 void DistanceExperimentCommand::runMethod(DistanceMethod* method)
 {
+    std::cout << "*** Measuring " << method->name << "... ***" << std::endl;
     std::vector<EdgeWeight> distances(numTargets, 0);
+    double cumulativeTime = 0;
     StopWatch sw;
     sw.start();
-    for (auto query: queries) {
-        method->findDistances(graph, query, distances);
+    for(unsigned i = 0; true; ++i) {
+        if(i % 10 == 0) {
+            if (i == 10 || i == 50 || i == 100 || i == 500 || i == 1000 || queries.size() == i) {
+                sw.stop();
+                cumulativeTime += sw.getTimeMs();
+                std::cout << "    " << i << ", " << cumulativeTime << std::endl;
+                sw.reset();
+                sw.start();
+                if (i >= queries.size()) {
+                    break;
+                }
+            }
+        }
+        method->findDistances(graph, queries[i], distances);
+    }
+
+    sw.stop();
+    sw.reset();
+    sw.start();
+    const unsigned afterConvergenceNumQueries = 500;
+    for(unsigned i = queries.size() - afterConvergenceNumQueries; i < queries.size(); ++i) {
+        method->findDistances(graph, queries[i], distances);
     }
     sw.stop();
-    std::cout << method->name << ": " << sw.getTimeMs() << " ms" << std::endl;
+    std::cout << "    After convergence " << afterConvergenceNumQueries / 5 << ", " << sw.getTimeMs() / 5 << std::endl;
+    method->printStatistics();
 }
 
 
