@@ -95,7 +95,10 @@ public:
         }
     }
 
-
+    void printStatistics() override
+    {
+        std::cout << "Number of landmarks: " << numLandmarks << std::endl;
+    }
 
 private:
     unsigned numLandmarks;

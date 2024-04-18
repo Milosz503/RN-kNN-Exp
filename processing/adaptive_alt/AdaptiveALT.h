@@ -31,6 +31,7 @@ public:
     PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
+    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned>& landmarkIndexes);
 
     unsigned long getEdgesAccessedCount()
     {
@@ -76,6 +77,8 @@ private:
     inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node) {
         return landmarks[landmarkIndex].distances[node];
     }
+
+    std::vector<unsigned> selectBestLandmarks(NodeID s, NodeID t);
 
     // *Stats*
     std::set<int> edgesAccessed;

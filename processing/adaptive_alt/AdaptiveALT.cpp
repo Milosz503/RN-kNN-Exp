@@ -25,9 +25,9 @@ PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, 
 {
     auto landmarkQualityS = closestLandmarkQuality(source);
     auto landmarkQualityT = closestLandmarkQuality(target);
-    double maxDistanceRatio = 0.20;
+    double maxDistanceRatio = 0.2;
 
-    if((landmarkQualityS > maxDistanceRatio || landmarkQualityT > maxDistanceRatio) && numLandmarks < maxNumLandmarks){
+    if((landmarkQualityS > maxDistanceRatio && landmarkQualityT > maxDistanceRatio) && numLandmarks < maxNumLandmarks){
         if(landmarkQualityS > landmarkQualityT) {
 //            Logger::log("Creating landmark from source ", landmarkQualityS);
             auto landmarkIndex = createLandmark(graph, source);
@@ -100,6 +100,8 @@ PathDistance AdaptiveALT::shortestPathDistanceALT(Graph &graph, NodeID source, N
 {
     edgesAccessed.clear();
 
+//    auto bestLandmarks = selectBestLandmarks(source, target);
+
     BinaryMinHeap<EdgeWeight, NodeDistancePair> pqueue;
     std::vector<bool> isNodeSettled(graph.getNumNodes(), false);
 
@@ -109,6 +111,7 @@ PathDistance AdaptiveALT::shortestPathDistanceALT(Graph &graph, NodeID source, N
     int adjListStart, adjListSize;
 
     // Initialize priority queue with source node
+//    EdgeWeight minSourceTargetDist = getLowerBound(source, target, bestLandmarks);
     EdgeWeight minSourceTargetDist = getLowerBound(source, target);
     pqueue.insert(NodeDistancePair(source, 0), minSourceTargetDist);
 
@@ -149,6 +152,7 @@ PathDistance AdaptiveALT::shortestPathDistanceALT(Graph &graph, NodeID source, N
                     //assert (currentToTargetEst <= adjNodeWgt+neighbourToTargetEst && "Heuristic function is not consistent");
 
                     sourceToAdjNodeDist = minDist + getEdgeWeight(graph, i);
+//                    minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target, bestLandmarks);
                     minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target);
                     pqueue.insert(NodeDistancePair(adjNode, sourceToAdjNodeDist), minSourceTargetDist);
                 }
@@ -172,4 +176,45 @@ double AdaptiveALT::closestLandmarkQuality(NodeID node)
         }
     }
     return bestQuality;
+}
+
+std::vector<unsigned> AdaptiveALT::selectBestLandmarks(NodeID s, NodeID t)
+{
+    const unsigned numberOfSelectedLandmarks = 4;
+    std::vector<unsigned> bestLandmarks(numberOfSelectedLandmarks, 0);
+    std::vector<unsigned> bestBounds(numberOfSelectedLandmarks, 0);
+
+    EdgeWeight currentLB;
+    for (std::size_t i = 0; i < landmarks.size(); ++i) {
+        auto landmarkIndex = landmarks[i].index;
+        currentLB = std::abs(
+                (int)nodeFromLandmarkDistance(landmarkIndex, s) - (int)nodeFromLandmarkDistance(landmarkIndex, t));
+        if (currentLB > bestBounds.back()) {
+            unsigned index = i;
+            for(unsigned j = 0; j < numberOfSelectedLandmarks; ++j) {
+                if(currentLB > bestBounds[j]) {
+                    std::swap(bestBounds[j], currentLB);
+                    std::swap(bestLandmarks[j], index);
+                }
+            }
+        }
+    }
+
+    if(numLandmarks < numberOfSelectedLandmarks) {
+        return std::vector<unsigned>(bestLandmarks.begin(), bestLandmarks.begin() + numLandmarks);
+    }
+    return bestLandmarks;
+}
+
+EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t, std::vector<unsigned int> &landmarkIndexes)
+{
+    EdgeWeight globalLB = 0, currentLB;
+    for (auto index : landmarkIndexes) {
+        currentLB = std::abs(
+                (int)nodeFromLandmarkDistance(index, s) - (int)nodeFromLandmarkDistance(index, t));
+        if (currentLB > globalLB) {
+            globalLB = currentLB;
+        }
+    }
+    return globalLB;
 }

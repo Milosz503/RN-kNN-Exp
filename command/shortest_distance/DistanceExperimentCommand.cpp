@@ -46,10 +46,11 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
 
-//    methods.push_back(new DijkstraMethod());
-//    methods.push_back(new AStarMethod());
     methods.push_back(new AdaptiveALTMethod(100));
-    methods.push_back(new ALTMethod(numLandmarks));
+    methods.push_back(new ALTMethod(20));
+//    methods.push_back(new ALTMethod(40));
+//    methods.push_back(new AStarMethod());
+//    methods.push_back(new DijkstraMethod());
     buildIndexes();
     loadQueries();
     runAll();
