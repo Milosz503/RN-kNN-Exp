@@ -15,22 +15,22 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <set>
+#include <boost/unordered_map.hpp>
 
 struct Landmark {
     unsigned int index;
     NodeID nodeId;
+    std::vector<EdgeWeight> distances;
+//    boost::unordered_map<NodeID, EdgeWeight> distances;
 };
 
 class AdaptiveALT {
 
 public:
     AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks);
-    bool shouldCreateLandmark(NodeID node);
     PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
-
-//    void deleteLowestScoreLandmark();
 
     unsigned long getEdgesAccessedCount()
     {
@@ -55,12 +55,11 @@ private:
     std::vector<EdgeWeight> landmarksMaxDistances;
     std::vector<unsigned> landmarksQueryAnswered;
     std::vector<unsigned> landmarksQueryNumber;
-    std::vector<int> vertexFromLandmarkDistances;
     DijkstraSearch dijkstra;
 
     // temporary variables
-    std::vector<EdgeWeight> landmarkDistances;
-    BinaryMinHeap<EdgeWeight, NodeID> pqueue;
+    std::vector<EdgeWeight> tempLandmarkDistances;
+    BinaryMinHeap<EdgeWeight, NodeID> tempPqueue;
 
     unsigned createLandmark(Graph &graph, NodeID node);
     PathDistance shortestPathDistanceALT(Graph &graph, NodeID source, NodeID target);
@@ -75,7 +74,7 @@ private:
     double closestLandmarkQuality(NodeID node);
 
     inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node) {
-        return vertexFromLandmarkDistances[node * maxNumLandmarks + landmarkIndex];
+        return landmarks[landmarkIndex].distances[node];
     }
 
     // *Stats*

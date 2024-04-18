@@ -11,7 +11,7 @@
 
 void DistanceExperimentCommand::execute(int argc, char **argv)
 {
-    srand(0); // NOLINT(*-msc51-cpp) it is supposed to be predictable
+    srand(1); // NOLINT(*-msc51-cpp) it is supposed to be predictable
 
     std::string bgrFilePath;
     int opt;
@@ -48,7 +48,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 
 //    methods.push_back(new DijkstraMethod());
 //    methods.push_back(new AStarMethod());
-    methods.push_back(new AdaptiveALTMethod(20));
+    methods.push_back(new AdaptiveALTMethod(100));
     methods.push_back(new ALTMethod(numLandmarks));
     buildIndexes();
     loadQueries();
@@ -220,16 +220,6 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
         }
         method->findDistances(graph, queries[i], distances);
     }
-
-    sw.stop();
-    sw.reset();
-    sw.start();
-    const unsigned afterConvergenceNumQueries = 500;
-    for(unsigned i = queries.size() - afterConvergenceNumQueries; i < queries.size(); ++i) {
-        method->findDistances(graph, queries[i], distances);
-    }
-    sw.stop();
-    std::cout << "    After convergence " << afterConvergenceNumQueries / 5 << ", " << sw.getTimeMs() / 5 << std::endl;
     method->printStatistics();
 }
 
