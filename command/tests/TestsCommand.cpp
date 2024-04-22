@@ -5,12 +5,14 @@
 #include "TestsCommand.h"
 #include "UnitTest.h"
 #include "ALTTest.h"
+#include "DijkstraTest.h"
 
 
 void TestsCommand::execute(int argc, char **argv)
 {
     UnitTest::runTests(
-            ALTTest()
+            ALTTest(),
+            DijkstraTest()
     );
 }
 

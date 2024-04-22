@@ -6,16 +6,21 @@
 #include "../../utils/Logger.h"
 #include "../../utility/StopWatch.h"
 
+
 AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks) :
         numNodes(numNodes),
         numEdges(numEdges),
         maxNumLandmarks(maxNumLandmarks),
-        tempLandmarkDistances(numNodes, 0),
         landmarksQueryAnswered(maxNumLandmarks, 0),
         landmarksQueryNumber(maxNumLandmarks, 0),
 //    landmarks(maxNumLandmarks, -1),
-    landmarksMaxDistances(maxNumLandmarks, 0),
-        numLandmarks(0)
+        landmarksMaxDistances(maxNumLandmarks, 0),
+        landmarksMaxPaths(maxNumLandmarks, 0),
+        numLandmarks(0),
+        a(0.0),
+        b(0.5),
+        c(0.5),
+        threshold(0.18)
 {
     landmarks.reserve(maxNumLandmarks);
 //    vertexFromLandmarkDistances.resize(maxNumLandmarks * numNodes);
@@ -23,28 +28,42 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks) :
 
 PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID target)
 {
-    auto landmarkQualityS = closestLandmarkQuality(source);
-    auto landmarkQualityT = closestLandmarkQuality(target);
-    double maxDistanceRatio = 0.2;
+//    auto landmarkDistRatioS = closestLandmarkDistanceRatio(source);
+    auto landmarkDistRatio = closestLandmarkDistanceRatio(target);
+//    auto landmarkDistRatio = std::min(landmarkDistRatioS, landmarkDistRatioT);
+    auto landmarkNodesRatio = closestLandmarkNodesRatio(target);
+    auto estimatedPathLength = estimatePathLengthRatio(source, target);
+    double maxDistanceRatio = 0.185;
 
-    if((landmarkQualityS > maxDistanceRatio && landmarkQualityT > maxDistanceRatio) && numLandmarks < maxNumLandmarks){
-        if(landmarkQualityS > landmarkQualityT) {
+    double score = a * landmarkDistRatio + b * landmarkNodesRatio + c * estimatedPathLength * landmarkNodesRatio;
+
+//    auto estimatedPathLength = estimatePathLength(source, target) * landmarkDistanceRatio;
+        if(score > threshold) {
+//    if(landmarkDistRatioS > maxDistanceRatio && landmarkDistRatioT > maxDistanceRatio) {
+//    if ((estimatedPathLength > maxDistanceRatio) && numLandmarks < maxNumLandmarks) {
+//        if (landmarkDistRatioS > landmarkDistRatioT) {
 //            Logger::log("Creating landmark from source ", landmarkQualityS);
-            auto landmarkIndex = createLandmark(graph, source);
-            return nodeFromLandmarkDistance(landmarkIndex, target);
-        }
-        else {
-//            Logger::log("Creating landmark from target ", landmarkQualityT);
             auto landmarkIndex = createLandmark(graph, target);
+//            auto pathLength = landmarks[landmarkIndex].pathLengths[target] / (double)landmarksMaxPaths[landmarkIndex];
+//            auto error = pathLength - estimatedPathLength;
+//            std::cout << "Path length: " << pathLength << ", estimated: "
+//                      << estimatedPathLength << ", error: " << error << std::endl;
             return nodeFromLandmarkDistance(landmarkIndex, source);
-        }
+//        } else {
+////            Logger::log("Creating landmark from target ", landmarkQualityT);
+//            auto landmarkIndex = createLandmark(graph, target);
+//            auto pathLength = landmarks[landmarkIndex].pathLengths[source] / (double)landmarksMaxPaths[landmarkIndex];
+//            auto error = pathLength - estimatedPathLength;
+////            std::cout << "Path length: " << pathLength << ", estimated: "
+////                      << estimatedPathLength << ", error: " << error << std::endl;
+//            return nodeFromLandmarkDistance(landmarkIndex, source);
+//        }
     }
-    if(landmarkQualityS < landmarkQualityT) {
-        return shortestPathDistanceALT(graph, target, source);
-    }
-    else {
+//    if (landmarkDistRatioS < landmarkDistRatioT) {
+//        return shortestPathDistanceALT(graph, target, source);
+//    } else {
         return shortestPathDistanceALT(graph, source, target);
-    }
+//    }
 
 }
 
@@ -54,7 +73,7 @@ EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t)
     for (std::size_t i = 0; i < landmarks.size(); ++i) {
         auto landmarkIndex = landmarks[i].index;
         currentLB = std::abs(
-                (int)nodeFromLandmarkDistance(landmarkIndex, s) - (int)nodeFromLandmarkDistance(landmarkIndex, t));
+                (int) nodeFromLandmarkDistance(landmarkIndex, s) - (int) nodeFromLandmarkDistance(landmarkIndex, t));
         if (currentLB > globalLB) {
             globalLB = currentLB;
         }
@@ -70,25 +89,34 @@ unsigned AdaptiveALT::createLandmark(Graph &graph, NodeID node)
 //    StopWatch sw;
 //    sw.start();
     auto landmarkIndex = (unsigned int) landmarks.size();
-    landmarks.push_back({landmarkIndex, node, std::vector<EdgeWeight>(numNodes, 0)});
+    landmarks.push_back({landmarkIndex, node,
+                         std::vector<EdgeWeight>(numNodes, 0),
+                         std::vector<unsigned>(numNodes, 0)
+                        });
+    auto &landmark = landmarks[landmarkIndex];
 //    landmarks.push_back({landmarkIndex, node});
 //    landmarks[landmarkIndex].distances.rehash(numNodes);
 //    landmarkDistances.push_back({});
 //    landmarkDistances[landmarkIndex].rehash(numNodes);
     numLandmarks++;
-    dijkstra.findSSSPDistances(graph, node, tempLandmarkDistances, &tempPqueue);
+    dijkstra.findSSSPDistances(graph, node, landmark.distances, landmark.pathLengths, &tempPqueue);
+//    dijkstra.findSSSPDistances(graph, node, landmark.distances, &tempPqueue);
     EdgeWeight maxDist = 0;
+    unsigned maxPathLength = 0;
     for (std::size_t j = 0; j < numNodes; ++j) {
-        if(tempLandmarkDistances[j] > maxDist) {
-            maxDist = tempLandmarkDistances[j];
+        if (landmark.distances[j] > maxDist) {
+            maxDist = landmark.distances[j];
+        }
+        if (landmark.pathLengths[j] > maxPathLength) {
+            maxPathLength = landmark.pathLengths[j];
         }
 //        vertexFromLandmarkDistances[j * maxNumLandmarks + landmarkIndex] = tempLandmarkDistances[j];
-        landmarks[landmarkIndex].distances[j] = tempLandmarkDistances[j];
         // Note: This will not be cache efficient, because the next vector position
         // we write to will be numLandmarks away. But when we access vertexFromLandmarkDistances
         // vector later, it will be in cache efficient order so queries will be faster.
     }
     landmarksMaxDistances[landmarkIndex] = maxDist;
+    landmarksMaxPaths[landmarkIndex] = maxPathLength;
 //    sw.stop();
 //    cumulativeTime += sw.getTimeMs();
 //    std::cout << "Time to create landmarks: " << cumulativeTime << " ms" << std::endl;
@@ -164,23 +192,39 @@ PathDistance AdaptiveALT::shortestPathDistanceALT(Graph &graph, NodeID source, N
     return distanceToTarget;
 }
 
-double AdaptiveALT::closestLandmarkQuality(NodeID node)
+double AdaptiveALT::closestLandmarkDistanceRatio(NodeID node)
 {
-    double bestQuality = 1;
-    for(unsigned i = 0; i < landmarks.size(); ++i) {
+    double bestRatio = 1;
+    for (unsigned i = 0; i < landmarks.size(); ++i) {
         auto landmarkIndex = landmarks[i].index;
 
-        auto quality = nodeFromLandmarkDistance(landmarkIndex, node) / (double)landmarksMaxDistances[landmarkIndex];
-        if(quality < bestQuality) {
-            bestQuality = quality;
+        auto ratio = nodeFromLandmarkDistance(landmarkIndex, node) / (double) landmarksMaxDistances[landmarkIndex];
+//        auto quality = landmarks[landmarkIndex].pathLengths[node] / (double) landmarksMaxPaths[landmarkIndex];
+        if (ratio < bestRatio) {
+            bestRatio = ratio;
         }
     }
-    return bestQuality;
+    return bestRatio;
+}
+
+double AdaptiveALT::closestLandmarkNodesRatio(NodeID node)
+{
+    double bestRatio = 1;
+    for (unsigned i = 0; i < landmarks.size(); ++i) {
+        auto landmarkIndex = landmarks[i].index;
+
+//        auto quality = nodeFromLandmarkDistance(landmarkIndex, node) / (double) landmarksMaxDistances[landmarkIndex];
+        auto ratio = landmarks[landmarkIndex].pathLengths[node] / (double) landmarksMaxPaths[landmarkIndex];
+        if (ratio < bestRatio) {
+            bestRatio = ratio;
+        }
+    }
+    return bestRatio;
 }
 
 std::vector<unsigned> AdaptiveALT::selectBestLandmarks(NodeID s, NodeID t)
 {
-    const unsigned numberOfSelectedLandmarks = 4;
+    const unsigned numberOfSelectedLandmarks = 5;
     std::vector<unsigned> bestLandmarks(numberOfSelectedLandmarks, 0);
     std::vector<unsigned> bestBounds(numberOfSelectedLandmarks, 0);
 
@@ -188,11 +232,11 @@ std::vector<unsigned> AdaptiveALT::selectBestLandmarks(NodeID s, NodeID t)
     for (std::size_t i = 0; i < landmarks.size(); ++i) {
         auto landmarkIndex = landmarks[i].index;
         currentLB = std::abs(
-                (int)nodeFromLandmarkDistance(landmarkIndex, s) - (int)nodeFromLandmarkDistance(landmarkIndex, t));
+                (int) nodeFromLandmarkDistance(landmarkIndex, s) - (int) nodeFromLandmarkDistance(landmarkIndex, t));
         if (currentLB > bestBounds.back()) {
             unsigned index = i;
-            for(unsigned j = 0; j < numberOfSelectedLandmarks; ++j) {
-                if(currentLB > bestBounds[j]) {
+            for (unsigned j = 0; j < numberOfSelectedLandmarks; ++j) {
+                if (currentLB > bestBounds[j]) {
                     std::swap(bestBounds[j], currentLB);
                     std::swap(bestLandmarks[j], index);
                 }
@@ -200,7 +244,7 @@ std::vector<unsigned> AdaptiveALT::selectBestLandmarks(NodeID s, NodeID t)
         }
     }
 
-    if(numLandmarks < numberOfSelectedLandmarks) {
+    if (numLandmarks < numberOfSelectedLandmarks) {
         return std::vector<unsigned>(bestLandmarks.begin(), bestLandmarks.begin() + numLandmarks);
     }
     return bestLandmarks;
@@ -209,12 +253,33 @@ std::vector<unsigned> AdaptiveALT::selectBestLandmarks(NodeID s, NodeID t)
 EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t, std::vector<unsigned int> &landmarkIndexes)
 {
     EdgeWeight globalLB = 0, currentLB;
-    for (auto index : landmarkIndexes) {
+    for (auto index: landmarkIndexes) {
         currentLB = std::abs(
-                (int)nodeFromLandmarkDistance(index, s) - (int)nodeFromLandmarkDistance(index, t));
+                (int) nodeFromLandmarkDistance(index, s) - (int) nodeFromLandmarkDistance(index, t));
         if (currentLB > globalLB) {
             globalLB = currentLB;
         }
     }
     return globalLB;
+}
+
+double AdaptiveALT::estimatePathLengthRatio(NodeID s, NodeID t)
+{
+    if (numLandmarks == 0) {
+        return 1;
+    }
+    EdgeWeight globalLB = 0, currentLB;
+    unsigned bestIndex = 0;
+    for (std::size_t i = 0; i < landmarks.size(); ++i) {
+        auto landmarkIndex = landmarks[i].index;
+        currentLB = std::abs(
+                (int) nodeFromLandmarkDistance(landmarkIndex, s) - (int) nodeFromLandmarkDistance(landmarkIndex, t));
+        if (currentLB > globalLB) {
+            globalLB = currentLB;
+            bestIndex = i;
+        }
+    }
+    return std::abs((int) landmarks[bestIndex].pathLengths[s] - (int) landmarks[bestIndex].pathLengths[t])
+           /
+           (double) landmarksMaxPaths[bestIndex];
 }

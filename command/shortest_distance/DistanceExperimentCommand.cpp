@@ -202,6 +202,7 @@ void DistanceExperimentCommand::validateAll()
 void DistanceExperimentCommand::runMethod(DistanceMethod* method)
 {
     std::cout << "*** Measuring " << method->name << "... ***" << std::endl;
+    method->printInfo();
     std::vector<EdgeWeight> distances(numTargets, 0);
     double cumulativeTime = 0;
     StopWatch sw;
@@ -212,6 +213,7 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
                 sw.stop();
                 cumulativeTime += sw.getTimeMs();
                 std::cout << "    " << i << ", " << cumulativeTime << std::endl;
+                method->printStatistics();
                 sw.reset();
                 sw.start();
                 if (i >= queries.size()) {

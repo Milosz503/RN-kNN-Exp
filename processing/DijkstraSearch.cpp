@@ -282,6 +282,56 @@ void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<
     }
 }
 
+void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<EdgeWeight>& targetDistances,
+                                       std::vector<EdgeWeight>& pathLengths,
+                                       MinPriorityQueue<EdgeWeight,NodeData> *pqueue)
+{
+    // We assume targetDistances has been resized for the size of the graph
+    // However it does not need to have zero values as we overwrite them
+
+    // Note: Using vector of bools is significantly faster than unordered_set.
+    // Unlike the case where Dijkstra's search is between one source and
+    // and one target, this is will never be less space efficient than unordered_set
+    // because they will have the same number of elements. In fact std::vector<bool>
+    // is more space efficient than a standard vector which is more space
+    // and time efficient than a unordered_set (array vs. hash table)
+    std::vector<bool> isNodeSettled(graph.getNumNodes(),false);
+    int adjListStart, nextAdjListStart;
+
+    EdgeWeight minDist;
+    NodeData minDistNode;
+    NodeID adjNode;
+
+    // Initialize with priority queue with source node
+    pqueue->insert({source, 0},0);
+
+    while (pqueue->size() > 0) {
+        // Extract and remove node with smallest distance from source
+        // and mark it as "settled" so we do not inspect again
+        minDist = pqueue->getMinKey();
+        minDistNode = pqueue->extractMinElement();
+        auto minDistNodeID = minDistNode.node;
+        if (!isNodeSettled[minDistNodeID]) {
+            isNodeSettled[minDistNodeID] = true;
+            targetDistances[minDistNodeID] = minDist;
+            pathLengths[minDistNodeID] = minDistNode.pathLength;
+
+            // Inspect each neighbour and update pqueue using edge weights
+            adjListStart = graph.getEdgeListStartIndex(minDistNodeID);
+            nextAdjListStart = graph.getEdgeListSize(minDistNodeID);
+
+            for (int i = adjListStart; i < nextAdjListStart; ++i) {
+                adjNode = graph.edges[i].first;
+                // Only update those we haven't already settled
+                if (!isNodeSettled[adjNode]) {
+                    pqueue->insert({adjNode, minDistNode.pathLength+1},
+                                   minDist+this->getEdgeWeight(graph, i));
+                }
+            }
+        }
+    }
+}
+
 void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<EdgeWeight>& targetDistances)
 {
     // We assume targetDistances has been resized for the size of the graph

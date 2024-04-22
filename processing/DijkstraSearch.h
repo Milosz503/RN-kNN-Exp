@@ -34,57 +34,68 @@
 #include <iostream>
 #include <set>
 
+struct NodeData {
+    NodeID node;
+    unsigned pathLength;
+};
+
 class DijkstraSearch {
 
-    public:
+public:
 
-        void findSSMTDistances(DynamicGraph& graph, NodeID source,
-                               std::unordered_set<NodeID>& targetSet, 
-                               std::unordered_map<NodeID,EdgeWeight>& results,
-                               BinaryMinHeap<EdgeWeight,NodeID> *pqueue);
+    void findSSMTDistances(DynamicGraph &graph, NodeID source,
+                           std::unordered_set<NodeID> &targetSet,
+                           std::unordered_map<NodeID, EdgeWeight> &results,
+                           BinaryMinHeap<EdgeWeight, NodeID> *pqueue);
 
-        Path findShortestPath(Graph& graph, NodeID source, NodeID target, std::vector<NodeID>& shortestPathTree);
+    Path findShortestPath(Graph &graph, NodeID source, NodeID target, std::vector<NodeID> &shortestPathTree);
 
-        EdgeWeight findShortestPathDistance(Graph& graph, NodeID source, NodeID target);
+    EdgeWeight findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
 
-        void findSSSPDistances(Graph& graph, NodeID source, std::vector<EdgeWeight>& targetDistances, 
-                               MinPriorityQueueWithDK<EdgeWeight,NodeID> *pqueue);
+    void findSSSPDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances,
+                           MinPriorityQueueWithDK<EdgeWeight, NodeID> *pqueue);
 
-        void findSSSPDistances(Graph& graph, NodeID source, std::vector<EdgeWeight>& targetDistances, 
-                               MinPriorityQueue<EdgeWeight,NodeID> *pqueue);
+    void findSSSPDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances,
+                           MinPriorityQueue<EdgeWeight, NodeID> *pqueue);
 
-        void findSSSPDistances(Graph& graph, NodeID source, std::vector<EdgeWeight>& targetDistances);
+    void findSSSPDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances,
+                           std::vector<EdgeWeight> &pathLengths,
+                           MinPriorityQueue<EdgeWeight, NodeData> *pqueue);
 
-        void findSSMTDistances(Graph& graph, NodeID source,
-                               std::unordered_set<NodeID>& targetSet, 
-                               std::unordered_map<NodeID,EdgeWeight>& results,
-                               BinaryMinHeap<EdgeWeight,NodeID> *pqueue);
+    void findSSSPDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances);
 
-        EdgeWeight findShortestPathDistanceSubgraph(Graph& graph, NodeID source, NodeID target, std::vector<bool>& edgeInSubgraph);
-        
-        void findSSMTDistancesSubgraph(Graph& graph, NodeID source,
-                               std::unordered_set<NodeID>& targetSet, 
-                               std::unordered_map<NodeID,EdgeWeight>& results,
-                               std::vector<bool>& edgeInSubgraph);
+    void findSSMTDistances(Graph &graph, NodeID source,
+                           std::unordered_set<NodeID> &targetSet,
+                           std::unordered_map<NodeID, EdgeWeight> &results,
+                           BinaryMinHeap<EdgeWeight, NodeID> *pqueue);
 
-        bool colourizeMap(Graph& graph, NodeID source, std::vector<EdgeID>& colourMap,
-                          std::vector<EdgeWeight>& distances, MinPriorityQueue<EdgeWeight,NodeLinkPair> *pqueue);
+    EdgeWeight
+    findShortestPathDistanceSubgraph(Graph &graph, NodeID source, NodeID target, std::vector<bool> &edgeInSubgraph);
 
-        bool colourizeMap(Graph& graph, NodeID source, std::vector<EdgeID>& colourMap,
-                          std::vector<EdgeWeight>& distances);
+    void findSSMTDistancesSubgraph(Graph &graph, NodeID source,
+                                   std::unordered_set<NodeID> &targetSet,
+                                   std::unordered_map<NodeID, EdgeWeight> &results,
+                                   std::vector<bool> &edgeInSubgraph);
 
-        inline EdgeWeight getEdgeWeight(Graph& graph, int i) {
+    bool colourizeMap(Graph &graph, NodeID source, std::vector<EdgeID> &colourMap,
+                      std::vector<EdgeWeight> &distances, MinPriorityQueue<EdgeWeight, NodeLinkPair> *pqueue);
+
+    bool colourizeMap(Graph &graph, NodeID source, std::vector<EdgeID> &colourMap,
+                      std::vector<EdgeWeight> &distances);
+
+    inline EdgeWeight getEdgeWeight(Graph &graph, int i)
+    {
 //            edgesAccessed.insert(i);
-            return graph.edges[i].second;
-        }
+        return graph.edges[i].second;
+    }
 
 
-
-        void printEdgeAccess() {
+    void printEdgeAccess()
+    {
 //            std::cout << "Edge access number: " << edgesAccessed.size() << std::endl;
-        }
+    }
 
-        unsigned long edgesAccessedCount = 0;
+    unsigned long edgesAccessedCount = 0;
 
 private:
     std::set<int> edgesAccessed;

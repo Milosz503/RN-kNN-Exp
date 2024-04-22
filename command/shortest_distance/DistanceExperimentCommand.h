@@ -31,6 +31,7 @@ public:
     virtual void buildIndex(Graph &graph) = 0;
 
     virtual void findDistances(Graph &graph, Query &query, std::vector<EdgeWeight> &distances) = 0;
+    virtual void printInfo() {};
     virtual void printStatistics() {};
 
     virtual ~DistanceMethod() {};
@@ -122,6 +123,11 @@ public:
             auto target = query.targets[i];
             distances[i] = alt->findShortestPathDistance(graph, query.source, target);
         }
+    }
+
+    void printInfo() override
+    {
+        alt->printInfo();
     }
 
     void printStatistics() override

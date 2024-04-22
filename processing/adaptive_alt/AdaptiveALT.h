@@ -21,6 +21,7 @@ struct Landmark {
     unsigned int index;
     NodeID nodeId;
     std::vector<EdgeWeight> distances;
+    std::vector<unsigned> pathLengths;
 //    boost::unordered_map<NodeID, EdgeWeight> distances;
 };
 
@@ -38,15 +39,24 @@ public:
         return edgesAccessedCount + dijkstra.edgesAccessedCount;
     }
 
+    void printInfo() {
+        std::cout << "a=" << a << ", b=" << b << ", c=" << c << ", threshold=" << threshold << std::endl;
+    }
     void printStatistics() {
 //        for(unsigned i = 0; i < landmarks.size(); ++i) {
 //            unsigned landmark = landmarks[i].index;
 //            std::cout << "Landmark " << landmark << " score: " << landmarkScore(landmark) << std::endl;
 //        }
         std::cout << "Number of landmarks: " << landmarks.size() << std::endl;
+
     }
 
 private:
+    const double a;
+    const double b;
+    const double c;
+    const double threshold;
+
     unsigned int numNodes;
     unsigned int numEdges;
     unsigned int maxNumLandmarks;
@@ -54,13 +64,13 @@ private:
 
     std::vector<Landmark> landmarks;
     std::vector<EdgeWeight> landmarksMaxDistances;
+    std::vector<unsigned> landmarksMaxPaths;
     std::vector<unsigned> landmarksQueryAnswered;
     std::vector<unsigned> landmarksQueryNumber;
     DijkstraSearch dijkstra;
 
     // temporary variables
-    std::vector<EdgeWeight> tempLandmarkDistances;
-    BinaryMinHeap<EdgeWeight, NodeID> tempPqueue;
+    BinaryMinHeap<EdgeWeight, NodeData> tempPqueue;
 
     unsigned createLandmark(Graph &graph, NodeID node);
     PathDistance shortestPathDistanceALT(Graph &graph, NodeID source, NodeID target);
@@ -72,7 +82,9 @@ private:
         return landmarksQueryAnswered[landmark] / (double)landmarksQueryNumber[landmark];
     }
 
-    double closestLandmarkQuality(NodeID node);
+    double closestLandmarkDistanceRatio(NodeID node);
+    double closestLandmarkNodesRatio(NodeID node);
+    double estimatePathLengthRatio(NodeID s, NodeID t);
 
     inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node) {
         return landmarks[landmarkIndex].distances[node];

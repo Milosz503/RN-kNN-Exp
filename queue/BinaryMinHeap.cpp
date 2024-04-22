@@ -22,6 +22,7 @@
 #include "../processing/MortonList.h"
 #include "../processing/StaticRtree.h"
 #include "../processing/AStarSearch.h"
+#include "../processing/DijkstraSearch.h"
 
 #include <iostream>
 
@@ -169,3 +170,4 @@ template class BinaryMinHeap<EdgeWeight,NodeLinkPair>;
 template class BinaryMinHeap<EdgeWeight,NodeStatusPair>;
 template class BinaryMinHeap<EdgeWeight,NodePair>;
 template class BinaryMinHeap<EdgeWeight,AStarHeapElement>;
+template class BinaryMinHeap<EdgeWeight,NodeData>;
