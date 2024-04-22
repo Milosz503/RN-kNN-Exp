@@ -57,6 +57,7 @@ public:
     double computeIndexSize();
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
+    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned>& landmarkIndexes);
 
     EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID>& targets);
 
@@ -96,6 +97,12 @@ private:
     int candidateRightIndex;
 
     void updateCandidatesQueue(NodeID q);
+
+    std::vector<unsigned> selectBestLandmarks(NodeID s, NodeID t);
+
+    inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node) {
+        return vertexFromLandmarkDistances[node * numLandmarks + landmarkIndex];
+    }
 
     std::set<int> edgesAccessed;
     inline EdgeWeight getEdgeWeight(Graph &graph, int i)

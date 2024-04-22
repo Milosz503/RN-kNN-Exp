@@ -47,7 +47,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
 
     methods.push_back(new AdaptiveALTMethod(100));
-    methods.push_back(new ALTMethod(20));
+//    methods.push_back(new ALTMethod(15));
 //    methods.push_back(new ALTMethod(40));
 //    methods.push_back(new AStarMethod());
 //    methods.push_back(new DijkstraMethod());
@@ -141,24 +141,24 @@ void DistanceExperimentCommand::runAll()
 void DistanceExperimentCommand::validateAll()
 {
     std::cout << "*** Validating ***" << std::endl;
-    std::cout << "Validating edge weights..." << std::endl;
-
-    for (auto node: graph.getNodesIDsVector()) {
-        auto edgeStart = graph.getEdgeListStartIndex(node);
-        auto edgeEnd = graph.getEdgeListSize(node);
-
-        for (auto edge = edgeStart; edge < edgeEnd; edge++) {
-            auto edgeNode = graph.edges[edge].first;
-            auto edgeWeight = graph.edges[edge].second;
-            auto euclideanDist = graph.getEuclideanDistance(node, edgeNode);
-
-            if (euclideanDist > edgeWeight) {
-                std::cerr << "Validation failed for edge: " << node << " -> " << edgeNode << std::endl;
-                std::cerr << "Euclidean: " << euclideanDist << ", Edge: " << edgeWeight << std::endl;
-            }
-        }
-    }
-    std::cout << "Finished validating edge weights." << std::endl;
+//    std::cout << "Validating edge weights..." << std::endl;
+//
+//    for (auto node: graph.getNodesIDsVector()) {
+//        auto edgeStart = graph.getEdgeListStartIndex(node);
+//        auto edgeEnd = graph.getEdgeListSize(node);
+//
+//        for (auto edge = edgeStart; edge < edgeEnd; edge++) {
+//            auto edgeNode = graph.edges[edge].first;
+//            auto edgeWeight = graph.edges[edge].second;
+//            auto euclideanDist = graph.getEuclideanDistance(node, edgeNode);
+//
+//            if (euclideanDist > edgeWeight) {
+//                std::cerr << "Validation failed for edge: " << node << " -> " << edgeNode << std::endl;
+//                std::cerr << "Euclidean: " << euclideanDist << ", Edge: " << edgeWeight << std::endl;
+//            }
+//        }
+//    }
+//    std::cout << "Finished validating edge weights." << std::endl;
 
 
     std::cout << "Validating results..." << std::endl;

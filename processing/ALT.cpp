@@ -141,6 +141,19 @@ EdgeWeight ALT::getLowerBound(NodeID s, NodeID t)
     return globalLB;
 }
 
+EdgeWeight ALT::getLowerBound(NodeID s, NodeID t, std::vector<unsigned int> &landmarkIndexes)
+{
+    EdgeWeight globalLB = 0, currentLB;
+    for (auto i : landmarkIndexes) {
+        currentLB = std::abs(
+                vertexFromLandmarkDistances[s * numLandmarks + i] - vertexFromLandmarkDistances[t * numLandmarks + i]);
+        if (currentLB > globalLB) {
+            globalLB = currentLB;
+        }
+    }
+    return globalLB;
+}
+
 EdgeWeight ALT::getLowestLowerBound(NodeID s, std::vector<NodeID> &targets)
 {
     EdgeWeight lowestLowerBound = getLowerBound(s, targets.front());
@@ -245,6 +258,7 @@ Path ALT::findShortestPath(Graph &graph, NodeID source, NodeID target,
 EdgeWeight ALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID target)
 {
     edgesAccessed.clear();
+//    auto bestLandmarks = selectBestLandmarks(source, target);
 
     BinaryMinHeap<EdgeWeight, NodeDistancePair> pqueue;
     std::vector<bool> isNodeSettled(graph.getNumNodes(), false);
@@ -255,6 +269,7 @@ EdgeWeight ALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID tar
     int adjListStart, adjListSize;
 
     // Initialize priority queue with source node
+//    EdgeWeight minSourceTargetDist = getLowerBound(source, target, bestLandmarks);
     EdgeWeight minSourceTargetDist = getLowerBound(source, target);
     pqueue.insert(NodeDistancePair(source, 0), minSourceTargetDist);
 
@@ -295,6 +310,7 @@ EdgeWeight ALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID tar
                     //assert (currentToTargetEst <= adjNodeWgt+neighbourToTargetEst && "Heuristic function is not consistent");
 
                     sourceToAdjNodeDist = minDist + getEdgeWeight(graph, i);
+//                    minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target, bestLandmarks);
                     minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target);
                     pqueue.insert(NodeDistancePair(adjNode, sourceToAdjNodeDist), minSourceTargetDist);
                 }
@@ -452,5 +468,35 @@ void ALT::updateCandidatesQueue(NodeID q)
     }
 
 }
+
+std::vector<unsigned> ALT::selectBestLandmarks(NodeID s, NodeID t)
+{
+    const unsigned numberOfSelectedLandmarks = 10;
+    std::vector<unsigned> bestLandmarks(numberOfSelectedLandmarks, 0);
+    std::vector<unsigned> bestBounds(numberOfSelectedLandmarks, 0);
+
+
+    EdgeWeight currentLB;
+    for (std::size_t i = 0; i < landmarks.size(); ++i) {
+        currentLB = std::abs(
+                (int) nodeFromLandmarkDistance(i, s) - (int) nodeFromLandmarkDistance(i, t));
+        if (currentLB > bestBounds.back()) {
+            unsigned index = i;
+            for (unsigned j = 0; j < numberOfSelectedLandmarks; ++j) {
+                if (currentLB > bestBounds[j]) {
+                    std::swap(bestBounds[j], currentLB);
+                    std::swap(bestLandmarks[j], index);
+                }
+            }
+        }
+    }
+
+    if (numLandmarks < numberOfSelectedLandmarks) {
+        return std::vector<unsigned>(bestLandmarks.begin(), bestLandmarks.begin() + numLandmarks);
+    }
+    return bestLandmarks;
+}
+
+
 
 

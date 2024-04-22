@@ -40,6 +40,7 @@ class AStarSearch {
         Path findShortestPath(Graph& graph, NodeID source, NodeID target, std::vector<NodeID>& shortestPathTree);
 
         PathDistance findShortestPathDistance(Graph& graph, NodeID source, NodeID target);
+        PathDistance findShortestPathDistanceT(Graph& graph, NodeID source, NodeID target);
 
 };
 

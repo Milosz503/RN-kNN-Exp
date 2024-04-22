@@ -69,7 +69,7 @@ public:
     {
         for (unsigned i = 0; i < query.targets.size(); ++i) {
             auto target = query.targets[i];
-            distances[i] = astar.findShortestPathDistance(graph, query.source, target);
+            distances[i] = astar.findShortestPathDistanceT(graph, query.source, target);
         }
     }
 

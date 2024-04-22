@@ -224,7 +224,7 @@ double AdaptiveALT::closestLandmarkNodesRatio(NodeID node)
 
 std::vector<unsigned> AdaptiveALT::selectBestLandmarks(NodeID s, NodeID t)
 {
-    const unsigned numberOfSelectedLandmarks = 5;
+    const unsigned numberOfSelectedLandmarks = 7;
     std::vector<unsigned> bestLandmarks(numberOfSelectedLandmarks, 0);
     std::vector<unsigned> bestBounds(numberOfSelectedLandmarks, 0);
 
