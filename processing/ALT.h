@@ -32,7 +32,8 @@
 enum LANDMARK_TYPE {
     RANDOM = 0,
     RANDOM_OBJECTS = 1,
-    MIN_DIST = 2,
+    AVOID = 2,
+    MIN_DIST = 6,
 };
 
 struct ALTParameters {
@@ -69,10 +70,9 @@ public:
     double computeIndexSize();
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
+    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned>& landmarkIndexes);
 
-    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned> &landmarkIndexes);
-
-    EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID> &targets);
+    EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID>& targets);
 
     void getLowerAndUpperBound(NodeID s, NodeID t, EdgeWeight &lb, EdgeWeight &ub);
 
@@ -90,6 +90,9 @@ public:
     NodeID getNextCandidate(NodeID q, EdgeWeight &lbDistance);
 
     unsigned long edgesAccessedCount = 0;
+
+    std::size_t calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree, std::vector<NodeID>& landmarks);
+    NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree);
 private:
     friend class boost::serialization::access;
 
