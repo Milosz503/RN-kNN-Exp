@@ -31,7 +31,8 @@
 
 enum LANDMARK_TYPE {
     RANDOM = 0,
-    RANDOM_OBJECTS = 1
+    RANDOM_OBJECTS = 1,
+    AVOID = 2,
 };
 
 
@@ -76,6 +77,9 @@ public:
     NodeID getNextCandidate(NodeID q, EdgeWeight &lbDistance);
 
     unsigned long edgesAccessedCount = 0;
+
+    std::size_t calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree, std::vector<NodeID>& landmarks);
+    NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree);
 private:
     friend class boost::serialization::access;
 
