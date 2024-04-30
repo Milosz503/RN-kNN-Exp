@@ -46,9 +46,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
 
-    methods.push_back(new AdaptiveALTMethod(100));
+    methods.push_back(new AdaptiveALTMethod(20));
 //    methods.push_back(new ALTMethod(15));
-//    methods.push_back(new ALTMethod(40));
+//    methods.push_back(new ALTMethod(20));
 //    methods.push_back(new AStarMethod());
 //    methods.push_back(new DijkstraMethod());
     buildIndexes();
@@ -208,12 +208,13 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
     StopWatch sw;
     sw.start();
     for(unsigned i = 0; true; ++i) {
-        if(i % 10 == 0) {
-            if (i == 10 || i == 50 || i == 100 || i == 500 || i == 1000 || queries.size() == i) {
+        if(i % 4 == 0 || i == 1) {
+            if(i == 1 || i == 4 || i == 16 || i == 64 || i == 256 || i == 1024 || i == 4096 || queries.size() == i) {
+//            if (i == 10 || i == 50 || i == 100 || i == 500 || i == 1000 || queries.size() == i) {
                 sw.stop();
                 cumulativeTime += sw.getTimeMs();
                 std::cout << "    " << i << ", " << cumulativeTime << std::endl;
-                method->printStatistics();
+//                method->printStatistics();
                 sw.reset();
                 sw.start();
                 if (i >= queries.size()) {

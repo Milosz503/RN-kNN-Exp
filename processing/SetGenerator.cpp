@@ -152,7 +152,8 @@ std::vector<NodeID> SetGenerator::generateRandomClusteredSampleSet(Graph& graph,
 
     std::random_device rd;
     std::default_random_engine e1(rd());
-    std::uniform_int_distribution<int> uniform_dist(0, n);    
+//    std::default_random_engine e1(time(0));
+    std::uniform_int_distribution<int> uniform_dist(0, n);
     std::uniform_int_distribution<int> cluster_dist(1,clusterSize); // Vary cluster size
     std::bernoulli_distribution pick(clusterProbability); // 5% chance that a visited verterx is added cluster
 

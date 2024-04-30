@@ -14,13 +14,16 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks) :
         landmarksQueryAnswered(maxNumLandmarks, 0),
         landmarksQueryNumber(maxNumLandmarks, 0),
 //    landmarks(maxNumLandmarks, -1),
+#ifndef DYNAMIC_LANDMARKS_A_ALT
+        vertexFromLandmarkDistances(maxNumLandmarks * numNodes, 0),
+#endif
         landmarksMaxDistances(maxNumLandmarks, 0),
         landmarksMaxPaths(maxNumLandmarks, 0),
         numLandmarks(0),
         a(0.0),
-        b(0.5),
-        c(0.5),
-        threshold(0.18)
+        b(1.0),
+        c(0.0),
+        threshold(0.25)
 {
     landmarks.reserve(maxNumLandmarks);
 //    vertexFromLandmarkDistances.resize(maxNumLandmarks * numNodes);
@@ -38,7 +41,7 @@ PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, 
     double score = a * landmarkDistRatio + b * landmarkNodesRatio + c * estimatedPathLength * landmarkNodesRatio;
 
 //    auto estimatedPathLength = estimatePathLength(source, target) * landmarkDistanceRatio;
-        if(score > threshold) {
+        if(score > threshold && numLandmarks < maxNumLandmarks) {
 //    if(landmarkDistRatioS > maxDistanceRatio && landmarkDistRatioT > maxDistanceRatio) {
 //    if ((estimatedPathLength > maxDistanceRatio) && numLandmarks < maxNumLandmarks) {
 //        if (landmarkDistRatioS > landmarkDistRatioT) {
@@ -84,36 +87,33 @@ EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t)
 unsigned AdaptiveALT::createLandmark(Graph &graph, NodeID node)
 {
     static double cumulativeTime = 0;
-//    landmarksQueryNumber[index] = 0;
-//    landmarksQueryAnswered[index] = 0;
 //    StopWatch sw;
 //    sw.start();
     auto landmarkIndex = (unsigned int) landmarks.size();
-    landmarks.push_back({landmarkIndex, node,
-                         std::vector<EdgeWeight>(numNodes, 0),
-                         std::vector<unsigned>(numNodes, 0)
-                        });
+    landmarks.push_back(Landmark(landmarkIndex, node, numNodes));
     auto &landmark = landmarks[landmarkIndex];
-//    landmarks.push_back({landmarkIndex, node});
-//    landmarks[landmarkIndex].distances.rehash(numNodes);
-//    landmarkDistances.push_back({});
-//    landmarkDistances[landmarkIndex].rehash(numNodes);
     numLandmarks++;
+#ifdef DYNAMIC_LANDMARKS_A_ALT
     dijkstra.findSSSPDistances(graph, node, landmark.distances, landmark.pathLengths, &tempPqueue);
-//    dijkstra.findSSSPDistances(graph, node, landmark.distances, &tempPqueue);
+#else
+    std::vector<EdgeWeight> landmarkDistances(numNodes, 0);
+    dijkstra.findSSSPDistances(graph, node, landmarkDistances, landmark.pathLengths, &tempPqueue);
+#endif
     EdgeWeight maxDist = 0;
     unsigned maxPathLength = 0;
     for (std::size_t j = 0; j < numNodes; ++j) {
-        if (landmark.distances[j] > maxDist) {
-            maxDist = landmark.distances[j];
+#ifndef DYNAMIC_LANDMARKS_A_ALT
+        vertexFromLandmarkDistances[j * maxNumLandmarks + landmarkIndex] = landmarkDistances[j];
+        // Note: This will not be cache efficient, because the next vector position
+        // we write to will be numLandmarks away. But when we access vertexFromLandmarkDistances
+        // vector later, it will be in cache efficient order so queries will be faster.
+#endif
+        if (nodeFromLandmarkDistance(landmarkIndex, j) > maxDist) {
+            maxDist = nodeFromLandmarkDistance(landmarkIndex, j);
         }
         if (landmark.pathLengths[j] > maxPathLength) {
             maxPathLength = landmark.pathLengths[j];
         }
-//        vertexFromLandmarkDistances[j * maxNumLandmarks + landmarkIndex] = tempLandmarkDistances[j];
-        // Note: This will not be cache efficient, because the next vector position
-        // we write to will be numLandmarks away. But when we access vertexFromLandmarkDistances
-        // vector later, it will be in cache efficient order so queries will be faster.
     }
     landmarksMaxDistances[landmarkIndex] = maxDist;
     landmarksMaxPaths[landmarkIndex] = maxPathLength;

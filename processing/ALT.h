@@ -31,7 +31,7 @@
 
 enum LANDMARK_TYPE {
     RANDOM = 0,
-    RANDOM_OBJECTS = 1,
+    RANDOM_OBJECTS = 1
 };
 
 

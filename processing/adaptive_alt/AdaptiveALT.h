@@ -17,12 +17,26 @@
 #include <set>
 #include <boost/unordered_map.hpp>
 
+//#define DYNAMIC_LANDMARKS_A_ALT 1
+
+
 struct Landmark {
     unsigned int index;
     NodeID nodeId;
+#ifdef DYNAMIC_LANDMARKS_A_ALT
     std::vector<EdgeWeight> distances;
+#endif
     std::vector<unsigned> pathLengths;
 //    boost::unordered_map<NodeID, EdgeWeight> distances;
+
+    Landmark(unsigned int index, NodeID node, unsigned int numNodes) :
+        index(index),
+        nodeId(node),
+#ifdef DYNAMIC_LANDMARKS_A_ALT
+        distances(numNodes, 0),
+#endif
+        pathLengths(numNodes, 0)
+    {}
 };
 
 class AdaptiveALT {
@@ -63,6 +77,9 @@ private:
     unsigned int numLandmarks;
 
     std::vector<Landmark> landmarks;
+#ifndef DYNAMIC_LANDMARKS_A_ALT
+    std::vector<unsigned int> vertexFromLandmarkDistances;
+#endif
     std::vector<EdgeWeight> landmarksMaxDistances;
     std::vector<unsigned> landmarksMaxPaths;
     std::vector<unsigned> landmarksQueryAnswered;
@@ -87,7 +104,11 @@ private:
     double estimatePathLengthRatio(NodeID s, NodeID t);
 
     inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node) {
+#ifdef DYNAMIC_LANDMARKS_A_ALT
         return landmarks[landmarkIndex].distances[node];
+#else
+        return vertexFromLandmarkDistances[node * maxNumLandmarks + landmarkIndex];
+#endif
     }
 
     std::vector<unsigned> selectBestLandmarks(NodeID s, NodeID t);
