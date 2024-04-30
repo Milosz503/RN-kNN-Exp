@@ -100,7 +100,7 @@ NodeID ALT::getMaxLeaf(
             break;
         for (NodeID child : std::get<0>(tree[root])) {
             childSize = std::get<2>(tree[child]);
-            if (childSize > maxSize) {
+            if (childSize >= maxSize) {
                 maxSize = childSize;
                 maxLeaf = child;
             }
