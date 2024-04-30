@@ -91,8 +91,8 @@ public:
 
     unsigned long edgesAccessedCount = 0;
 
-    std::size_t calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree, std::vector<NodeID>& landmarks);
-    NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree);
+    unsigned long calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree, std::vector<NodeID>& landmarks);
+    NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree);
 private:
     friend class boost::serialization::access;
 

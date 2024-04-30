@@ -196,6 +196,9 @@ public:
             case LANDMARK_TYPE::RANDOM_OBJECTS:
                 landmarkTypeStr = "RANDOM_OBJECTS";
                 break;
+            case LANDMARK_TYPE::AVOID:
+                landmarkTypeStr = "AVOID";
+                break;
             default:
                 landmarkTypeStr = "UNKNOWN!";
                 break;
