@@ -85,7 +85,7 @@ public:
 
     void buildIndex(Graph &graph) override
     {
-        alt.buildALT(graph, LANDMARK_TYPE::RANDOM, numLandmarks);
+        alt.buildALT(graph, LANDMARK_TYPE::AVOID, numLandmarks);
     }
 
     void findDistances(Graph &graph, Query &query, std::vector<EdgeWeight> &distances) override

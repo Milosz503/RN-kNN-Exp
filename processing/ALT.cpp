@@ -69,16 +69,16 @@ ALT::buildALT(Graph &graph, LANDMARK_TYPE landmarkType, unsigned int _numLandmar
 }
 
 //// Recursively calculate size of each node
-std::size_t ALT::calculateSizes(
+unsigned long ALT::calculateSizes(
         NodeID root,
-        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree,
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree,
         std::vector<NodeID>& landmarks
 ) {
     EdgeWeight weight = std::get<1>(tree[root]);
-    std::size_t size = weight;
+    unsigned long size = weight;
 
     for (auto child : std::get<0>(tree[root])) {
-        if (std::get<1>(tree[child]) != 0u)
+        if (std::find(landmarks.begin(), landmarks.end(), child) == landmarks.end())
             size += calculateSizes(child, tree, landmarks);
     }
 
@@ -90,9 +90,9 @@ std::size_t ALT::calculateSizes(
 
 NodeID ALT::getMaxLeaf(
         NodeID root,
-        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>>& tree
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree
 ) {
-    std::size_t maxSize = 0ul;
+    unsigned long maxSize = 0ul;
     NodeID maxLeaf = root;
     EdgeWeight childSize = 0u;
     while (true) {
@@ -179,7 +179,7 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         }
 
         //// Shortest path tree as a vector of tuples of children ids, weights, and sizes
-        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, std::size_t>> spTree(numNodes);
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>> spTree(numNodes);
         int adjListStart, nextAdjListStart;
         NodeID randomVertex;
         EdgeWeight vertexWeight;
@@ -187,7 +187,7 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         for (std::size_t i = startingIndex; i < numLandmarks; ++i) {
             pqueue->clear();
             //// randomVertex should be indexed from 0
-            randomVertex = randomVertices[i - numInitialLandmarks];
+            randomVertex = objectNodes[randomVertices[i - numInitialLandmarks]];
             dijk.findSSSPDistances(graph, randomVertex, landmarkDistances, pqueue);
 
             for (auto j = 0; j < objectNodes.size(); j++) {
@@ -200,15 +200,12 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
 
                 // check if a child in the Shortest Path Tree
                 for (int k = adjListStart; k < nextAdjListStart; ++k) {
-                    if (landmarkDistances[k] == landmarkDistances[j] + graph.edges[k].second) {
+                    if (landmarkDistances[graph.edges[k].first] == landmarkDistances[objectNodes[j]] + graph.edges[k].second) {
                         readyToPush.push_back(graph.edges[k].first);
                     }
                 }
                 // Add node - a tuple of vertex children and weight - to the tree
-                if (std::find(landmarks.begin(), landmarks.end(), objectNodes[j]) != landmarks.end())
-                    spTree[objectNodes[j]] = std::make_tuple(readyToPush, 0u, 0ul);
-                else
-                    spTree[objectNodes[j]] = std::make_tuple(readyToPush, vertexWeight, 0ul);
+                spTree[objectNodes[j]] = std::make_tuple(readyToPush, vertexWeight, 0ul);
             }
 
             // recursively calculate sizes of each node v
