@@ -42,11 +42,17 @@ private:
 
     void buildIndexes();
 
+    void buildIndexes(std::vector<std::vector<double>>& results);
+
     void loadQueries();
 
     void runAll();
 
+    void runAll(std::vector<std::vector<double>>& results);
+
     void runMethod(DistanceMethod* method);
+
+    void runMethod(DistanceMethod* method, std::vector<std::vector<double>>& results, int iter);
 
     void validateAll();
 

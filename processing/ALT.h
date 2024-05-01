@@ -27,6 +27,7 @@
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 #include <set>
 
 enum LANDMARK_TYPE {

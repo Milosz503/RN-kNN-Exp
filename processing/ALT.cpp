@@ -64,8 +64,11 @@ double ALT::computeIndexSize()
 void
 ALT::buildALT(Graph &graph, LANDMARK_TYPE landmarkType, unsigned int _numLandmarks)
 {
-    std::vector<NodeID> emptyObjectList;
-    buildALT(graph, emptyObjectList, landmarkType, _numLandmarks);
+    std::vector<NodeID> objectNodes(
+            boost::counting_iterator<NodeID>(0),
+            boost::counting_iterator<NodeID>(graph.getNumNodes())
+    );
+    buildALT(graph, objectNodes, landmarkType, _numLandmarks);
 }
 
 //// Recursively calculate size of each node
