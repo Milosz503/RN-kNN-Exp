@@ -205,6 +205,9 @@ public:
             case LANDMARK_TYPE::ADVANCED_AVOID:
                 landmarkTypeStr = "ADVANCED_AVOID";
                 break;
+            case LANDMARK_TYPE::FARTHEST:
+                landmarkTypeStr = "FARTHEST";
+                break;
             default:
                 landmarkTypeStr = "UNKNOWN!";
                 break;

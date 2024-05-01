@@ -502,7 +502,36 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         delete pqueue;
         objectList.setDistances(objectDistances, objectNodes.size());
         return;
-    } else {
+    }
+    else if (landmarkType == LANDMARK_TYPE::FARTHEST) {
+        SetGenerator sg;
+        //// Number of random points from which to perform farthest
+        std::vector<NodeID> randomVertices = sg.generateRandomSampleSet(objectNodes.size(), numLandmarks);
+
+        landmarks.clear();
+        landmarks.reserve(numLandmarks);
+
+        unsigned distance, maxDistance = 0u;
+        NodeID nextLandmark;
+
+        //// For each random vertex get the farthest vertex from it and set it as a landmark
+        for (std::size_t i = 0; i < numLandmarks; ++i) {
+            pqueue->clear();
+            dijk.findSSSPDistances(graph, objectNodes[randomVertices[i]], landmarkDistances, pqueue);
+
+            for (auto j = 0; j < objectNodes.size(); j++) {
+                if (std::find(landmarks.begin(), landmarks.end(), objectNodes[j]) == landmarks.end()) {
+                    distance = landmarkDistances[objectNodes[j]];
+                    if (distance >= maxDistance) {
+                        maxDistance = distance;
+                        nextLandmark = objectNodes[j];
+                    }
+                }
+            }
+            landmarks.push_back(nextLandmark);
+        }
+    }
+    else {
         std::cerr << "Unknown landmark type" << std::endl;
         std::exit(1);
     }

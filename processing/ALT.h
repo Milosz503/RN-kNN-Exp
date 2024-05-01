@@ -35,6 +35,7 @@ enum LANDMARK_TYPE {
     AVOID = 2,
     AVOID_PEQUE_URATA_IRYO = 3,
     ADVANCED_AVOID = 4,
+    FARTHEST = 5,
     MIN_DIST = 6,
 };
 
