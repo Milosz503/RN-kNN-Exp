@@ -88,13 +88,32 @@ unsigned long ALT::calculateSizes(
 
 }
 
+SizeNumNodesPair ALT::calculateSizes(
+        NodeID root,
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree,
+        std::vector<NodeID>& landmarks
+) {
+    EdgeWeight weight = std::get<1>(tree[root]);
+    SizeNumNodesPair size_num_nodes(weight, std::get<0>(tree[root]).size());
+    if (size_num_nodes.numNodes != 0u) {
+        for (auto child : std::get<0>(tree[root])) {
+            if (std::find(landmarks.begin(), landmarks.end(), child) == landmarks.end())
+                size_num_nodes += calculateSizes(child, tree, landmarks);
+        }
+        tree[root] = std::make_tuple(std::get<0>(tree[root]), weight, size_num_nodes.size, size_num_nodes.numNodes);
+        return size_num_nodes;
+    }
+    tree[root] = std::make_tuple(std::get<0>(tree[root]), weight, size_num_nodes.size, 1u);
+    return size_num_nodes;
+}
+
 NodeID ALT::getMaxLeaf(
         NodeID root,
         std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree
 ) {
     unsigned long maxSize = 0ul;
     NodeID maxLeaf = root;
-    EdgeWeight childSize = 0u;
+    unsigned long childSize = 0ul;
     while (true) {
         if (std::get<0>(tree[root]).size() == 0)
             break;
@@ -106,6 +125,29 @@ NodeID ALT::getMaxLeaf(
             }
         }
         maxSize = 0ul;
+        root = maxLeaf;
+    }
+    return maxLeaf;
+}
+
+NodeID ALT::getMaxLeaf(
+        NodeID root,
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree
+) {
+    double maxSize = 0.0;
+    NodeID maxLeaf = root;
+    double childSize = 0.0;
+    while (true) {
+        if (std::get<0>(tree[root]).size() == 0)
+            break;
+        for (NodeID child : std::get<0>(tree[root])) {
+            childSize = std::get<2>(tree[child]) * std::get<3>(tree[child]);
+            if (childSize >= maxSize) {
+                maxSize = childSize;
+                maxLeaf = child;
+            }
+        }
+        maxSize = 0.0;
         root = maxLeaf;
     }
     return maxLeaf;
@@ -240,7 +282,227 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         objectList.setDistances(objectDistances, objectNodes.size());
         return;
     }
-    else {
+    else if (landmarkType == LANDMARK_TYPE::AVOID_PEQUE_URATA_IRYO) {
+        SetGenerator sg;
+        //// Number to divide the number of total landmarks
+        int divideBy = 10;
+        //// get the rounded up number of divided landmarks
+        int numInitialLandmarks = std::ceil(numLandmarks / divideBy);
+        std::vector<NodeID> randomSet = sg.generateRandomSampleSet(objectNodes.size(), numLandmarks);
+        //// init first a certain % of landmark starting points
+        std::vector<NodeID> initialLandmarkVertices(randomSet.begin(), randomSet.begin() + numInitialLandmarks);
+        //// init random vertices from which we want to run avoid in every iteration to find a landmark candidate
+        std::vector<NodeID> randomVertices(randomSet.begin() + numInitialLandmarks, randomSet.end());
+
+        landmarks.clear();
+        landmarks.reserve(randomSet.size());
+
+        for (auto vert : initialLandmarkVertices) {
+            landmarks.push_back(objectNodes[vert]);
+        }
+
+        //// init the first landmarks - de facto the random objects approach
+        std::size_t startingIndex = initialLandmarkVertices.size();
+        for (std::size_t i = 0; i < initialLandmarkVertices.size(); ++i) {
+            pqueue->clear();
+            dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
+            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+                NodeID object = objectNodes[j];
+                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+            }
+            auto olStart = objectDistances.begin() + i * objectNodes.size();
+            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+            std::sort(olStart, olEnd, compareObjectListElement);
+
+            for (std::size_t j = 0; j < numNodes; ++j) {
+                vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
+            }
+        }
+
+        //// Shortest path tree as a vector of tuples of children ids, weights, and sizes
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>> spTree(numNodes);
+        int adjListStart, nextAdjListStart;
+        NodeID randomVertex;
+        EdgeWeight vertexWeight;
+
+        for (std::size_t i = startingIndex; i < numLandmarks; ++i) {
+            pqueue->clear();
+            //// randomVertex should be indexed from 0
+            randomVertex = objectNodes[randomVertices[i - numInitialLandmarks]];
+            dijk.findSSSPDistances(graph, randomVertex, landmarkDistances, pqueue);
+
+            for (auto j = 0; j < objectNodes.size(); j++) {
+                //// get vertex weight
+                vertexWeight = landmarkDistances[objectNodes[j]] - getLowerBound(randomVertex, objectNodes[j]);
+                std::vector<NodeID> readyToPush;
+
+                adjListStart = graph.getEdgeListStartIndex(objectNodes[j]);
+                nextAdjListStart = graph.getEdgeListSize(objectNodes[j]);
+
+                // check if a child in the Shortest Path Tree
+                for (int k = adjListStart; k < nextAdjListStart; ++k) {
+                    if (landmarkDistances[graph.edges[k].first] == landmarkDistances[objectNodes[j]] + graph.edges[k].second) {
+                        readyToPush.push_back(graph.edges[k].first);
+                    }
+                }
+                // Add node - a tuple of vertex children and weight - to the tree
+                spTree[objectNodes[j]] = std::make_tuple(readyToPush, vertexWeight, 0ul, 0u);
+            }
+
+            // recursively calculate sizes of each node v
+            // (size is defined as a sum of weights in a subtree of the spTree with node v as a root)
+            // if a node is a landmark - size = 0
+            calculateSizes(randomVertex, spTree, landmarks);
+
+            // Calculate a path of max size - on each node go to node with highest size, repeat until leaf.
+            landmarks.push_back(getMaxLeaf(randomVertex, spTree));
+
+            // perform normal landmark creation
+            pqueue->clear();
+            dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
+            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+                NodeID object = objectNodes[j];
+                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+            }
+            auto olStart = objectDistances.begin() + i * objectNodes.size();
+            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+            std::sort(olStart, olEnd, compareObjectListElement);
+
+            for (std::size_t j = 0; j < numNodes; ++j) {
+                vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
+            }
+        }
+        delete pqueue;
+        objectList.setDistances(objectDistances, objectNodes.size());
+        return;
+    }
+    else if (landmarkType == LANDMARK_TYPE::ADVANCED_AVOID) {
+        SetGenerator sg;
+        //// Number to divide the number of total landmarks
+        int divideBy = 10;
+        //// get the rounded up number of divided landmarks
+        int numInitialLandmarks = std::ceil(numLandmarks / divideBy);
+        std::vector<NodeID> randomSet = sg.generateRandomSampleSet(objectNodes.size(), numLandmarks);
+        //// init first a certain % of landmark starting points
+        std::vector<NodeID> initialLandmarkVertices(randomSet.begin(), randomSet.begin() + numInitialLandmarks);
+        //// init random vertices from which we want to run avoid in every iteration to find a landmark candidate
+        std::vector<NodeID> randomVertices(randomSet.begin() + numInitialLandmarks, randomSet.end());
+        //// num repeats
+        unsigned numRepeats = 1;
+        //// num of discarded landmarks per repeat
+        unsigned numDiscarded = 6;
+
+        landmarks.clear();
+        landmarks.reserve(randomSet.size());
+
+        for (auto vert : initialLandmarkVertices) {
+            landmarks.push_back(objectNodes[vert]);
+        }
+
+        std::size_t startingIndex = initialLandmarkVertices.size();
+        for (std::size_t i = 0; i < initialLandmarkVertices.size(); ++i) {
+            pqueue->clear();
+            dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
+            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+                NodeID object = objectNodes[j];
+                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+            }
+            auto olStart = objectDistances.begin() + i * objectNodes.size();
+            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+            std::sort(olStart, olEnd, compareObjectListElement);
+            for (std::size_t j = 0; j < numNodes; ++j) {
+                vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
+            }
+        }
+
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>> spTree(numNodes);
+        int adjListStart, nextAdjListStart;
+        NodeID randomVertex;
+        EdgeWeight vertexWeight;
+
+        for (std::size_t i = startingIndex; i < numLandmarks; ++i) {
+            pqueue->clear();
+            randomVertex = objectNodes[randomVertices[i - numInitialLandmarks]];
+            dijk.findSSSPDistances(graph, randomVertex, landmarkDistances, pqueue);
+            for (auto j = 0; j < objectNodes.size(); j++) {
+                vertexWeight = landmarkDistances[objectNodes[j]] - getLowerBound(randomVertex, objectNodes[j]);
+                std::vector<NodeID> readyToPush;
+                adjListStart = graph.getEdgeListStartIndex(objectNodes[j]);
+                nextAdjListStart = graph.getEdgeListSize(objectNodes[j]);
+                for (int k = adjListStart; k < nextAdjListStart; ++k) {
+                    if (landmarkDistances[graph.edges[k].first] == landmarkDistances[objectNodes[j]] + graph.edges[k].second) {
+                        readyToPush.push_back(graph.edges[k].first);
+                    }
+                }
+                spTree[objectNodes[j]] = std::make_tuple(readyToPush, vertexWeight, 0ul, 0u);
+            }
+
+            calculateSizes(randomVertex, spTree, landmarks);
+            landmarks.push_back(getMaxLeaf(randomVertex, spTree));
+            pqueue->clear();
+            dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
+            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+                NodeID object = objectNodes[j];
+                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+            }
+            auto olStart = objectDistances.begin() + i * objectNodes.size();
+            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+            std::sort(olStart, olEnd, compareObjectListElement);
+
+            for (std::size_t j = 0; j < numNodes; ++j) {
+                vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
+            }
+        }
+        for (int r = 0; r < numRepeats; r++) {
+            std::vector <unsigned> replaced = sg.generateRandomSampleSet(numLandmarks, numDiscarded);
+            randomVertices = sg.generateRandomSampleSet(objectNodes.size(), numDiscarded);
+            std::vector < std::tuple < std::vector < NodeID > , EdgeWeight, unsigned long, unsigned >> spTree(numNodes);
+            unsigned adjListStart, nextAdjListStart;
+            NodeID randomVertex;
+            EdgeWeight vertexWeight;
+            unsigned iterator = 0;
+
+            for (std::size_t i: replaced) {
+                pqueue->clear();
+                randomVertex = objectNodes[randomVertices[iterator]];
+                dijk.findSSSPDistances(graph, randomVertex, landmarkDistances, pqueue);
+                for (auto j = 0; j < objectNodes.size(); j++) {
+                    vertexWeight = landmarkDistances[objectNodes[j]] - getLowerBound(randomVertex, objectNodes[j]);
+                    std::vector <NodeID> readyToPush;
+                    adjListStart = graph.getEdgeListStartIndex(objectNodes[j]);
+                    nextAdjListStart = graph.getEdgeListSize(objectNodes[j]);
+
+                    for (int k = adjListStart; k < nextAdjListStart; ++k) {
+                        if (landmarkDistances[graph.edges[k].first] ==
+                            landmarkDistances[objectNodes[j]] + graph.edges[k].second) {
+                            readyToPush.push_back(graph.edges[k].first);
+                        }
+                    }
+                    spTree[objectNodes[j]] = std::make_tuple(readyToPush, vertexWeight, 0ul, 0u);
+                }
+
+                calculateSizes(randomVertex, spTree, landmarks);
+                landmarks[i] = getMaxLeaf(randomVertex, spTree);
+                pqueue->clear();
+                dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
+                for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+                    NodeID object = objectNodes[j];
+                    objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+                }
+                auto olStart = objectDistances.begin() + i * objectNodes.size();
+                auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+                std::sort(olStart, olEnd, compareObjectListElement);
+
+                for (std::size_t j = 0; j < numNodes; ++j) {
+                    vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
+                }
+                iterator++;
+            }
+        }
+        delete pqueue;
+        objectList.setDistances(objectDistances, objectNodes.size());
+        return;
+    } else {
         std::cerr << "Unknown landmark type" << std::endl;
         std::exit(1);
     }

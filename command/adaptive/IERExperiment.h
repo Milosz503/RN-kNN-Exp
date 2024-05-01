@@ -199,6 +199,12 @@ public:
             case LANDMARK_TYPE::AVOID:
                 landmarkTypeStr = "AVOID";
                 break;
+            case LANDMARK_TYPE::AVOID_PEQUE_URATA_IRYO :
+                landmarkTypeStr = "AVOID_PEQUE_URATA_IRYO";
+                break;
+            case LANDMARK_TYPE::ADVANCED_AVOID:
+                landmarkTypeStr = "ADVANCED_AVOID";
+                break;
             default:
                 landmarkTypeStr = "UNKNOWN!";
                 break;

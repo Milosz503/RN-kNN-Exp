@@ -33,7 +33,22 @@ enum LANDMARK_TYPE {
     RANDOM = 0,
     RANDOM_OBJECTS = 1,
     AVOID = 2,
+    AVOID_PEQUE_URATA_IRYO = 3,
+    ADVANCED_AVOID = 4,
     MIN_DIST = 6,
+};
+
+struct SizeNumNodesPair {
+        unsigned long size = 0ul;
+        unsigned numNodes = 0u;
+
+        SizeNumNodesPair(unsigned long _size, unsigned _numNodes) : size(_size), numNodes(_numNodes) {}
+
+        SizeNumNodesPair& operator += (const SizeNumNodesPair& obj) {
+            this->size += obj.size;
+            this->numNodes += obj.numNodes;
+            return *this;
+        }
 };
 
 struct ALTParameters {
@@ -93,6 +108,8 @@ public:
 
     unsigned long calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree, std::vector<NodeID>& landmarks);
     NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree);
+    SizeNumNodesPair calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree, std::vector<NodeID>& landmarks);
+    NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree);
 private:
     friend class boost::serialization::access;
 
