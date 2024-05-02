@@ -31,14 +31,18 @@
 
 enum LANDMARK_TYPE {
     RANDOM = 0,
-    RANDOM_OBJECTS = 1
+    RANDOM_OBJECTS = 1,
+    MIN_DIST = 2,
 };
 
+struct ALTParameters {
+    double threshold;
+};
 
 class ALT {
 
 public:
-    ALT(std::string networkName, int numNodes, int numEdges);
+    ALT(std::string networkName, int numNodes, int numEdges, ALTParameters parameters = {});
 
     ALT()
     {};
@@ -47,6 +51,14 @@ public:
 
     void
     buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE landmarkType, unsigned int numLandmarks);
+
+    void generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks);
+
+    double closestLandmarkNodesRatio(NodeID node,
+                                      std::vector<std::vector<unsigned>>& landmarksPathLengths,
+                                      std::vector<unsigned>& landmarksMaxPaths,
+                                      unsigned numLandmarks
+    );
 
     std::string getNetworkName();
 
@@ -57,9 +69,10 @@ public:
     double computeIndexSize();
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
-    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned>& landmarkIndexes);
 
-    EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID>& targets);
+    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned> &landmarkIndexes);
+
+    EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID> &targets);
 
     void getLowerAndUpperBound(NodeID s, NodeID t, EdgeWeight &lb, EdgeWeight &ub);
 
@@ -67,7 +80,8 @@ public:
 
     PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
 
-    std::vector<std::pair<NodeID, EdgeWeight>> findShortestPathDistances(Graph &graph, NodeID source, std::vector<NodeID>& targets);
+    std::vector<std::pair<NodeID, EdgeWeight>>
+    findShortestPathDistances(Graph &graph, NodeID source, std::vector<NodeID> &targets);
 
     LANDMARK_TYPE getLandmarkType(std::string selectionMethod, bool &success);
 
@@ -79,6 +93,7 @@ public:
 private:
     friend class boost::serialization::access;
 
+    ALTParameters parameters;
     std::string networkName;
     unsigned int numNodes;
     unsigned int numEdges;
@@ -100,11 +115,13 @@ private:
 
     std::vector<unsigned> selectBestLandmarks(NodeID s, NodeID t);
 
-    inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node) {
+    inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node)
+    {
         return vertexFromLandmarkDistances[node * numLandmarks + landmarkIndex];
     }
 
     std::set<int> edgesAccessed;
+
     inline EdgeWeight getEdgeWeight(Graph &graph, int i)
     {
 //        edgesAccessed.insert(i);

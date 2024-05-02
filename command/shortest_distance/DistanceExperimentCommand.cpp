@@ -11,7 +11,7 @@
 
 void DistanceExperimentCommand::execute(int argc, char **argv)
 {
-    srand(1); // NOLINT(*-msc51-cpp) it is supposed to be predictable
+    srand(7); // NOLINT(*-msc51-cpp) it is supposed to be possible to reproduce
 
     std::string bgrFilePath;
     int opt;
@@ -45,14 +45,15 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     }
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
+    loadQueries();
 
-    methods.push_back(new AdaptiveALTMethod(20));
-//    methods.push_back(new ALTMethod(15));
-//    methods.push_back(new ALTMethod(20));
+    methods.push_back(new AdaptiveALTMethod(20, 0.25));
+    methods.push_back(new AdaptiveALTMethod(20, 0.20));
+    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.25}));
+    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.20}));
 //    methods.push_back(new AStarMethod());
 //    methods.push_back(new DijkstraMethod());
     buildIndexes();
-    loadQueries();
     runAll();
     validateAll();
 }

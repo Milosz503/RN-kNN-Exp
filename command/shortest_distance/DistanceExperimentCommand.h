@@ -79,13 +79,17 @@ private:
 
 class ALTMethod : public DistanceMethod {
 public:
-    ALTMethod(unsigned numLandmarks) :
-            DistanceMethod("ALT"), numLandmarks(numLandmarks)
+    ALTMethod(unsigned numLandmarks, LANDMARK_TYPE landmarkType, ALTParameters parameters) :
+            DistanceMethod("ALT"),
+            alt("-", 0, 0, parameters),
+            numLandmarks(numLandmarks),
+            landmarkType(landmarkType),
+            parameters(parameters)
     {}
 
     void buildIndex(Graph &graph) override
     {
-        alt.buildALT(graph, LANDMARK_TYPE::RANDOM, numLandmarks);
+        alt.buildALT(graph, landmarkType, numLandmarks);
     }
 
     void findDistances(Graph &graph, Query &query, std::vector<EdgeWeight> &distances) override
@@ -96,25 +100,32 @@ public:
         }
     }
 
+    void printInfo() override
+    {
+        std::cout << "threshold: " << parameters.threshold << std::endl;
+    }
+
     void printStatistics() override
     {
         std::cout << "Number of landmarks: " << numLandmarks << std::endl;
     }
 
 private:
+    ALTParameters parameters;
     unsigned numLandmarks;
     ALT alt;
+    LANDMARK_TYPE landmarkType;
 };
 
 class AdaptiveALTMethod : public DistanceMethod {
 public:
-    explicit AdaptiveALTMethod(unsigned numLandmarks) :
-            DistanceMethod("Adaptive ALT"), numLandmarks(numLandmarks), alt(nullptr)
+    explicit AdaptiveALTMethod(unsigned numLandmarks, double threshold) :
+            DistanceMethod("Adaptive ALT"), numLandmarks(numLandmarks), alt(nullptr), threshold(threshold)
     {}
 
     void buildIndex(Graph &graph) override
     {
-        alt = new AdaptiveALT(graph.getNumNodes(), graph.getNumNodes(), numLandmarks);
+        alt = new AdaptiveALT(graph.getNumNodes(), graph.getNumNodes(), numLandmarks, threshold);
     }
 
     void findDistances(Graph &graph, Query &query, std::vector<EdgeWeight> &distances) override
@@ -141,6 +152,7 @@ public:
 
 private:
     unsigned numLandmarks;
+    double threshold;
     AdaptiveALT* alt;
 };
 

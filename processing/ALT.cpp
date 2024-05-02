@@ -32,8 +32,8 @@ bool compareObjectListElement(const ObjectListElement &a,
     return (a.second < b.second);
 }
 
-ALT::ALT(std::string _networkName, int _numNodes, int _numEdges) :
-        networkName(_networkName), numNodes(_numNodes), numEdges(_numEdges)
+ALT::ALT(std::string _networkName, int _numNodes, int _numEdges, ALTParameters parameters) :
+        networkName(_networkName), numNodes(_numNodes), numEdges(_numEdges), parameters(parameters)
 {
 }
 
@@ -71,6 +71,8 @@ void
 ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE landmarkType, unsigned int _numLandmarks)
 {
     unsigned int numNodes = graph.getNumNodes();
+    this->numNodes = graph.getNumNodes();
+    this->numEdges = graph.getNumEdges();
     numLandmarks = _numLandmarks;
     if (landmarkType == LANDMARK_TYPE::RANDOM) {
         SetGenerator sg;
@@ -84,6 +86,9 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         for(auto vert : randomVertices) {
             landmarks.push_back(objectNodes[vert]);
         }
+    } else if (landmarkType == LANDMARK_TYPE::MIN_DIST) {
+        generateMinDistLandmarks(graph, numLandmarks);
+        return;
     }
     else {
         std::cerr << "Unknown landmark type" << std::endl;
@@ -98,19 +103,19 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
     std::vector<EdgeWeight> landmarkDistances(numNodes, 0);
     BinaryMinHeap<EdgeWeight, NodeID> *pqueue = new BinaryMinHeap<EdgeWeight, NodeID>();
 
-    std::vector<ObjectListElement> objectDistances;
-    objectDistances.resize(numLandmarks * objectNodes.size());
+//    std::vector<ObjectListElement> objectDistances;
+//    objectDistances.resize(numLandmarks * objectNodes.size());
     for (std::size_t i = 0; i < landmarks.size(); ++i) {
 
         pqueue->clear();
         dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-        for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-            NodeID object = objectNodes[j];
-            objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-        }
-        auto olStart = objectDistances.begin() + i * objectNodes.size();
-        auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-        std::sort(olStart, olEnd, compareObjectListElement);
+//        for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//            NodeID object = objectNodes[j];
+//            objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//        }
+//        auto olStart = objectDistances.begin() + i * objectNodes.size();
+//        auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//        std::sort(olStart, olEnd, compareObjectListElement);
 
         for (std::size_t j = 0; j < numNodes; ++j) {
             vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
@@ -120,12 +125,70 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         }
     }
     delete pqueue;
-    objectList.setDistances(objectDistances, objectNodes.size());
+//    objectList.setDistances(objectDistances, objectNodes.size());
 
 //    for(int i = 0; i < 100; i++) {
 //        auto element = objectLists[i];
 //        std::cout << element.first << " " << element.second << std::endl;
 //    }
+}
+
+void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
+{
+    landmarks.clear();
+    landmarks.reserve(maxNumLandmarks);
+    // Allocated space for distance from each landmark to each graph vertex
+    vertexFromLandmarkDistances.resize(maxNumLandmarks * numNodes);
+    std::vector<std::vector<unsigned>> landmarksPathLengths(maxNumLandmarks, std::vector<unsigned>((unsigned)graph.getNumNodes(), 0));
+    std::vector<unsigned> landmarksMaxPaths(maxNumLandmarks, 1);
+
+    // Use Dijkstra's to populate above vector for each landmark
+    DijkstraSearch dijk;
+    std::vector<EdgeWeight> landmarkDistances(numNodes, 0);
+    BinaryMinHeap<EdgeWeight, NodeData> pqueue;
+
+    unsigned numberOfTries = 4096;
+    double threshold = parameters.threshold;
+    unsigned currentNumLandmarks = 0;
+
+    for(unsigned j = 0; j < numberOfTries; ++j) {
+        NodeID node = rand() % graph.getNumNodes();
+        auto landmarkNodesRatio = closestLandmarkNodesRatio(node, landmarksPathLengths, landmarksMaxPaths, currentNumLandmarks);
+        if(landmarkNodesRatio > threshold) {
+//            std::cout << "Creating landmark " << currentNumLandmarks << "... Dist ratio:" << landmarkNodesRatio << ", try number: " << j << std::endl;
+            pqueue.clear();
+            landmarks.push_back(node);
+            dijk.findSSSPDistances(graph, landmarks[currentNumLandmarks], landmarkDistances,
+                                   landmarksPathLengths[currentNumLandmarks], &pqueue);
+
+            for (std::size_t k = 0; k < numNodes; ++k) {
+                vertexFromLandmarkDistances[k * maxNumLandmarks + currentNumLandmarks] = landmarkDistances[k];
+                if(landmarksMaxPaths[currentNumLandmarks] < landmarksPathLengths[currentNumLandmarks][k]) {
+                    landmarksMaxPaths[currentNumLandmarks] = landmarksPathLengths[currentNumLandmarks][k];
+                }
+            }
+            currentNumLandmarks++;
+            if(currentNumLandmarks >= maxNumLandmarks) {
+                break;
+            }
+        }
+    }
+
+//    this->numLandmarks = currentNumLandmarks;
+    std::cout << "Created " << currentNumLandmarks << "/" << maxNumLandmarks << std::endl;
+}
+
+double ALT::closestLandmarkNodesRatio(NodeID node, std::vector<std::vector<unsigned>>& landmarksPathLengths,
+                                      std::vector<unsigned>& landmarksMaxPaths, unsigned numLandmarks)
+{
+    double bestRatio = 1;
+    for (unsigned i = 0; i < numLandmarks; ++i) {
+        auto ratio = landmarksPathLengths[i][node] / (double) landmarksMaxPaths[i];
+        if (ratio < bestRatio) {
+            bestRatio = ratio;
+        }
+    }
+    return bestRatio;
 }
 
 EdgeWeight ALT::getLowerBound(NodeID s, NodeID t)
@@ -496,6 +559,10 @@ std::vector<unsigned> ALT::selectBestLandmarks(NodeID s, NodeID t)
     }
     return bestLandmarks;
 }
+
+
+
+
 
 
 

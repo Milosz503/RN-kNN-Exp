@@ -42,7 +42,7 @@ struct Landmark {
 class AdaptiveALT {
 
 public:
-    AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks);
+    AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks, double threshold);
     PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);

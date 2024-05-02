@@ -7,7 +7,7 @@
 #include "../../utility/StopWatch.h"
 
 
-AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks) :
+AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks, double threshold) :
         numNodes(numNodes),
         numEdges(numEdges),
         maxNumLandmarks(maxNumLandmarks),
@@ -23,7 +23,7 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks) :
         a(0.0),
         b(1.0),
         c(0.0),
-        threshold(0.25)
+        threshold(threshold)
 {
     landmarks.reserve(maxNumLandmarks);
 //    vertexFromLandmarkDistances.resize(maxNumLandmarks * numNodes);
