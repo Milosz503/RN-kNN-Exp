@@ -47,6 +47,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
     loadQueries();
 
+//    methods.push_back(new GtreeMethod(4, 256));
 //    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
 //        20, 0.1, 1, 0.1, 0.2)));
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
