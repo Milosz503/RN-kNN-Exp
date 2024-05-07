@@ -119,13 +119,13 @@ private:
 
 class AdaptiveALTMethod : public DistanceMethod {
 public:
-    explicit AdaptiveALTMethod(unsigned numLandmarks, double threshold) :
-            DistanceMethod("Adaptive ALT"), numLandmarks(numLandmarks), alt(nullptr), threshold(threshold)
+    explicit AdaptiveALTMethod(AdaptiveALTParams params) :
+            DistanceMethod("Adaptive ALT"), alt(nullptr), params(params)
     {}
 
     void buildIndex(Graph &graph) override
     {
-        alt = new AdaptiveALT(graph.getNumNodes(), graph.getNumNodes(), numLandmarks, threshold);
+        alt = new AdaptiveALT(graph.getNumNodes(), graph.getNumNodes(), params);
     }
 
     void findDistances(Graph &graph, Query &query, std::vector<EdgeWeight> &distances) override
@@ -151,8 +151,7 @@ public:
     }
 
 private:
-    unsigned numLandmarks;
-    double threshold;
+    AdaptiveALTParams params;
     AdaptiveALT* alt;
 };
 

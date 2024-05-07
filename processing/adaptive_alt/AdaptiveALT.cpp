@@ -7,10 +7,10 @@
 #include "../../utility/StopWatch.h"
 
 
-AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks, double threshold) :
+AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, AdaptiveALTParams& params) :
         numNodes(numNodes),
         numEdges(numEdges),
-        maxNumLandmarks(maxNumLandmarks),
+        maxNumLandmarks(params.maxLandmarks),
         landmarksQueryAnswered(maxNumLandmarks, 0),
         landmarksQueryNumber(maxNumLandmarks, 0),
 //    landmarks(maxNumLandmarks, -1),
@@ -20,10 +20,7 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks, double
         landmarksMaxDistances(maxNumLandmarks, 0),
         landmarksMaxPaths(maxNumLandmarks, 0),
         numLandmarks(0),
-        a(0.0),
-        b(1.0),
-        c(0.0),
-        threshold(threshold)
+        params(params)
 {
     landmarks.reserve(maxNumLandmarks);
 //    vertexFromLandmarkDistances.resize(maxNumLandmarks * numNodes);
@@ -31,43 +28,32 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, int maxNumLandmarks, double
 
 PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID target)
 {
-//    auto landmarkDistRatioS = closestLandmarkDistanceRatio(source);
+    queryNumber++;
+
+    StopWatch sw;
+    sw.start();
     auto landmarkDistRatio = closestLandmarkDistanceRatio(target);
-//    auto landmarkDistRatio = std::min(landmarkDistRatioS, landmarkDistRatioT);
     auto landmarkNodesRatio = closestLandmarkNodesRatio(target);
     auto estimatedPathLength = estimatePathLengthRatio(source, target);
-    double maxDistanceRatio = 0.185;
 
-    double score = a * landmarkDistRatio + b * landmarkNodesRatio + c * estimatedPathLength * landmarkNodesRatio;
+    double score = params.a * landmarkDistRatio +
+            params.b * landmarkNodesRatio +
+            params.c * estimatedPathLength * landmarkNodesRatio;
+    double threshold = params.thresholdFunction(queryNumber);
+    sw.stop();
+    scoreTime += sw.getTimeMs();
 
-//    auto estimatedPathLength = estimatePathLength(source, target) * landmarkDistanceRatio;
-        if(score > threshold && numLandmarks < maxNumLandmarks) {
-//    if(landmarkDistRatioS > maxDistanceRatio && landmarkDistRatioT > maxDistanceRatio) {
-//    if ((estimatedPathLength > maxDistanceRatio) && numLandmarks < maxNumLandmarks) {
-//        if (landmarkDistRatioS > landmarkDistRatioT) {
-//            Logger::log("Creating landmark from source ", landmarkQualityS);
-            auto landmarkIndex = createLandmark(graph, target);
-//            auto pathLength = landmarks[landmarkIndex].pathLengths[target] / (double)landmarksMaxPaths[landmarkIndex];
-//            auto error = pathLength - estimatedPathLength;
-//            std::cout << "Path length: " << pathLength << ", estimated: "
-//                      << estimatedPathLength << ", error: " << error << std::endl;
-            return nodeFromLandmarkDistance(landmarkIndex, source);
-//        } else {
-////            Logger::log("Creating landmark from target ", landmarkQualityT);
-//            auto landmarkIndex = createLandmark(graph, target);
-//            auto pathLength = landmarks[landmarkIndex].pathLengths[source] / (double)landmarksMaxPaths[landmarkIndex];
-//            auto error = pathLength - estimatedPathLength;
-////            std::cout << "Path length: " << pathLength << ", estimated: "
-////                      << estimatedPathLength << ", error: " << error << std::endl;
-//            return nodeFromLandmarkDistance(landmarkIndex, source);
-//        }
+    if (score > threshold && numLandmarks < maxNumLandmarks) {
+        auto landmarkIndex = createLandmark(graph, target);
+//        auto nodeDist = landmarks[landmarkIndex].pathLengths[source] / (double)landmarksMaxPaths[landmarkIndex];
+//        auto err = std::abs(nodeDist - estimatedPathLength)*std::abs(nodeDist - estimatedPathLength);
+//        cumulativeEstimateError += err;
+//        std::cout << "Dist from landmark " <<  landmarkNodesRatio << std::endl;
+//        std::cout << "Estimated error: " <<  nodeDist << ", " << estimatedPathLength << ", " << err << std::endl;
+//        std::cout << "Avg error: " << cumulativeEstimateError / numLandmarks << std::endl;
+        return nodeFromLandmarkDistance(landmarkIndex, source);
     }
-//    if (landmarkDistRatioS < landmarkDistRatioT) {
-//        return shortestPathDistanceALT(graph, target, source);
-//    } else {
-        return shortestPathDistanceALT(graph, source, target);
-//    }
-
+    return shortestPathDistanceALT(graph, source, target);
 }
 
 EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t)

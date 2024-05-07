@@ -47,10 +47,14 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
     loadQueries();
 
-    methods.push_back(new AdaptiveALTMethod(20, 0.25));
-    methods.push_back(new AdaptiveALTMethod(20, 0.20));
-    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.25}));
-    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.20}));
+//    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
+//        20, 0.1, 1, 0.1, 0.2)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
+            20, 0, 1, 0,
+            [](unsigned q){return 0.15*(pow(0.69, 0.0025*q)) + 0.15; }
+        )));
+//    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.25}));
+//    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.20}));
 //    methods.push_back(new AStarMethod());
 //    methods.push_back(new DijkstraMethod());
     buildIndexes();
@@ -77,7 +81,6 @@ void DistanceExperimentCommand::buildIndexes()
         sw.stop();
         std::cout << "Time to generate " << method->name << " index" << ": " << sw.getTimeMs() << " ms" << std::endl;
     }
-
 }
 
 void DistanceExperimentCommand::loadQueries()
@@ -206,24 +209,23 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
     method->printInfo();
     std::vector<EdgeWeight> distances(numTargets, 0);
     double cumulativeTime = 0;
-    StopWatch sw;
-    sw.start();
+
+    unsigned nextBreak = 1;
     for(unsigned i = 0; true; ++i) {
-        if(i % 4 == 0 || i == 1) {
-            if(i == 1 || i == 4 || i == 16 || i == 64 || i == 256 || i == 1024 || i == 4096 || queries.size() == i) {
-//            if (i == 10 || i == 50 || i == 100 || i == 500 || i == 1000 || queries.size() == i) {
-                sw.stop();
-                cumulativeTime += sw.getTimeMs();
-                std::cout << "    " << i << ", " << cumulativeTime << std::endl;
-//                method->printStatistics();
-                sw.reset();
-                sw.start();
-                if (i >= queries.size()) {
-                    break;
-                }
+        if(i == nextBreak || queries.size() == i) {
+            nextBreak *= 2;
+            std::cout << "    " << i << ", " << cumulativeTime << std::endl;
+//            method->printStatistics();
+            if (i >= queries.size()) {
+                break;
             }
         }
+        StopWatch sw;
+        sw.start();
         method->findDistances(graph, queries[i], distances);
+        sw.stop();
+        cumulativeTime += sw.getTimeMs();
+//        std::cout << "    " << i << ", " << sw.getTimeMs() << std::endl;
     }
     method->printStatistics();
 }
