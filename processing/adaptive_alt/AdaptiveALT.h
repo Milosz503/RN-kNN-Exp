@@ -18,6 +18,7 @@
 #include <boost/unordered_map.hpp>
 
 //#define DYNAMIC_LANDMARKS_A_ALT 1
+#define ESTIMATE_VISITED_NODES 1
 
 struct AdaptiveALTParams {
     AdaptiveALTParams(const unsigned int maxLandmarks, const double a, const double b, const double c,
@@ -48,7 +49,10 @@ struct Landmark {
     std::vector<EdgeWeight> distances;
 #endif
     std::vector<unsigned> pathLengths;
-//    boost::unordered_map<NodeID, EdgeWeight> distances;
+
+#ifdef ESTIMATE_VISITED_NODES
+    std::vector<unsigned> nodesVisited;
+#endif
 
     Landmark(unsigned int index, NodeID node, unsigned int numNodes) :
             index(index),
@@ -56,7 +60,11 @@ struct Landmark {
 #ifdef DYNAMIC_LANDMARKS_A_ALT
             distances(numNodes, 0),
 #endif
+#ifdef ESTIMATE_VISITED_NODES
+            nodesVisited(numNodes, 0),
+#endif
             pathLengths(numNodes, 0)
+
     {}
 };
 
@@ -89,8 +97,10 @@ public:
 //            unsigned landmark = landmarks[i].index;
 //            std::cout << "Landmark " << landmark << " score: " << landmarkScore(landmark) << std::endl;
 //        }
-        std::cout << "Number of landmarks: " << landmarks.size() << std::endl;
-        std::cout << "Score time: " << scoreTime << std::endl;
+//        std::cout << "Number of landmarks: " << landmarks.size() << std::endl;
+//        std::cout << "Score time: " << scoreTime << std::endl;
+
+        std::cout << ", " << landmarks.size();
 
     }
 
@@ -103,6 +113,7 @@ private:
 
     unsigned int queryNumber = 0;
     double cumulativeEstimateError = 0;
+    double estimationCount = 0;
     double scoreTime = 0;
 
     std::vector<Landmark> landmarks;
@@ -134,6 +145,8 @@ private:
 
     double closestLandmarkNodesRatio(NodeID node);
 
+    unsigned findClosestLandmark(NodeID t);
+
     double estimatePathLengthRatio(NodeID s, NodeID t);
 
     inline EdgeWeight nodeFromLandmarkDistance(unsigned landmarkIndex, NodeID node)
@@ -149,6 +162,7 @@ private:
 
     // *Stats*
     std::set<int> edgesAccessed;
+    unsigned nodesVisited;
     unsigned long edgesAccessedCount = 0;
 
     inline EdgeWeight getEdgeWeight(Graph &graph, int i)

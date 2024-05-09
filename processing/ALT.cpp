@@ -145,6 +145,7 @@ void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
     // Use Dijkstra's to populate above vector for each landmark
     DijkstraSearch dijk;
     std::vector<EdgeWeight> landmarkDistances(numNodes, 0);
+    std::vector<EdgeWeight> nodesVisited(numNodes, 0);
     BinaryMinHeap<EdgeWeight, NodeData> pqueue;
 
     unsigned numberOfTries = 4096;
@@ -159,7 +160,7 @@ void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
             pqueue.clear();
             landmarks.push_back(node);
             dijk.findSSSPDistances(graph, landmarks[currentNumLandmarks], landmarkDistances,
-                                   landmarksPathLengths[currentNumLandmarks], &pqueue);
+                                   landmarksPathLengths[currentNumLandmarks], nodesVisited, &pqueue);
 
             for (std::size_t k = 0; k < numNodes; ++k) {
                 vertexFromLandmarkDistances[k * maxNumLandmarks + currentNumLandmarks] = landmarkDistances[k];

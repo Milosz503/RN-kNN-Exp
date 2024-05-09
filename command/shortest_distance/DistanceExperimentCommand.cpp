@@ -49,11 +49,25 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 
 //    methods.push_back(new GtreeMethod(4, 256));
 //    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-//        20, 0.1, 1, 0.1, 0.2)));
+//            18, 0, 1, 0, 0.22)));
+//    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
+//        10, 0, 1, 0, 0.33)));
+    methods.push_back(new ALTMethod(10, LANDMARK_TYPE::MIN_DIST, {0.33}));
+    methods.push_back(new ALTMethod(18, LANDMARK_TYPE::MIN_DIST, {0.22}));
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
             20, 0, 1, 0,
             [](unsigned q){return 0.15*(pow(0.69, 0.0025*q)) + 0.15; }
         )));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
+            10, 0, 0, 1, 0.33)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
+            15, 0, 0, 1, 0.28)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
+            20, 0, 0, 1, 0.23)));
+//    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
+//            20, 1, 0, 0,
+//            [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; }
+//    )));
 //    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.25}));
 //    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.20}));
 //    methods.push_back(new AStarMethod());
@@ -75,7 +89,7 @@ void DistanceExperimentCommand::showCommandUsage(std::string programName)
 
 void DistanceExperimentCommand::buildIndexes()
 {
-    for(auto method : methods) {
+    for (auto method: methods) {
         StopWatch sw;
         sw.start();
         method->buildIndex(graph);
@@ -114,9 +128,9 @@ void DistanceExperimentCommand::loadQueries()
 void DistanceExperimentCommand::runAll()
 {
 //    for(int i = 0; i < 3; ++i) {
-        for(auto method : methods) {
-            runMethod(method);
-        }
+    for (auto method: methods) {
+        runMethod(method);
+    }
 //    }
 
 //    auto alt  = new AdaptiveALT(graph.getNumNodes(), graph.getNumNodes(), numLandmarks);
@@ -181,15 +195,15 @@ void DistanceExperimentCommand::validateAll()
 
         std::vector<EdgeWeight> distances(numTargets, 0);
 
-        for(auto method : methods) {
+        for (auto method: methods) {
             bool methodFailed = false;
             method->findDistances(graph, query, distances);
-            for(unsigned i = 0; i < numTargets; ++i) {
-                if(expectedDistances[i] != distances[i]) {
+            for (unsigned i = 0; i < numTargets; ++i) {
+                if (expectedDistances[i] != distances[i]) {
                     methodFailed = true;
                 }
             }
-            if(methodFailed) {
+            if (methodFailed) {
                 std::cout << method->name << " failed" << std::endl;
                 validationFailed = true;
             }
@@ -204,7 +218,7 @@ void DistanceExperimentCommand::validateAll()
     }
 }
 
-void DistanceExperimentCommand::runMethod(DistanceMethod* method)
+void DistanceExperimentCommand::runMethod(DistanceMethod *method)
 {
     std::cout << "*** Measuring " << method->name << "... ***" << std::endl;
     method->printInfo();
@@ -212,11 +226,12 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
     double cumulativeTime = 0;
 
     unsigned nextBreak = 1;
-    for(unsigned i = 0; true; ++i) {
-        if(i == nextBreak || queries.size() == i) {
+    for (unsigned i = 0; true; ++i) {
+        if (i == nextBreak || queries.size() == i) {
             nextBreak *= 2;
-            std::cout << "    " << i << ", " << cumulativeTime << std::endl;
-//            method->printStatistics();
+            std::cout << "    " << i << ", " << cumulativeTime;
+            method->printStatistics();
+            std::cout << std::endl;
             if (i >= queries.size()) {
                 break;
             }
@@ -243,7 +258,7 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
 
 DistanceExperimentCommand::~DistanceExperimentCommand()
 {
-    for(auto method : methods) {
+    for (auto method: methods) {
         delete method;
     }
 }

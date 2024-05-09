@@ -24,9 +24,10 @@ public:
             NodeID source = 0;
             std::vector<EdgeWeight> distances(graph.getNumNodes(), 0);
             std::vector<unsigned> pathLengths(graph.getNumNodes(), 0);
+            std::vector<unsigned> nodesVisited(graph.getNumNodes(), 0);
             BinaryMinHeap<EdgeWeight, NodeData> pqueueLengths;
 
-            dijkstra.findSSSPDistances(graph, source, distances, pathLengths, &pqueueLengths);
+            dijkstra.findSSSPDistances(graph, source, distances, pathLengths, nodesVisited, &pqueueLengths);
 
             std::vector<NodeID> testTargets;
             const unsigned testTargetsAmount = 50;
@@ -46,6 +47,7 @@ public:
             DijkstraSearch dijkstra;
             std::vector<EdgeWeight> distances(graph.getNumNodes(), 0);
             std::vector<unsigned> pathLengths(graph.getNumNodes(), 0);
+            std::vector<unsigned> nodesVisited(graph.getNumNodes(), 0);
             BinaryMinHeap<EdgeWeight, NodeData> pqueueLengths;
             BinaryMinHeap<EdgeWeight, NodeID> pqueue;
 
@@ -58,7 +60,7 @@ public:
             StopWatch sw;
             sw.start();
             for(auto source : testSources) {
-                dijkstra.findSSSPDistances(graph, source, distances, pathLengths, &pqueueLengths);
+                dijkstra.findSSSPDistances(graph, source, distances, pathLengths, nodesVisited, &pqueueLengths);
             }
             sw.stop();
             std::cout << "Dijkstra with path lengths time: " << sw.getTimeMs() << std::endl;

@@ -60,6 +60,11 @@ public:
 
     void findSSSPDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances,
                            std::vector<EdgeWeight> &pathLengths,
+                           std::vector<unsigned> &nodesVisited,
+                           MinPriorityQueue<EdgeWeight, NodeData> *pqueue);
+
+    void findSSSPDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances,
+                           std::vector<EdgeWeight> &pathLengths,
                            MinPriorityQueue<EdgeWeight, NodeData> *pqueue);
 
     void findSSSPDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances);

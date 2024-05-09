@@ -114,7 +114,7 @@ public:
 
     void printStatistics() override
     {
-        std::cout << "Number of landmarks: " << numLandmarks << std::endl;
+        std::cout << ", " << numLandmarks;
     }
 
 private:
