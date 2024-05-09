@@ -100,7 +100,11 @@ public:
 //        }
 //        std::cout << "Number of landmarks: " << landmarks.size() << std::endl;
 //        std::cout << "Score time: " << scoreTime << std::endl;
+#ifdef USE_EUCLIDEAN
         std::cout << ", " << landmarks.size() << ", " << euclideanCounter / (double)(euclideanCounter + landmarkCounter);
+#else
+        std::cout << ", " << landmarks.size();
+#endif
 
     }
 
