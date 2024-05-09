@@ -19,6 +19,7 @@
 
 //#define DYNAMIC_LANDMARKS_A_ALT 1
 #define ESTIMATE_VISITED_NODES 1
+//#define USE_EUCLIDEAN 1
 
 struct AdaptiveALTParams {
     AdaptiveALTParams(const unsigned int maxLandmarks, const double a, const double b, const double c,
@@ -75,7 +76,7 @@ public:
 
     PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
 
-    EdgeWeight getLowerBound(NodeID s, NodeID t);
+    EdgeWeight getLowerBound(Graph& graph, NodeID s, NodeID t);
 
     EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned> &landmarkIndexes);
 
@@ -99,8 +100,7 @@ public:
 //        }
 //        std::cout << "Number of landmarks: " << landmarks.size() << std::endl;
 //        std::cout << "Score time: " << scoreTime << std::endl;
-
-        std::cout << ", " << landmarks.size();
+        std::cout << ", " << landmarks.size() << ", " << euclideanCounter / (double)(euclideanCounter + landmarkCounter);
 
     }
 
@@ -115,6 +115,9 @@ private:
     double cumulativeEstimateError = 0;
     double estimationCount = 0;
     double scoreTime = 0;
+
+    unsigned euclideanCounter = 0;
+    unsigned landmarkCounter = 0;
 
     std::vector<Landmark> landmarks;
 #ifndef DYNAMIC_LANDMARKS_A_ALT

@@ -85,7 +85,7 @@ PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, 
     return result;
 }
 
-EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t)
+EdgeWeight AdaptiveALT::getLowerBound(Graph& graph, NodeID s, NodeID t)
 {
     EdgeWeight globalLB = 0, currentLB;
     for (std::size_t i = 0; i < landmarks.size(); ++i) {
@@ -96,7 +96,19 @@ EdgeWeight AdaptiveALT::getLowerBound(NodeID s, NodeID t)
             globalLB = currentLB;
         }
     }
+#ifdef USE_EUCLIDEAN
+    auto euclideanDist = static_cast<EdgeWeight>(graph.getEuclideanDistance(s, t) * graph.getMinGraphSpeedByEdge());
+    if(euclideanDist > globalLB) {
+        euclideanCounter++;
+        return euclideanDist;
+    }
+    else {
+        landmarkCounter++;
+        return globalLB;
+    }
+#else
     return globalLB;
+#endif
 }
 
 unsigned AdaptiveALT::createLandmark(Graph &graph, NodeID node)
@@ -162,7 +174,7 @@ PathDistance AdaptiveALT::shortestPathDistanceALT(Graph &graph, NodeID source, N
 
     // Initialize priority queue with source node
 //    EdgeWeight minSourceTargetDist = getLowerBound(source, target, bestLandmarks);
-    EdgeWeight minSourceTargetDist = getLowerBound(source, target);
+    EdgeWeight minSourceTargetDist = getLowerBound(graph, source, target);
     pqueue.insert(NodeDistancePair(source, 0), minSourceTargetDist);
 
     while (pqueue.size() > 0) {
@@ -204,7 +216,7 @@ PathDistance AdaptiveALT::shortestPathDistanceALT(Graph &graph, NodeID source, N
 
                     sourceToAdjNodeDist = minDist + getEdgeWeight(graph, i);
 //                    minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target, bestLandmarks);
-                    minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(adjNode, target);
+                    minSourceTargetDist = sourceToAdjNodeDist + getLowerBound(graph, adjNode, target);
                     pqueue.insert(NodeDistancePair(adjNode, sourceToAdjNodeDist), minSourceTargetDist);
                 }
             }
