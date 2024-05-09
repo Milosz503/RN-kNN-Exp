@@ -10,24 +10,33 @@
 #include <fstream>
 
 
-void write_to_csv(const std::vector<std::vector<double>>& methods, std::string network) {
+void write_to_csv(const std::vector<std::vector<double>>& methods, std::string network, int numMeasurements = 9) {
     std::ofstream file(network + "_output.csv");
+    std::ofstream file_deviation(network + "_output_dev.csv");
 
     for (int i = 0; i < methods.size(); ++i) {
         file << "method " << i << ",";
     }
     file << std::endl;
 
-    int size = methods[0].size() / 9;
-    for (int j = 0; j < 9; j++) {
+    int size = methods[0].size() / numMeasurements;
+    for (int j = 0; j < numMeasurements; j++) {
         for (auto i = 0; i < methods.size(); i++) {
             double avg = 0.0;
             for (int k = 0; k < size; k++) {
-                avg += methods[i][k * 9 + j];
+                avg += methods[i][k * numMeasurements + j];
             }
-            file << avg / size << ",";
+            avg /= size;
+            double stdder = 0.0;
+            for (int k = 0; k < size; k++) {
+                stdder += std::pow((methods[i][k * numMeasurements + j] - avg), 2);
+            }
+            stdder = std::pow((stdder / (size - 1)), 0.5);
+            file << avg << ",";
+            file_deviation << stdder << ",";
         }
         file << std::endl;
+        file_deviation << std::endl;
     }
 
     file.close();
@@ -78,7 +87,13 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     }
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
-    loadQueries();
+    for (int j = 40; j < 41; j+= 5)
+    {
+        methods.push_back(new AdaptiveALTMethod(j, 0.01));
+        for (int i = 3; i < 51; i += 3) {
+            methods.push_back(new AdaptiveALTMethod(j, i / 100.0));
+//            methods.push_back(new ALTMethod(j, LANDMARK_TYPE::MIN_DIST, {i / 100.0}));
+        }
 
 //    methods.push_back(new GtreeMethod(4, 256));
 //    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
@@ -106,24 +121,26 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 //    methods.push_back(new AStarMethod());
 //    methods.push_back(new DijkstraMethod());
 
-    if (numRepeats != 0) {
-        std::vector<std::vector<double>> results(methods.size());
+        if (numRepeats != 0) {
+            std::vector<std::vector<double>> results(methods.size());
 
-        for (int i = 0; i < numRepeats; i++) {
-            std::cout << "Repeat: " << i << std::endl;
-            buildIndexes(results);
+            for (int i = 0; i < numRepeats; i++) {
+                std::cout << "Repeat: " << i << std::endl;
+                buildIndexes(results);
+                loadQueries();
+                runAll(results);
+                queries.clear();
+            }
+            std::string num = std::to_string(j);
+            write_to_csv(results, network + "_adaptive_" + num, 9);
+            methods.clear();
+        } else {
+            buildIndexes();
             loadQueries();
-            runAll(results);
-            queries.clear();
+            runAll();
+            validateAll();
         }
-        write_to_csv(results, network);
-    } else {
-        buildIndexes();
-        loadQueries();
-        runAll();
-        validateAll();
     }
-}
 
 void DistanceExperimentCommand::showCommandUsage(std::string programName)
 {
@@ -291,7 +308,7 @@ void DistanceExperimentCommand::validateAll()
     }
 }
 
-void DistanceExperimentCommand::runMethod(DistanceMethod *method)
+void DistanceExperimentCommand::runMethod(DistanceMethod* method)
 {
     std::cout << "*** Measuring " << method->name << "... ***" << std::endl;
     method->printInfo();

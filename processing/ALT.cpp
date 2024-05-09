@@ -179,7 +179,8 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         SetGenerator sg;
         std::vector<NodeID> randomVertices = sg.generateRandomSampleSet(numNodes, numLandmarks);
         landmarks.swap(randomVertices);
-    } else if (landmarkType == LANDMARK_TYPE::RANDOM_OBJECTS) {
+    }
+    else if (landmarkType == LANDMARK_TYPE::RANDOM_OBJECTS) {
         SetGenerator sg;
         std::vector<NodeID> randomVertices = sg.generateRandomSampleSet(objectNodes.size(), numLandmarks);
         landmarks.clear();
@@ -187,7 +188,8 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         for(auto vert : randomVertices) {
             landmarks.push_back(objectNodes[vert]);
         }
-    } else if (landmarkType == LANDMARK_TYPE::MIN_DIST) {
+    }
+    else if (landmarkType == LANDMARK_TYPE::MIN_DIST) {
         generateMinDistLandmarks(graph, numLandmarks);
         return;
     }
@@ -215,13 +217,13 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         for (std::size_t i = 0; i < initialLandmarkVertices.size(); ++i) {
             pqueue->clear();
             dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-                NodeID object = objectNodes[j];
-                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-            }
-            auto olStart = objectDistances.begin() + i * objectNodes.size();
-            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-            std::sort(olStart, olEnd, compareObjectListElement);
+//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                NodeID object = objectNodes[j];
+//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//            }
+//            auto olStart = objectDistances.begin() + i * objectNodes.size();
+//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//            std::sort(olStart, olEnd, compareObjectListElement);
 
             for (std::size_t j = 0; j < numNodes; ++j) {
                 vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
@@ -269,20 +271,20 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
             // perform normal landmark creation
             pqueue->clear();
             dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-                NodeID object = objectNodes[j];
-                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-            }
-            auto olStart = objectDistances.begin() + i * objectNodes.size();
-            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-            std::sort(olStart, olEnd, compareObjectListElement);
+//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                NodeID object = objectNodes[j];
+//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//            }
+//            auto olStart = objectDistances.begin() + i * objectNodes.size();
+//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//            std::sort(olStart, olEnd, compareObjectListElement);
 
             for (std::size_t j = 0; j < numNodes; ++j) {
                 vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
             }
         }
         delete pqueue;
-        objectList.setDistances(objectDistances, objectNodes.size());
+//        objectList.setDistances(objectDistances, objectNodes.size());
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::AVOID_PEQUE_URATA_IRYO) {
@@ -309,13 +311,13 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         for (std::size_t i = 0; i < initialLandmarkVertices.size(); ++i) {
             pqueue->clear();
             dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-                NodeID object = objectNodes[j];
-                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-            }
-            auto olStart = objectDistances.begin() + i * objectNodes.size();
-            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-            std::sort(olStart, olEnd, compareObjectListElement);
+//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                NodeID object = objectNodes[j];
+//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//            }
+//            auto olStart = objectDistances.begin() + i * objectNodes.size();
+//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//            std::sort(olStart, olEnd, compareObjectListElement);
 
             for (std::size_t j = 0; j < numNodes; ++j) {
                 vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
@@ -363,20 +365,20 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
             // perform normal landmark creation
             pqueue->clear();
             dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-                NodeID object = objectNodes[j];
-                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-            }
-            auto olStart = objectDistances.begin() + i * objectNodes.size();
-            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-            std::sort(olStart, olEnd, compareObjectListElement);
+//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                NodeID object = objectNodes[j];
+//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//            }
+//            auto olStart = objectDistances.begin() + i * objectNodes.size();
+//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//            std::sort(olStart, olEnd, compareObjectListElement);
 
             for (std::size_t j = 0; j < numNodes; ++j) {
                 vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
             }
         }
         delete pqueue;
-        objectList.setDistances(objectDistances, objectNodes.size());
+//        objectList.setDistances(objectDistances, objectNodes.size());
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::ADVANCED_AVOID) {
@@ -406,13 +408,13 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         for (std::size_t i = 0; i < initialLandmarkVertices.size(); ++i) {
             pqueue->clear();
             dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-                NodeID object = objectNodes[j];
-                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-            }
-            auto olStart = objectDistances.begin() + i * objectNodes.size();
-            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-            std::sort(olStart, olEnd, compareObjectListElement);
+//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                NodeID object = objectNodes[j];
+//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//            }
+//            auto olStart = objectDistances.begin() + i * objectNodes.size();
+//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//            std::sort(olStart, olEnd, compareObjectListElement);
             for (std::size_t j = 0; j < numNodes; ++j) {
                 vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
             }
@@ -444,13 +446,13 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
             landmarks.push_back(getMaxLeaf(randomVertex, spTree));
             pqueue->clear();
             dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-                NodeID object = objectNodes[j];
-                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-            }
-            auto olStart = objectDistances.begin() + i * objectNodes.size();
-            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-            std::sort(olStart, olEnd, compareObjectListElement);
+//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                NodeID object = objectNodes[j];
+//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//            }
+//            auto olStart = objectDistances.begin() + i * objectNodes.size();
+//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//            std::sort(olStart, olEnd, compareObjectListElement);
 
             for (std::size_t j = 0; j < numNodes; ++j) {
                 vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
@@ -488,13 +490,13 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
                 landmarks[i] = getMaxLeaf(randomVertex, spTree);
                 pqueue->clear();
                 dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-                for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-                    NodeID object = objectNodes[j];
-                    objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-                }
-                auto olStart = objectDistances.begin() + i * objectNodes.size();
-                auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-                std::sort(olStart, olEnd, compareObjectListElement);
+//                for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                    NodeID object = objectNodes[j];
+//                    objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//                }
+//                auto olStart = objectDistances.begin() + i * objectNodes.size();
+//                auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//                std::sort(olStart, olEnd, compareObjectListElement);
 
                 for (std::size_t j = 0; j < numNodes; ++j) {
                     vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
@@ -503,7 +505,7 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
             }
         }
         delete pqueue;
-        objectList.setDistances(objectDistances, objectNodes.size());
+//        objectList.setDistances(objectDistances, objectNodes.size());
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::FARTHEST) {
@@ -543,13 +545,13 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
 
         pqueue->clear();
         dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-        for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-            NodeID object = objectNodes[j];
-            objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-        }
-        auto olStart = objectDistances.begin() + i * objectNodes.size();
-        auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-        std::sort(olStart, olEnd, compareObjectListElement);
+//        for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//            NodeID object = objectNodes[j];
+//            objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//        }
+//        auto olStart = objectDistances.begin() + i * objectNodes.size();
+//        auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//        std::sort(olStart, olEnd, compareObjectListElement);
 
         for (std::size_t j = 0; j < numNodes; ++j) {
             vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
@@ -559,7 +561,7 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         }
     }
     delete pqueue;
-    objectList.setDistances(objectDistances, objectNodes.size());
+//    objectList.setDistances(objectDistances, objectNodes.size());
 
 //    for(int i = 0; i < 100; i++) {
 //        auto element = objectLists[i];
