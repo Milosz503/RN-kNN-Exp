@@ -18,7 +18,7 @@
 #include <boost/unordered_map.hpp>
 
 //#define DYNAMIC_LANDMARKS_A_ALT 1
-#define ESTIMATE_VISITED_NODES 1
+//#define ESTIMATE_VISITED_NODES 1
 //#define USE_EUCLIDEAN 1
 
 struct AdaptiveALTParams {
@@ -105,7 +105,7 @@ public:
 #else
         std::cout << ", " << landmarks.size();
 #endif
-
+        std::cout << ", " << landmarkCreateTime;
     }
 
 private:
@@ -118,7 +118,7 @@ private:
     unsigned int queryNumber = 0;
     double cumulativeEstimateError = 0;
     double estimationCount = 0;
-    double scoreTime = 0;
+    double landmarkCreateTime = 0;
 
     unsigned euclideanCounter = 0;
     unsigned landmarkCounter = 0;
@@ -135,6 +135,7 @@ private:
 
     // temporary variables
     BinaryMinHeap<EdgeWeight, NodeData> tempPqueue;
+    std::vector<EdgeWeight> tempLandmarkDistances;
 
     unsigned createLandmark(Graph &graph, NodeID node);
 

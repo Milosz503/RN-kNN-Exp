@@ -89,6 +89,10 @@ public:
 
     NodeID getNextCandidate(NodeID q, EdgeWeight &lbDistance);
 
+    unsigned getLandmarksNumber() {
+        return landmarks.size();
+    }
+
     unsigned long edgesAccessedCount = 0;
 private:
     friend class boost::serialization::access;

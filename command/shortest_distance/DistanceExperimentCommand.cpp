@@ -43,7 +43,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         showCommandUsage(argv[0]);
         exit(1);
     }
-
+    auto indexSlash = bgrFilePath.find_last_of('/');
+    auto indexDot = bgrFilePath.find_last_of('.');
+    std::cout << "** " << bgrFilePath.substr(indexSlash+1, indexDot - indexSlash - 1) << " **" << std::endl;
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
     loadQueries();
 

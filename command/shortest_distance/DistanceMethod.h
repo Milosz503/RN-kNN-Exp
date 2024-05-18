@@ -109,12 +109,11 @@ public:
 
     void printInfo() override
     {
-        std::cout << "threshold: " << parameters.threshold << std::endl;
+        std::cout << "threshold: " << parameters.threshold << ", landmarks: " << alt.getLandmarksNumber() << "/" << numLandmarks << std::endl;
     }
 
     void printStatistics() override
     {
-        std::cout << ", " << numLandmarks;
     }
 
 private:
