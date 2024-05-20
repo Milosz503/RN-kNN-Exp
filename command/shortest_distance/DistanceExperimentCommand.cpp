@@ -10,6 +10,8 @@
 #include <fstream>
 
 
+
+
 void write_to_csv(const std::vector<std::vector<double>>& methods, std::string network, int numMeasurements = 9) {
     std::ofstream file(network + "_output.csv");
     std::ofstream file_deviation(network + "_output_dev.csv");
@@ -42,16 +44,177 @@ void write_to_csv(const std::vector<std::vector<double>>& methods, std::string n
     file.close();
 }
 
+double func(unsigned queries) {
+    if (queries < 2000)
+        return queries * (-0.000063) + 0.3;
+    return queries * -0.000008 + 0.19;
+}
 
-void DistanceExperimentCommand::execute(int argc, char **argv)
-{
+double exp_func(unsigned queries) {
+    return 0.15 + 0.25 * std::exp(queries * -0.00157);
+}
+
+void DistanceExperimentCommand::clearMethods() {
+    for (auto method : methods) {
+        delete method;
+    }
+    methods.clear();
+}
+
+void DistanceExperimentCommand::createMethodsConstABestThreshold(int numRepeats, const std::string network, int numQuerySteps){
+    for (int i = 0; i < 11; i++) {
+        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, i / 10.0, (10 - i) / 10.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+    }
+    std::vector <std::vector<double>> results(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(results);
+        loadQueries();
+        runAll(results);
+        queries.clear();
+    }
+    write_to_csv(results, network + "_const_a", numQuerySteps);
+    clearMethods();
+    results.clear();
+}
+
+void DistanceExperimentCommand::createMethodsConstBBestThreshold(int numRepeats, const std::string network, int numQuerySteps){
+    for (int i = 0; i < 11; i++) {
+        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, i / 10.0, 0.0, (10 - i) / 10.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+    }
+    std::vector <std::vector<double>> results(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(results);
+        loadQueries();
+        runAll(results);
+        queries.clear();
+    }
+    write_to_csv(results, network + "_const_b", numQuerySteps);
+    clearMethods();
+    results.clear();
+}
+
+void DistanceExperimentCommand::createMethodsConstCBestThreshold(int numRepeats, const std::string network, int numQuerySteps){
+    for (int i = 0; i < 11; i++) {
+        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, i / 10.0, (10 - i) / 10.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+    }
+    std::vector <std::vector<double>> results(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(results);
+        loadQueries();
+        runAll(results);
+        queries.clear();
+    }
+    write_to_csv(results, network + "_const_c", numQuerySteps);
+    clearMethods();
+    results.clear();
+}
+
+
+void DistanceExperimentCommand::compareDecayFunctions(int numRepeats, const std::string network, int numQuerySteps) {
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, func)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, exp_func)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(25, 0.0, 1.0, 0.0, exp_func)));
+    std::vector <std::vector<double>> results(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(results);
+        loadQueries();
+        runAll(results);
+        queries.clear();
+    }
+    write_to_csv(results, network + "_compare_decay", numQuerySteps);
+    clearMethods();
+    results.clear();
+}
+
+
+void DistanceExperimentCommand::compareThresholdLandmarkAdaptive(int numRepeats, const std::string network, int numQuerySteps) {
+    for (double j = 0.1; j < 0.5; j += 0.03) {
+        for (int i = 5; i < 41; i += 5) {
+            methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(i, 0.0, 1.0, 0.0, j)));
+        }
+        std::vector <std::vector<double>> results(methods.size());
+        for (int i = 0; i < numRepeats; i++) {
+            std::cout << "Repeat: " << i << std::endl;
+            buildIndexes(results);
+            loadQueries();
+            runAll(results);
+            queries.clear();
+        }
+        write_to_csv(results, network + "_adapt_" + std::to_string(j) + "_threshold_var_landmark", numQuerySteps);
+        clearMethods();
+        results.clear();
+    }
+}
+
+
+void DistanceExperimentCommand::compareThresholdLandmark(int numRepeats, const std::string network, LANDMARK_TYPE landmarkType, int numQuerySteps) {
+    for (double j = 0.1; j < 0.5; j += 0.03) {
+        for (int i = 5; i < 41; i += 5) {
+            methods.push_back(new ALTMethod(i, landmarkType, {j}));
+        }
+        std::vector <std::vector<double>> results(methods.size());
+        for (int i = 0; i < numRepeats; i++) {
+            std::cout << "Repeat: " << i << std::endl;
+            buildIndexes(results);
+            loadQueries();
+            runAll(results);
+            queries.clear();
+        }
+        write_to_csv(results, network + "_nonadapt_" + std::to_string(j) + "_threshold_var_landmark_" + std::to_string(landmarkType) + "_type", numQuerySteps);
+        clearMethods();
+        results.clear();
+    }
+}
+
+
+void DistanceExperimentCommand::compareMethods(int numRepeats, const std::string network, int numQuerySteps) {
+    methods.push_back(new ALTMethod(25, LANDMARK_TYPE::RANDOM, {0.12}));
+    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::RANDOM, {0.18}));
+    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::RANDOM, {0.24}));
+    methods.push_back(new ALTMethod(25, LANDMARK_TYPE::AVOID, {0.12}));
+    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::AVOID, {0.18}));
+    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::AVOID, {0.24}));
+    methods.push_back(new ALTMethod(25, LANDMARK_TYPE::MIN_DIST, {0.12}));
+    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.18}));
+    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::MIN_DIST, {0.24}));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(25, 0.0, 1.0, 0.0, 0.12)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, 0.18)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(15, 0.0, 1.0, 0.0, 0.24)));
+    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+    std::vector<std::vector<double>> results(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(results);
+        loadQueries();
+        runAll(results);
+        queries.clear();
+    }
+    write_to_csv(results, network + "_compare_methods", numQuerySteps);
+    clearMethods();
+    results.clear();
+}
+
+
+void DistanceExperimentCommand::execute(int argc, char **argv) {
     srand(7); // NOLINT(*-msc51-cpp) it is supposed to be possible to reproduce
 
     std::string bgrFilePath;
     std::string network = "";
     int numRepeats = 0;
+    LANDMARK_TYPE landmarkType = LANDMARK_TYPE::MIN_DIST;
+    int testNum = 0;
     int opt;
-    while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:")) != -1) {
+    while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:t:x:")) != -1) {
         switch (opt) {
             case 'g':
                 bgrFilePath = optarg;
@@ -71,6 +234,12 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             case 'n':
                 network = optarg;
                 break;
+            case 't':
+                landmarkType = static_cast<LANDMARK_TYPE>(std::stoi(optarg));
+                break;
+            case 'x':
+                testNum = std::stoi(optarg);
+                break;
             case 'r':
                 numRepeats = std::stoi(optarg);
                 break;
@@ -85,62 +254,33 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         showCommandUsage(argv[0]);
         exit(1);
     }
+    int numQuerySteps = 9;
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
-    for (int j = 40; j < 41; j+= 5)
-    {
-        methods.push_back(new AdaptiveALTMethod(j, 0.01));
-        for (int i = 3; i < 51; i += 3) {
-            methods.push_back(new AdaptiveALTMethod(j, i / 100.0));
-//            methods.push_back(new ALTMethod(j, LANDMARK_TYPE::MIN_DIST, {i / 100.0}));
-        }
 
-//    methods.push_back(new GtreeMethod(4, 256));
-//    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-//            18, 0, 1, 0, 0.22)));
-//    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-//        10, 0, 1, 0, 0.33)));
-    methods.push_back(new ALTMethod(10, LANDMARK_TYPE::MIN_DIST, {0.33}));
-    methods.push_back(new ALTMethod(18, LANDMARK_TYPE::MIN_DIST, {0.22}));
-    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-            20, 0, 1, 0,
-            [](unsigned q){return 0.15*(pow(0.69, 0.0025*q)) + 0.15; }
-        )));
-    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-            10, 0, 0, 1, 0.33)));
-    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-            15, 0, 0, 1, 0.28)));
-    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-            20, 0, 0, 1, 0.23)));
-//    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(
-//            20, 1, 0, 0,
-//            [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; }
-//    )));
-//    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.25}));
-//    methods.push_back(new ALTMethod(20, LANDMARK_TYPE::MIN_DIST, {0.20}));
-//    methods.push_back(new AStarMethod());
-//    methods.push_back(new DijkstraMethod());
-
-        if (numRepeats != 0) {
-            std::vector<std::vector<double>> results(methods.size());
-
-            for (int i = 0; i < numRepeats; i++) {
-                std::cout << "Repeat: " << i << std::endl;
-                buildIndexes(results);
-                loadQueries();
-                runAll(results);
-                queries.clear();
-            }
-            std::string num = std::to_string(j);
-            write_to_csv(results, network + "_adaptive_" + num, 9);
-            methods.clear();
-        } else {
-            buildIndexes();
-            loadQueries();
-            runAll();
-            validateAll();
-        }
+    switch (testNum) {
+        case 0:
+            createMethodsConstABestThreshold(numRepeats, network, numQuerySteps);
+            break;
+        case 1:
+            createMethodsConstBBestThreshold(numRepeats, network, numQuerySteps);
+            break;
+        case 2:
+            createMethodsConstCBestThreshold(numRepeats, network, numQuerySteps);
+            break;
+        case 3:
+            compareDecayFunctions(numRepeats, network, numQuerySteps);
+            break;
+        case 4:
+            compareThresholdLandmarkAdaptive(numRepeats, network, numQuerySteps);
+            break;
+        case 5:
+            compareThresholdLandmark(numRepeats, network, landmarkType, numQuerySteps);
+            break;
+        default:
+            compareMethods(numRepeats, network, numQuerySteps);
     }
+}
 
 void DistanceExperimentCommand::showCommandUsage(std::string programName)
 {

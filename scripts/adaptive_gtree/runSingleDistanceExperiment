@@ -23,7 +23,7 @@ fi
 
 k_values="1"
 for i in "${!road_networks[@]}"; do 
-    args="-c distance -g $idx_dir/${road_networks[$i]}.bin -q 8192 -k $k_values -d 1000000000ul -l 20 -n ${road_networks[$i]} -r 10"
+    args="-c distance -g $idx_dir/${road_networks[$i]}.bin -q 8192 -k $k_values -d 1000000000ul -l 20 -n ${road_networks[$i]} -r 10 -x 6"
 #    echo $exe_path $2 $args
     ${exe_path}/$2 $args
 done

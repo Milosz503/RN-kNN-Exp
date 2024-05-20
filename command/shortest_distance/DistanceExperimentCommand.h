@@ -56,6 +56,24 @@ private:
 
     void validateAll();
 
+    void compareDecayFunctions(int numRepeats, const std::string network);
+
+    void createMethodsConstABestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+
+    void createMethodsConstBBestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+
+    void createMethodsConstCBestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+
+    void compareDecayFunctions(int numRepeats, const std::string network, int numQuerySteps);
+
+    void compareThresholdLandmarkAdaptive(int numRepeats, const std::string network, int numQuerySteps);
+
+    void compareThresholdLandmark(int numRepeats, const std::string network, LANDMARK_TYPE landmarkType, int numQuerySteps);
+
+    void compareMethods(int numRepeats, const std::string network, int numQuerySteps);
+
+    void clearMethods();
+
 //    void runMultiTargetALT();
 };
 
