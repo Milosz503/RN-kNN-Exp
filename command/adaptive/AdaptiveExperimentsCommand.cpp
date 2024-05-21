@@ -386,7 +386,7 @@ void AdaptiveExperimentsCommand::runExperiment(Experiment &experiment)
                             sw.stop();
                             totalQueryTime += sw.getTimeMs();
 #if defined(COLLECT_STATISTICS)
-                            knnStats.mergeStatistics(ine.stats);
+                            //knnStats.mergeStatistics(ine.stats);
 #endif
                             if (verifyKNN) {
                                 ineKNNs.clear();

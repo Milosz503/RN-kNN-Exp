@@ -42,6 +42,7 @@ void write_to_csv(const std::vector<std::vector<double>>& methods, std::string n
     }
 
     file.close();
+    file_deviation.close();
 }
 
 double func(unsigned queries) {
@@ -196,6 +197,7 @@ void DistanceExperimentCommand::compareMethods(int numRepeats, const std::string
         std::cout << "Repeat: " << i << std::endl;
         buildIndexes(results);
         loadQueries();
+        visualizeQueries(network + "_compare_methods");
         runAll(results);
         queries.clear();
     }
@@ -280,6 +282,27 @@ void DistanceExperimentCommand::execute(int argc, char **argv) {
         default:
             compareMethods(numRepeats, network, numQuerySteps);
     }
+}
+
+void DistanceExperimentCommand::visualizeQueries(std::string name = "") {
+    std::ofstream file(name + "_query_data.csv");
+    Coordinate x, y;
+    bool isSource, isTarget;
+    for (auto graphNode : graph.getNodesIDsVector()) {
+        graph.getCoordinates(graphNode, x, y);
+        std::string color;
+        isSource = false;
+        isTarget = false;
+        for (auto query: queries) {
+            if (query.source == graphNode)
+                isSource = true;
+            if (std::find(query.targets.begin(), query.targets.end(), graphNode) != query.targets.end())
+                isTarget = true;
+        }
+        file << x << ',' << y << ',' << isSource << ',' << isTarget << std::endl;
+    }
+    file.close();
+
 }
 
 void DistanceExperimentCommand::showCommandUsage(std::string programName)
