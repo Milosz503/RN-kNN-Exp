@@ -42,13 +42,41 @@ private:
 
     void buildIndexes();
 
+    void buildIndexes(std::vector<std::vector<double>>& results);
+
     void loadQueries();
 
     void runAll();
 
+    void runAll(std::vector<std::vector<double>>& results);
+
     void runMethod(DistanceMethod* method);
 
+    void runMethod(DistanceMethod* method, std::vector<std::vector<double>>& results, int iter);
+
     void validateAll();
+
+    void compareDecayFunctions(int numRepeats, const std::string network);
+
+    void createMethodsConstABestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+
+    void createMethodsConstBBestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+
+    void createMethodsConstCBestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+
+    void compareDecayFunctions(int numRepeats, const std::string network, int numQuerySteps);
+
+    void compareThresholdLandmarkAdaptive(int numRepeats, const std::string network, int numQuerySteps);
+
+    void compareThresholdLandmark(int numRepeats, const std::string network, LANDMARK_TYPE landmarkType, int numQuerySteps);
+
+    void compareMethods(int numRepeats, const std::string network, int numQuerySteps);
+
+    void clearMethods();
+
+    void visualizeQueries(std::string name);
+
+    void exportLandmarks(std::string name);
 
 //    void runMultiTargetALT();
 };

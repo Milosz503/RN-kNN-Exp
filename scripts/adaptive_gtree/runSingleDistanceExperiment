@@ -1,0 +1,29 @@
+#!/bin/bash
+
+. globalVariables
+
+# road_networks=("DE" "VT" "ME" "COL" "NW" "CAL" "E" "W" "CTR" "USA")
+
+
+if [[ $5 != "" && $5 != "default" ]]; then
+    if [[ $5 != "all" ]]; then
+        road_networks=($5)
+        index_parameters="${5}_index_parameters"
+        obj_index_parameters="${5}_obj_index_parameters"
+        knn_parameters=("${!index_parameters},${!obj_index_parameters},$default_verification,$special_knn_parameters")
+    else
+        for i in "${!road_networks[@]}"; do 
+            knn_parameters[$i]="${knn_parameters[$i]},$special_knn_parameters"
+        done
+    fi
+else
+    road_networks=($default_network)
+    knn_parameters=("$default_parameters,$default_verification,$special_knn_parameters")
+fi
+
+k_values="1"
+for i in "${!road_networks[@]}"; do 
+    args="-c distance -g $idx_dir/${road_networks[$i]}.bin -q 8192 -k $k_values -d 1000000000ul -l 20 -n ${road_networks[$i]} -r 10 -x 6"
+#    echo $exe_path $2 $args
+    ${exe_path}/$2 $args
+done

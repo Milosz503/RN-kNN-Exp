@@ -34,13 +34,16 @@ struct AdaptiveALTParams {
     AdaptiveALTParams(const unsigned int maxLandmarks, const double a, const double b, const double c,
                       double threshold) :
             AdaptiveALTParams(maxLandmarks, a, b, c, [threshold](unsigned _) { return threshold; })
-    {}
+    {
+        this->threshold = std::to_string(threshold);
+    }
 
     const unsigned maxLandmarks;
     const double a;
     const double b;
     const double c;
     std::function<double(unsigned)> thresholdFunction;
+    std::string threshold = "decay";
 };
 
 struct Landmark {
@@ -90,6 +93,14 @@ public:
         std::cout << "a=" << params.a << ", b=" << params.b << ", c=" << params.c
                   << ", threshold(0)=" << params.thresholdFunction(0)
                   << ", threshold(4096)=" << params.thresholdFunction(4096) << std::endl;
+    }
+
+    std::vector<NodeID> getLandmarks() {
+        std::vector<NodeID> nodes(landmarks.size());
+        for (int i = 0; i < landmarks.size(); i++) {
+            nodes[i] = landmarks[i].nodeId;
+        }
+        return nodes;
     }
 
     void printStatistics()

@@ -27,12 +27,30 @@
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 #include <set>
 
 enum LANDMARK_TYPE {
     RANDOM = 0,
     RANDOM_OBJECTS = 1,
-    MIN_DIST = 2,
+    AVOID = 2,
+    AVOID_PEQUE_URATA_IRYO = 3,
+    ADVANCED_AVOID = 4,
+    FARTHEST = 5,
+    MIN_DIST = 6,
+};
+
+struct SizeNumNodesPair {
+        unsigned long size = 0ul;
+        unsigned numNodes = 0u;
+
+        SizeNumNodesPair(unsigned long _size, unsigned _numNodes) : size(_size), numNodes(_numNodes) {}
+
+        SizeNumNodesPair& operator += (const SizeNumNodesPair& obj) {
+            this->size += obj.size;
+            this->numNodes += obj.numNodes;
+            return *this;
+        }
 };
 
 struct ALTParameters {
@@ -69,10 +87,9 @@ public:
     double computeIndexSize();
 
     EdgeWeight getLowerBound(NodeID s, NodeID t);
+    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned>& landmarkIndexes);
 
-    EdgeWeight getLowerBound(NodeID s, NodeID t, std::vector<unsigned> &landmarkIndexes);
-
-    EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID> &targets);
+    EdgeWeight getLowestLowerBound(NodeID s, std::vector<NodeID>& targets);
 
     void getLowerAndUpperBound(NodeID s, NodeID t, EdgeWeight &lb, EdgeWeight &ub);
 
@@ -94,6 +111,14 @@ public:
     }
 
     unsigned long edgesAccessedCount = 0;
+
+    unsigned long calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree, std::vector<NodeID>& landmarks);
+    NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree);
+    SizeNumNodesPair calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree, std::vector<NodeID>& landmarks);
+    NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree);
+    std::vector<NodeID> getLandmarks() {
+        return landmarks;
+    }
 private:
     friend class boost::serialization::access;
 

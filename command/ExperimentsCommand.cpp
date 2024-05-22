@@ -1759,10 +1759,10 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
 //            serialization::getIndexFromBinaryFile<AdaptiveGtree>(gtreeIdxFile);
 #if defined(GTREE_STL_HASH_TABLE_DIST_MATRIX) || defined(GTREE_GOOGLE_DENSEHASH_DIST_MATRIX)
     // We create hash-table versions of distance matrix for different testing
-    sw.reset();
-    sw.start();
-    gtree.populateUnorderedMapDistanceMatrix();
-    sw.stop();
+//    sw.reset();
+//    sw.start();
+//    gtree.populateUnorderedMapDistanceMatrix();
+//    sw.stop();
 //     std::cout << "Hash-Table Distance Matrix Population Time: " << sw.getTimeMs() << "ms" << std::endl;
 //     std::cout << "Hash-Table Distance Matrix Memory Usage: " << gtree.computeDistanceMatrixMemoryUsage() << "MB" << std::endl;
 #endif
@@ -1801,7 +1801,7 @@ void ExperimentsCommand::runAGtreeQueries(Graph& graph, std::string gtreeIdxFile
                             sw.stop();
                             totalQueryTime += sw.getTimeUs();
 #if defined(COLLECT_STATISTICS)
-                            knnStats.mergeStatistics(gtree.stats);
+ //                           knnStats.mergeStatistics(gtree.stats);
 #endif
 
                             if (verifyKNN) {
