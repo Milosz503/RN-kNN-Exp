@@ -7,6 +7,7 @@
 #include "../../utility/StopWatch.h"
 #include "../../processing/DijkstraSearch.h"
 #include "../../processing/AStarSearch.h"
+#include "QueryGenerator.h"
 #include <fstream>
 
 
@@ -213,9 +214,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv) {
 
     std::string bgrFilePath;
     std::string network = "";
-    int numRepeats = 0;
+    int numRepeats = 1;
     LANDMARK_TYPE landmarkType = LANDMARK_TYPE::MIN_DIST;
-    int testNum = 0;
+    int testNum = -1;
     int opt;
     while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:t:x:")) != -1) {
         switch (opt) {
@@ -389,29 +390,9 @@ void DistanceExperimentCommand::buildIndexes(std::vector<std::vector<double>>& r
 
 void DistanceExperimentCommand::loadQueries()
 {
-    std::cout << "Generating queries..." << "numQueries: " << numQueries << " numTargets: " << numTargets << std::endl;
-
-
-    for (int i = 0; i < numQueries; i++) {
-        NodeID start = rand() % graph.getNumNodes();
-        Query query;
-        query.source = start;
-        for (int j = 0; j < numTargets; j++) {
-            NodeID end = rand() % graph.getNumNodes();
-            auto euclideanDist = graph.getEuclideanDistance(start, end);
-            if (euclideanDist > maxDist) {
-                j--;
-                continue;
-            }
-            if (std::find(query.targets.begin(), query.targets.end(), end) != query.targets.end()) {
-                j--;
-                continue;
-            }
-            query.targets.push_back(end);
-        }
-        queries.push_back(query);
-    }
-    std::cout << "Finished generating queries. Number of queries: " << queries.size() << std::endl;
+//    queries = QueryGenerator().randomExpandTargets(graph, numQueries, 0.00001);
+//    queries = QueryGenerator().randomExpandTargetsClustered(graph, numQueries, 1, 0.00001);
+    queries = QueryGenerator().random(graph, numQueries, numTargets, maxDist);
 }
 
 void DistanceExperimentCommand::runAll()
