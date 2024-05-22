@@ -289,6 +289,7 @@ void DistanceExperimentCommand::visualizeQueries(std::string name = "") {
     std::ofstream file(name + "_query_data.csv");
     Coordinate x, y;
     bool isSource, isTarget;
+    file << "x,y,is_source,is_target" << std::endl;
     for (auto graphNode : graph.getNodesIDsVector()) {
         graph.getCoordinates(graphNode, x, y);
         std::string color;
@@ -323,6 +324,13 @@ void DistanceExperimentCommand::exportLandmarks(std::string name = "") {
     }
     std::ofstream file(name + "_landmark_data.csv");
     if (file.is_open()) {
+        for (size_t i = 0; i < methods.size(); ++i) {
+            file << methods[i]->name;
+            if (i < methods.size() - 1) {
+                file << ",";
+            }
+            file << std::endl;
+        }
         for (size_t i = 0; i < max_size; ++i) {
             for (size_t j = 0; j < methods.size(); ++j) {
                 file << csvData[i][j];
