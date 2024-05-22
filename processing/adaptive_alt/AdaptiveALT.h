@@ -91,6 +91,14 @@ public:
                   << ", threshold(4096)=" << params.thresholdFunction(4096) << std::endl;
     }
 
+    std::vector<NodeID> getLandmarks() {
+        std::vector<NodeID> nodes(landmarks.size());
+        for (int i = 0; i < landmarks.size(); i++) {
+            nodes[i] = landmarks[i].nodeId;
+        }
+        return nodes;
+    }
+
     void printStatistics()
     {
 //        for(unsigned i = 0; i < landmarks.size(); ++i) {

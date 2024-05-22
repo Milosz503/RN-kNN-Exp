@@ -74,6 +74,10 @@ private:
 
     void clearMethods();
 
+    void visualizeQueries(std::string name);
+
+    void exportLandmarks(std::string name);
+
 //    void runMultiTargetALT();
 };
 

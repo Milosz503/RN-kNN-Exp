@@ -38,6 +38,8 @@ public:
     virtual void printStatistics()
     {};
 
+    virtual std::vector<NodeID> getLandmarkNodeIDs() = 0;
+
     virtual ~DistanceMethod()
     {};
 
@@ -60,6 +62,10 @@ public:
         }
     }
 
+    std::vector<NodeID> getLandmarkNodeIDs() override {
+        return std::vector<NodeID>();
+    }
+
 private:
     DijkstraSearch dijkstra;
 };
@@ -78,6 +84,10 @@ public:
             auto target = query.targets[i];
             distances[i] = astar.findShortestPathDistanceT(graph, query.source, target);
         }
+    }
+
+    std::vector<NodeID> getLandmarkNodeIDs() override {
+        return std::vector<NodeID>();
     }
 
 private:
@@ -115,6 +125,10 @@ public:
     void printStatistics() override
     {
         std::cout << ", " << numLandmarks;
+    }
+
+    std::vector<NodeID> getLandmarkNodeIDs() override {
+        return alt.getLandmarks();
     }
 
 private:
@@ -156,6 +170,10 @@ public:
     ~AdaptiveALTMethod() override
     {
         delete alt;
+    }
+
+    std::vector<NodeID> getLandmarkNodeIDs() override {
+        return alt->getLandmarks();
     }
 
 private:
@@ -200,6 +218,10 @@ public:
         delete agtree;
     }
 
+    std::vector<NodeID> getLandmarkNodeIDs() override {
+        return std::vector<NodeID>();
+    }
+
 private:
     int fanout;
     std::size_t maxLeafSize;
@@ -242,6 +264,10 @@ public:
     ~GtreeMethod() override
     {
         delete gtree;
+    }
+
+    std::vector<NodeID> getLandmarkNodeIDs() override {
+        return std::vector<NodeID>();
     }
 
 private:

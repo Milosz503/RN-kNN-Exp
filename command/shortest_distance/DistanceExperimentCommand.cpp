@@ -199,6 +199,7 @@ void DistanceExperimentCommand::compareMethods(int numRepeats, const std::string
         loadQueries();
         visualizeQueries(network + "_compare_methods");
         runAll(results);
+        exportLandmarks(network + "_compare_methods");
         queries.clear();
     }
     write_to_csv(results, network + "_compare_methods", numQuerySteps);
@@ -302,7 +303,40 @@ void DistanceExperimentCommand::visualizeQueries(std::string name = "") {
         file << x << ',' << y << ',' << isSource << ',' << isTarget << std::endl;
     }
     file.close();
+}
 
+void DistanceExperimentCommand::exportLandmarks(std::string name = "") {
+    size_t max_size = 0;
+    for (const auto& method : methods) {
+        max_size = std::max(max_size, method->getLandmarkNodeIDs().size());
+    }
+
+    std::vector<std::vector<std::string>> csvData(max_size, std::vector<std::string>(methods.size(), ""));
+
+    Coordinate x, y;
+    for (size_t i = 0; i < methods.size(); i++) {
+        auto landmarks = methods[i]->getLandmarkNodeIDs();
+        for (size_t j = 0; j < landmarks.size(); j++) {
+            graph.getCoordinates(landmarks[j], x, y);
+            csvData[j][i] = std::to_string(x) + "_" + std::to_string(y);
+        }
+    }
+    std::ofstream file(name + "_landmark_data.csv");
+    if (file.is_open()) {
+        for (size_t i = 0; i < max_size; ++i) {
+            for (size_t j = 0; j < methods.size(); ++j) {
+                file << csvData[i][j];
+                if (j < methods.size() - 1) {
+                    file << ",";
+                }
+            }
+            file << std::endl;
+        }
+        file.close();
+        std::cout << "CSV file written successfully." << std::endl;
+    } else {
+        std::cerr << "Error opening output file." << std::endl;
+    }
 }
 
 void DistanceExperimentCommand::showCommandUsage(std::string programName)

@@ -112,6 +112,9 @@ public:
     NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree);
     SizeNumNodesPair calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree, std::vector<NodeID>& landmarks);
     NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree);
+    std::vector<NodeID> getLandmarks() {
+        return landmarks;
+    }
 private:
     friend class boost::serialization::access;
 
