@@ -33,13 +33,16 @@ struct AdaptiveALTParams {
     AdaptiveALTParams(const unsigned int maxLandmarks, const double a, const double b, const double c,
                       double threshold) :
             AdaptiveALTParams(maxLandmarks, a, b, c, [threshold](unsigned _) { return threshold; })
-    {}
+    {
+        this->threshold = std::to_string(threshold);
+    }
 
     const unsigned maxLandmarks;
     const double a;
     const double b;
     const double c;
     std::function<double(unsigned)> thresholdFunction;
+    std::string threshold = "decay";
 };
 
 struct Landmark {

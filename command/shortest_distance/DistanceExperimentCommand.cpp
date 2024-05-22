@@ -325,12 +325,12 @@ void DistanceExperimentCommand::exportLandmarks(std::string name = "") {
     std::ofstream file(name + "_landmark_data.csv");
     if (file.is_open()) {
         for (size_t i = 0; i < methods.size(); ++i) {
-            file << methods[i]->name;
+            file << methods[i]->getInfo();
             if (i < methods.size() - 1) {
                 file << ",";
             }
-            file << std::endl;
         }
+        file << std::endl;
         for (size_t i = 0; i < max_size; ++i) {
             for (size_t j = 0; j < methods.size(); ++j) {
                 file << csvData[i][j];

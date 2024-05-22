@@ -38,6 +38,8 @@ public:
     virtual void printStatistics()
     {};
 
+    virtual std::string getInfo() = 0;
+
     virtual std::vector<NodeID> getLandmarkNodeIDs() = 0;
 
     virtual ~DistanceMethod()
@@ -66,6 +68,11 @@ public:
         return std::vector<NodeID>();
     }
 
+    std::string getInfo() {
+        return name;
+    }
+
+
 private:
     DijkstraSearch dijkstra;
 };
@@ -88,6 +95,10 @@ public:
 
     std::vector<NodeID> getLandmarkNodeIDs() override {
         return std::vector<NodeID>();
+    }
+
+    std::string getInfo() {
+        return name;
     }
 
 private:
@@ -129,6 +140,10 @@ public:
 
     std::vector<NodeID> getLandmarkNodeIDs() override {
         return alt.getLandmarks();
+    }
+
+    std::string getInfo() {
+        return name + "_thr_" + std::to_string(parameters.threshold) + "_lan_" + std::to_string(numLandmarks) + "_type_" + std::to_string(landmarkType);
     }
 
 private:
@@ -174,6 +189,10 @@ public:
 
     std::vector<NodeID> getLandmarkNodeIDs() override {
         return alt->getLandmarks();
+    }
+
+    std::string getInfo() {
+        return name + "_lan_" + std::to_string(params.maxLandmarks) + "_a_" + std::to_string(params.a) + "_b_" + std::to_string(params.b) + "_c_" + std::to_string(params.c) + "_thr_" + params.threshold;
     }
 
 private:
@@ -222,6 +241,10 @@ public:
         return std::vector<NodeID>();
     }
 
+    std::string getInfo() {
+        return name + "_f_" + std::to_string(fanout) + "_t_" + std::to_string(maxLeafSize) + "_l_" + std::to_string(agtree->getNumLevels());
+    }
+
 private:
     int fanout;
     std::size_t maxLeafSize;
@@ -268,6 +291,10 @@ public:
 
     std::vector<NodeID> getLandmarkNodeIDs() override {
         return std::vector<NodeID>();
+    }
+
+    std::string getInfo() {
+        return name + "_f_" + std::to_string(fanout) + "_t_" + std::to_string(maxLeafSize) + "_l_" + std::to_string(gtree->getNumLevels());
     }
 
 private:
