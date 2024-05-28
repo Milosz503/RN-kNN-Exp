@@ -4,8 +4,8 @@
 
 # Default Directories, Files and State
 main_program="nd_knn"
-edge_type="d"
-#edge_type="t" # Travel Time Experiments
+#edge_type="d"
+edge_type="t" # Travel Time Experiments
 idx_dir="$output_path/indexes"
 stats_dir="$output_path/stats"
 obj_idx_dir="$output_path/obj_indexes"

@@ -54,15 +54,25 @@ struct SizeNumNodesPair {
 };
 
 struct ALTParameters {
+    ALTParameters(double threshold, double numberOfTries) : threshold(threshold), numberOfTries(numberOfTries)
+    {}
+
+    ALTParameters(double threshold) : threshold(threshold), numberOfTries(4096)
+    {}
+
+    ALTParameters() : threshold(0), numberOfTries(4096)
+    {}
+
     double threshold;
+    double numberOfTries;
 };
 
 class ALT {
 
 public:
-    ALT(std::string networkName, int numNodes, int numEdges, ALTParameters parameters = {});
+    ALT(std::string networkName, int numNodes, int numEdges, ALTParameters parameters = {0.2});
 
-    ALT()
+    ALT() : parameters(0.2)
     {};
 
     void buildALT(Graph &graph, LANDMARK_TYPE landmarkType, unsigned int numLandmarks);

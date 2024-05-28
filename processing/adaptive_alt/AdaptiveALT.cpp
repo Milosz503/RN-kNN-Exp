@@ -37,7 +37,7 @@ PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, 
     double estimatedPathLength = 1;
     if (numLandmarks > 0) {
         estimatedPathLength = estimatePathLengthRatio(source, target) * landmarkDistRatio
-                              - landmarks[findClosestLandmark(source)].pathLengths[target] / numNodes;
+                              - landmarks[findClosestLandmark(source)].pathLengths[target] / (double)numNodes;
     }
 
     double score = params.a * landmarkDistRatio +

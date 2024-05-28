@@ -17,6 +17,10 @@ run_command() {
   echo "------"
   echo ""
 
-  tail -f $LOG_FILE
+  tail -f $LOG_FILE &
+  TAIL_PID=$!
+  wait $PID
+  kill $TAIL_PID
+
 }
 

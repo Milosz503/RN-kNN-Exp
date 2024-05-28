@@ -35,42 +35,43 @@ private:
     unsigned long maxDist;
     unsigned long numTargets;
     unsigned long numLandmarks;
+    std::string network = "";
+    bool validate = true;
+    unsigned numRepeats = 1;
+    std::string resultsPath = "./";
+    std::vector<std::vector<double>> results;
 
     std::vector<DistanceMethod *> methods;
 
-
-
-    void buildIndexes();
-
-    void buildIndexes(std::vector<std::vector<double>>& results);
+    void buildIndexes(bool saveTimes = true);
 
     void loadQueries();
 
-    void runAll();
-
-    void runAll(std::vector<std::vector<double>>& results);
+    void runAll(bool saveOnlyLastResult = false);
 
     void runMethod(DistanceMethod* method);
 
-    void runMethod(DistanceMethod* method, std::vector<std::vector<double>>& results, int iter);
+    void runMethod(DistanceMethod* method, int iter, bool saveOnlyLastResult = false);
 
     void validateAll();
 
-    void compareDecayFunctions(int numRepeats, const std::string network);
+    void compareLandmarksNumber();
 
-    void createMethodsConstABestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+    void createMethodsConstABestThreshold();
 
-    void createMethodsConstBBestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+    void createMethodsConstBBestThreshold();
 
-    void createMethodsConstCBestThreshold(int numRepeats, const std::string network, int numQuerySteps);
+    void createMethodsConstCBestThreshold();
 
-    void compareDecayFunctions(int numRepeats, const std::string network, int numQuerySteps);
+    void compareDecayFunctions();
 
-    void compareThresholdLandmarkAdaptive(int numRepeats, const std::string network, int numQuerySteps);
+    void compareThresholdLandmarkAdaptive(int numRepeats);
 
-    void compareThresholdLandmark(int numRepeats, const std::string network, LANDMARK_TYPE landmarkType, int numQuerySteps);
+    void compareThresholdLandmark(int numRepeats, LANDMARK_TYPE landmarkType);
 
-    void compareMethods(int numRepeats, const std::string network, int numQuerySteps);
+    void runStandardTestCase(const std::function<void()>& testCase);
+
+    void compareMethods();
 
     void clearMethods();
 

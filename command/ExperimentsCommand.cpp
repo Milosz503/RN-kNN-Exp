@@ -856,8 +856,8 @@ void ExperimentsCommand::buildPHL(std::string networkName, int numNodes, int num
     this->outputCommandStats(statsOutputFile,stats.getTupleString());
 
     phl.StoreLabel(idxOutputFile.c_str());
-    
-    std::cout << "PHL index successfully created!" << std::endl;
+
+    std::cout << "PHL index successfully created! Time:" << processingTimeMs <<  std::endl;
 }
 
 void ExperimentsCommand::buildCH(std::string networkName, int numNodes, int numEdges, std::string graphFilePath, std::string coordinateFilePath, std::string bgrIntFilePath, 
@@ -876,8 +876,7 @@ void ExperimentsCommand::buildCH(std::string networkName, int numNodes, int numE
     IndexTuple stats(networkName,numNodes,numEdges,constants::IDX_CH_CMD,processingTimeMs,memoryUsage);
     stats.setAdditionalFields(specialFields);
     this->outputCommandStats(statsOutputFile,stats.getTupleString());
-
-    std::cout << "CH index successfully created!" << std::endl;
+    std::cout << "CH index successfully created! Time: " << processingTimeMs << std::endl;
 }
 
 void ExperimentsCommand::buildTNR(std::string networkName, int numNodes, int numEdges, std::string bgrIntFilePath, std::string bcoIntFilePath, std::string chFilePath, 

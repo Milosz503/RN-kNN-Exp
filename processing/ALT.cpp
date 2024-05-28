@@ -584,7 +584,7 @@ void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
     std::vector<EdgeWeight> nodesVisited(numNodes, 0);
     BinaryMinHeap<EdgeWeight, NodeData> pqueue;
 
-    unsigned numberOfTries = 4096;
+    unsigned numberOfTries = parameters.numberOfTries;
     double threshold = parameters.threshold;
     unsigned currentNumLandmarks = 0;
 

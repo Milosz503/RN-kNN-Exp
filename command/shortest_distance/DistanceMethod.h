@@ -25,7 +25,7 @@ public:
 
 class DistanceMethod {
 public:
-    explicit DistanceMethod(std::string name) : name(std::move(name))
+    explicit DistanceMethod()
     {}
 
     virtual void buildIndex(Graph &graph) = 0;
@@ -45,12 +45,12 @@ public:
     virtual ~DistanceMethod()
     {};
 
-    const std::string name;
+    virtual std::string getName() = 0;
 };
 
 class DijkstraMethod : public DistanceMethod {
 public:
-    DijkstraMethod() : DistanceMethod("Dijkstra")
+    DijkstraMethod()
     {}
 
     void buildIndex(Graph &graph) override
@@ -68,8 +68,12 @@ public:
         return std::vector<NodeID>();
     }
 
-    std::string getInfo() {
-        return name;
+    std::string getInfo() override {
+        return getName();
+    }
+
+    std::string getName() override {
+        return "Dijkstra";
     }
 
 
@@ -79,7 +83,7 @@ private:
 
 class AStarMethod : public DistanceMethod {
 public:
-    AStarMethod() : DistanceMethod("AStar")
+    AStarMethod()
     {}
 
     void buildIndex(Graph &graph) override
@@ -98,7 +102,11 @@ public:
     }
 
     std::string getInfo() {
-        return name;
+        return getName();
+    }
+
+    std::string getName() override {
+        return "A*";
     }
 
 private:
@@ -108,7 +116,6 @@ private:
 class ALTMethod : public DistanceMethod {
 public:
     ALTMethod(unsigned numLandmarks, LANDMARK_TYPE landmarkType, ALTParameters parameters) :
-            DistanceMethod("ALT"),
             alt("-", 0, 0, parameters),
             numLandmarks(numLandmarks),
             landmarkType(landmarkType),
@@ -142,7 +149,11 @@ public:
     }
 
     std::string getInfo() {
-        return name + "_thr_" + std::to_string(parameters.threshold) + "_lan_" + std::to_string(numLandmarks) + "_type_" + std::to_string(landmarkType);
+        return getName() + "_thr_" + std::to_string(parameters.threshold) + "_lan_" + std::to_string(numLandmarks) + "_type_" + std::to_string(landmarkType);
+    }
+
+    std::string getName() override {
+        return "ALT";
     }
 
 private:
@@ -155,7 +166,7 @@ private:
 class AdaptiveALTMethod : public DistanceMethod {
 public:
     explicit AdaptiveALTMethod(AdaptiveALTParams params) :
-            DistanceMethod("Adaptive ALT"), alt(nullptr), params(params)
+            alt(nullptr), params(params)
     {}
 
     void buildIndex(Graph &graph) override
@@ -191,7 +202,11 @@ public:
     }
 
     std::string getInfo() {
-        return name + "_lan_" + std::to_string(params.maxLandmarks) + "_a_" + std::to_string(params.a) + "_b_" + std::to_string(params.b) + "_c_" + std::to_string(params.c) + "_thr_" + params.threshold;
+        return getName() + "_lan_" + std::to_string(params.maxLandmarks) + "_a_" + std::to_string(params.a) + "_b_" + std::to_string(params.b) + "_c_" + std::to_string(params.c) + "_thr_" + params.threshold;
+    }
+
+    std::string getName() {
+        return "Adaptive ALT";
     }
 
 private:
@@ -202,7 +217,7 @@ private:
 class AdaptiveGtreeMethod : public DistanceMethod {
 public:
     explicit AdaptiveGtreeMethod(int fanout, std::size_t maxLeafSize) :
-            DistanceMethod("Adaptive Gtree"), agtree(nullptr), fanout(fanout), maxLeafSize(maxLeafSize)
+            agtree(nullptr), fanout(fanout), maxLeafSize(maxLeafSize)
     {}
 
     void buildIndex(Graph &graph) override
@@ -241,7 +256,11 @@ public:
     }
 
     std::string getInfo() {
-        return name + "_f_" + std::to_string(fanout) + "_t_" + std::to_string(maxLeafSize) + "_l_" + std::to_string(agtree->getNumLevels());
+        return getName() + "_f_" + std::to_string(fanout) + "_t_" + std::to_string(maxLeafSize) + "_l_" + std::to_string(agtree->getNumLevels());
+    }
+
+    std::string getName() {
+        return "Adaptive Gtree";
     }
 
 private:
@@ -254,7 +273,7 @@ private:
 class GtreeMethod : public DistanceMethod {
 public:
     explicit GtreeMethod(int fanout, std::size_t maxLeafSize) :
-            DistanceMethod("Gtree"), gtree(nullptr), fanout(fanout), maxLeafSize(maxLeafSize)
+            gtree(nullptr), fanout(fanout), maxLeafSize(maxLeafSize)
     {}
 
     void buildIndex(Graph &graph) override
@@ -293,7 +312,11 @@ public:
     }
 
     std::string getInfo() {
-        return name + "_f_" + std::to_string(fanout) + "_t_" + std::to_string(maxLeafSize) + "_l_" + std::to_string(gtree->getNumLevels());
+        return getName() + "_f_" + std::to_string(fanout) + "_t_" + std::to_string(maxLeafSize) + "_l_" + std::to_string(gtree->getNumLevels());
+    }
+
+    std::string getName() {
+        return "Gtree";
     }
 
 private:

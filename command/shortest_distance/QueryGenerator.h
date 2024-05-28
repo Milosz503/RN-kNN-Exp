@@ -11,6 +11,7 @@
 
 class QueryGenerator {
 public:
+
     std::vector<Query> random(Graph& graph, unsigned n, unsigned numTargets, unsigned long maxDist);
 
     std::vector<Query> randomWalkClustered(Graph& graph, unsigned n, unsigned numClusters, unsigned steps);

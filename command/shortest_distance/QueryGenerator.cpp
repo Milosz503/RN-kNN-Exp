@@ -97,9 +97,9 @@ QueryGenerator::randomExpandTargetsClustered(Graph &graph, unsigned int n, unsig
     for (int i = 0; i < n; i++) {
         NodeID cluster = clusters[rand() % clusters.size()];
         NodeID start = randomExpand(graph, cluster, probability);
+        NodeID end = randomExpand(graph, cluster, probability);
         Query query;
         query.source = start;
-        NodeID end = randomExpand(graph, start, probability);
         query.targets.push_back(end);
         queries.push_back(query);
     }
@@ -125,13 +125,13 @@ NodeID QueryGenerator::randomExpand(Graph &graph, NodeID source, double probabil
 {
     std::default_random_engine e1(rand());
     std::bernoulli_distribution pick(probability);
-    std::unordered_set<NodeID> nodesInSet, visited;
+    std::vector<bool> visited(graph.getNumNodes(), false);
     std::deque<NodeDistancePair> queue;
     NodeID nextNode;
 
-    queue.push_back(NodeDistancePair(source,0));
+    queue.emplace_back(source,0);
 
-    while (queue.size() > 0) {
+    while (!queue.empty()) {
         NodeDistancePair nextElement = queue.front();
         nextNode = nextElement.first;
         auto hops = nextElement.second;
@@ -145,15 +145,13 @@ NodeID QueryGenerator::randomExpand(Graph &graph, NodeID source, double probabil
         auto nextAdjListStart = graph.getEdgeListSize(nextNode);
         for (int j = adjListStart; j < nextAdjListStart; ++j) {
             auto adjNode = graph.edges[j].first;
-            // Only grow search with objects not already in sampleSet
-            if (nodesInSet.find(adjNode) == nodesInSet.end()) {
-                if (visited.find(adjNode) == visited.end()) {
-                    queue.push_back(NodeDistancePair(adjNode, hops + 1));
-                    visited.insert(adjNode);
-                }
+            if (!visited[adjNode]) {
+                queue.emplace_back(adjNode, hops + 1);
+                visited[adjNode] = true;
             }
         }
     }
+    std::cout << "WARNING the furthest node has been selected" << std::endl;
     return nextNode;
 }
 
