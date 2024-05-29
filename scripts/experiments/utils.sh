@@ -24,3 +24,10 @@ run_command() {
 
 }
 
+run_experiment() {
+  local EXPERIMENT=$1
+
+  run_command "python ./experiments/visualization/$EXPERIMENT.py "$output_path" "$idx_dir" "$exe_path""
+
+}
+

@@ -18,18 +18,31 @@ bool isPowerOf(int number, int base) {
     return std::floor(logResult) == logResult;
 }
 
-void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<DistanceMethod*> methods, std::string network, int numOfRepeats) {
-    std::ofstream file(network + "_output.csv");
-    std::ofstream file_deviation(network + "_output_dev.csv");
+void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<DistanceMethod*> methods, std::string path, int numOfRepeats) {
+    std::cout << "Saving results to: " << path << std::endl;
+
+    std::ofstream file(path + "_output.csv");
+    std::ofstream file_deviation(path + "_output_dev.csv");
+
 
     for (int i = 0; i < results.size(); ++i) {
         file << methods[i]->getInfo() << ",";
     }
     file << std::endl;
 
-    int numMeasurements = results[0].size() / numOfRepeats;
-    for (int j = 0; j < numMeasurements; j++) {
-        for (auto i = 0; i < results.size(); i++) {
+    std::vector<std::vector<double>> avgResults;
+    std::vector<std::vector<double>> stdResults;
+
+    unsigned maxNumMeasurements = 0;
+
+    for (auto i = 0; i < results.size(); i++) {
+        int numMeasurements = results[i].size() / numOfRepeats;
+        if(numMeasurements > maxNumMeasurements) {
+            maxNumMeasurements = numMeasurements;
+        }
+        avgResults.push_back(std::vector<double>(numMeasurements));
+        stdResults.push_back(std::vector<double>(numMeasurements));
+        for (int j = 0; j < numMeasurements; j++) {
             double avg = 0.0;
             for (int k = 0; k < numOfRepeats; k++) {
                 avg += results[i][k * numMeasurements + j];
@@ -40,8 +53,22 @@ void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<D
                 stdder += std::pow((results[i][k * numMeasurements + j] - avg), 2);
             }
             stdder = std::pow((stdder / (numOfRepeats - 1)), 0.5);
-            file << avg << ",";
-            file_deviation << stdder << ",";
+            avgResults[i][j] = avg;
+            stdResults[i][j] = stdder;
+        }
+    }
+
+    for (int j = 0; j < maxNumMeasurements; j++) {
+        for (auto i = 0; i < results.size(); i++) {
+            if(j < avgResults[i].size()) {
+                file << avgResults[i][j];
+            }
+            file << ",";
+
+            if(j < stdResults[i].size()) {
+                file_deviation << stdResults[i][j];
+            }
+            file_deviation << ",";
         }
         file << std::endl;
         file_deviation << std::endl;

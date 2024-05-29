@@ -34,7 +34,6 @@ private:
     unsigned long numQueries;
     unsigned long maxDist;
     unsigned long numTargets;
-    unsigned long numLandmarks;
     std::string network = "";
     bool validate = true;
     unsigned numRepeats = 1;
@@ -56,6 +55,15 @@ private:
     void validateAll();
 
     void compareLandmarksNumber();
+
+    void compareNumLandmarksMinDistALT();
+
+    void compareThresholdMinDistALT();
+
+    void compareNumLandmarksHopsALT();
+
+    void compareThresholdHopsALT();
+
 
     void createMethodsConstABestThreshold();
 

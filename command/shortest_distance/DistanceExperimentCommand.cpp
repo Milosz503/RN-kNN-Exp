@@ -11,13 +11,14 @@
 #include "../../utils/Utils.h"
 #include <fstream>
 
-void DistanceExperimentCommand::compareLandmarksNumber() {
+void DistanceExperimentCommand::compareLandmarksNumber()
+{
     for (int i = 2; i <= 40; i += 2) {
         methods.push_back(new ALTMethod(i, LANDMARK_TYPE::AVOID, {}));
     }
     results.resize(methods.size());
 
-    for(unsigned i = 0; i < numRepeats; ++i) {
+    for (unsigned i = 0; i < numRepeats; ++i) {
         std::cout << "Repeat: " << i << std::endl;
         buildIndexes(false);
         loadQueries();
@@ -27,9 +28,128 @@ void DistanceExperimentCommand::compareLandmarksNumber() {
     queries.clear();
 }
 
-void DistanceExperimentCommand::createMethodsConstABestThreshold(){
+void DistanceExperimentCommand::compareNumLandmarksMinDistALT()
+{
+    std::vector<double> values;
+    for (double j = 0.06; j < 0.25; j += 0.02) {
+        values.push_back(j);
+    }
+
+    results.resize(values.size());
+    for (unsigned i = 0; i < values.size(); ++i) {
+        methods.push_back(new ALTMethod(
+                100,
+                LANDMARK_TYPE::MIN_DIST,
+                ALTParameters(values[i], numQueries, &results[i])
+        ));
+    }
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(false);
+    }
+
+    // Do not average results, doesn't make sense
+    write_to_csv(results, methods, resultsPath + "/results", 1);
+}
+
+void DistanceExperimentCommand::compareThresholdMinDistALT()
+{
+    std::vector<std::tuple<int, double>> config = {
+            {60, 0.06},
+            {40, 0.08},
+            {30, 0.10},
+            {22, 0.12},
+            {16, 0.14},
+            {15, 0.16},
+            {13, 0.18},
+            {10, 0.20},
+            {9, 0.22},
+            {7, 0.24},
+    };
+
+    for(auto parameters : config) {
+        methods.push_back(new ALTMethod(
+                std::get<0>(parameters),
+                LANDMARK_TYPE::MIN_DIST,
+                ALTParameters(std::get<1>(parameters), numQueries)
+        ));
+    }
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
+void DistanceExperimentCommand::compareNumLandmarksHopsALT()
+{
+    std::vector<double> values;
+    for (double j = 0.06; j < 0.25; j += 0.02) {
+        values.push_back(j);
+    }
+
+    results.resize(values.size());
+    for (unsigned i = 0; i < values.size(); ++i) {
+        methods.push_back(new ALTMethod(
+                100,
+                LANDMARK_TYPE::HOPS,
+                ALTParameters(values[i], numQueries, &results[i])
+        ));
+    }
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(false);
+    }
+
+    // Do not average results, doesn't make sense
+    write_to_csv(results, methods, resultsPath + "/results", 1);
+}
+
+void DistanceExperimentCommand::compareThresholdHopsALT()
+{
+    std::vector<std::tuple<int, double>> config = {
+            {60, 0.06},
+            {40, 0.08},
+            {30, 0.10},
+            {22, 0.12},
+            {16, 0.14},
+            {15, 0.16},
+            {13, 0.18},
+            {10, 0.20},
+            {9, 0.22},
+            {7, 0.24},
+    };
+
+    for(auto parameters : config) {
+        methods.push_back(new ALTMethod(
+                std::get<0>(parameters),
+                LANDMARK_TYPE::HOPS,
+                ALTParameters(std::get<1>(parameters), numQueries)
+        ));
+    }
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
+void DistanceExperimentCommand::createMethodsConstABestThreshold()
+{
     for (int i = 0; i < 11; i++) {
-        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, i / 10.0, (10 - i) / 10.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, i / 10.0, (10 - i) / 10.0, [](unsigned q) {
+            return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15;
+        })));
     }
     results.resize(methods.size());
 
@@ -46,9 +166,12 @@ void DistanceExperimentCommand::createMethodsConstABestThreshold(){
     }
 }
 
-void DistanceExperimentCommand::createMethodsConstBBestThreshold(){
+void DistanceExperimentCommand::createMethodsConstBBestThreshold()
+{
     for (int i = 0; i < 11; i++) {
-        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, i / 10.0, 0.0, (10 - i) / 10.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, i / 10.0, 0.0, (10 - i) / 10.0, [](unsigned q) {
+            return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15;
+        })));
     }
     results.resize(methods.size());
 
@@ -61,9 +184,12 @@ void DistanceExperimentCommand::createMethodsConstBBestThreshold(){
     }
 }
 
-void DistanceExperimentCommand::createMethodsConstCBestThreshold(){
+void DistanceExperimentCommand::createMethodsConstCBestThreshold()
+{
     for (int i = 0; i < 11; i++) {
-        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, i / 10.0, (10 - i) / 10.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+        methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, i / 10.0, (10 - i) / 10.0, 0.0, [](unsigned q) {
+            return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15;
+        })));
     }
     results.resize(methods.size());
 
@@ -77,8 +203,10 @@ void DistanceExperimentCommand::createMethodsConstCBestThreshold(){
 }
 
 
-void DistanceExperimentCommand::compareDecayFunctions() {
-    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+void DistanceExperimentCommand::compareDecayFunctions()
+{
+    methods.push_back(new AdaptiveALTMethod(
+            AdaptiveALTParams(20, 0.0, 1.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, func)));
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, exp_func)));
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(25, 0.0, 1.0, 0.0, exp_func)));
@@ -94,12 +222,13 @@ void DistanceExperimentCommand::compareDecayFunctions() {
 }
 
 
-void DistanceExperimentCommand::compareThresholdLandmarkAdaptive(int numRepeats) {
+void DistanceExperimentCommand::compareThresholdLandmarkAdaptive(int numRepeats)
+{
     for (double j = 0.1; j < 0.5; j += 0.03) {
         for (int i = 5; i < 41; i += 5) {
             methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(i, 0.0, 1.0, 0.0, j)));
         }
-        std::vector <std::vector<double>> results(methods.size());
+        results.resize(methods.size());
         for (int i = 0; i < numRepeats; i++) {
             std::cout << "Repeat: " << i << std::endl;
             buildIndexes();
@@ -114,12 +243,13 @@ void DistanceExperimentCommand::compareThresholdLandmarkAdaptive(int numRepeats)
 }
 
 
-void DistanceExperimentCommand::compareThresholdLandmark(int numRepeats, LANDMARK_TYPE landmarkType) {
+void DistanceExperimentCommand::compareThresholdLandmark(int numRepeats, LANDMARK_TYPE landmarkType)
+{
     for (double j = 0.1; j < 0.5; j += 0.03) {
         for (int i = 5; i < 41; i += 5) {
             methods.push_back(new ALTMethod(i, landmarkType, {j}));
         }
-        std::vector <std::vector<double>> results(methods.size());
+        std::vector<std::vector<double>> results(methods.size());
         for (int i = 0; i < numRepeats; i++) {
             std::cout << "Repeat: " << i << std::endl;
             buildIndexes();
@@ -127,14 +257,16 @@ void DistanceExperimentCommand::compareThresholdLandmark(int numRepeats, LANDMAR
             runAll();
             queries.clear();
         }
-        write_to_csv(results, methods, network + "_nonadapt_" + std::to_string(j) + "_threshold_var_landmark_" + std::to_string(landmarkType) + "_type", numRepeats);
+        write_to_csv(results, methods, network + "_nonadapt_" + std::to_string(j) + "_threshold_var_landmark_" +
+                                       std::to_string(landmarkType) + "_type", numRepeats);
         clearMethods();
         results.clear();
     }
 }
 
 
-void DistanceExperimentCommand::compareMethods() {
+void DistanceExperimentCommand::compareMethods()
+{
     methods.push_back(new ALTMethod(25, LANDMARK_TYPE::RANDOM, {0.12}));
     methods.push_back(new ALTMethod(20, LANDMARK_TYPE::RANDOM, {0.18}));
     methods.push_back(new ALTMethod(15, LANDMARK_TYPE::RANDOM, {0.24}));
@@ -147,7 +279,8 @@ void DistanceExperimentCommand::compareMethods() {
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(25, 0.0, 1.0, 0.0, 0.12)));
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, 0.18)));
     methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(15, 0.0, 1.0, 0.0, 0.24)));
-    methods.push_back(new AdaptiveALTMethod(AdaptiveALTParams(20, 0.0, 1.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
+    methods.push_back(new AdaptiveALTMethod(
+            AdaptiveALTParams(20, 0.0, 1.0, 0.0, [](unsigned q) { return 0.15 * (pow(0.69, 0.0025 * q)) + 0.15; })));
     std::vector<std::vector<double>> results(methods.size());
 
     for (int i = 0; i < numRepeats; i++) {
@@ -165,7 +298,8 @@ void DistanceExperimentCommand::compareMethods() {
 }
 
 
-void DistanceExperimentCommand::execute(int argc, char **argv) {
+void DistanceExperimentCommand::execute(int argc, char **argv)
+{
     srand(7); // NOLINT(*-msc51-cpp) it is supposed to be possible to reproduce
 
     std::string bgrFilePath;
@@ -186,9 +320,6 @@ void DistanceExperimentCommand::execute(int argc, char **argv) {
             case 'k':
                 numTargets = std::stoul(optarg);
                 break;
-            case 'l':
-                numLandmarks = std::stoul(optarg);
-                break;
             case 't':
                 landmarkType = static_cast<LANDMARK_TYPE>(std::stoi(optarg));
                 break;
@@ -206,12 +337,12 @@ void DistanceExperimentCommand::execute(int argc, char **argv) {
                 break;
             default:
                 std::cerr << "Unknown option(s) provided!\n\n";
-                std::cout << "Provided option: " << opt << std::endl;
-                showCommandUsage(argv[0]);
-                exit(1);
+//                std::cout << "Provided option: " << opt << std::endl;
+//                showCommandUsage(argv[0]);
+//                exit(1);
         }
     }
-    if (numQueries == 0 || bgrFilePath.empty() || maxDist == 0 || numTargets == 0 || numLandmarks == 0) {
+    if (numQueries == 0 || bgrFilePath.empty() || numTargets == 0) {
         std::cerr << "Missing required arguments!\n\n";
         showCommandUsage(argv[0]);
         exit(1);
@@ -219,16 +350,15 @@ void DistanceExperimentCommand::execute(int argc, char **argv) {
 
     auto indexSlash = bgrFilePath.find_last_of('/');
     auto indexDot = bgrFilePath.find_last_of('.');
-    network = bgrFilePath.substr(indexSlash+1, indexDot - indexSlash - 1);
+    network = bgrFilePath.substr(indexSlash + 1, indexDot - indexSlash - 1);
 
     std::cout << "** " << network << " **" << std::endl;
-    if(!validate) {
+    if (!validate) {
         std::cout << "WARNING! Validation is disabled!" << std::endl;
     }
     std::cout << "Number of repeats: " << numRepeats << std::endl;
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
-
 
 
     switch (testNum) {
@@ -263,6 +393,22 @@ void DistanceExperimentCommand::execute(int argc, char **argv) {
                 compareLandmarksNumber();
             });
             break;
+        case 7:
+            compareNumLandmarksMinDistALT();
+            break;
+        case 8:
+            runStandardTestCase([this] {
+                compareThresholdMinDistALT();
+            });
+            break;
+        case 9:
+            compareNumLandmarksHopsALT();
+            break;
+        case 10:
+            runStandardTestCase([this] {
+                compareThresholdHopsALT();
+            });
+            break;
         default:
             compareMethods();
     }
@@ -270,7 +416,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv) {
     std::cout << "Finished" << std::endl;
 }
 
-void DistanceExperimentCommand::runStandardTestCase(const std::function<void()>& testCase)
+void DistanceExperimentCommand::runStandardTestCase(const std::function<void()> &testCase)
 {
     results.clear();
     clearMethods();
@@ -282,12 +428,13 @@ void DistanceExperimentCommand::runStandardTestCase(const std::function<void()>&
     clearMethods();
 }
 
-void DistanceExperimentCommand::visualizeQueries(std::string name = "") {
+void DistanceExperimentCommand::visualizeQueries(std::string name = "")
+{
     std::ofstream file(name + "_query_data.csv");
     Coordinate x, y;
     bool isSource, isTarget;
     file << "x,y,is_source,is_target" << std::endl;
-    for (auto graphNode : graph.getNodesIDsVector()) {
+    for (auto graphNode: graph.getNodesIDsVector()) {
         graph.getCoordinates(graphNode, x, y);
         std::string color;
         isSource = false;
@@ -303,9 +450,10 @@ void DistanceExperimentCommand::visualizeQueries(std::string name = "") {
     file.close();
 }
 
-void DistanceExperimentCommand::exportLandmarks(std::string name = "") {
+void DistanceExperimentCommand::exportLandmarks(std::string name = "")
+{
     size_t max_size = 0;
-    for (const auto& method : methods) {
+    for (const auto &method: methods) {
         max_size = std::max(max_size, method->getLandmarkNodeIDs().size());
     }
 
@@ -350,23 +498,23 @@ void DistanceExperimentCommand::showCommandUsage(std::string programName)
                                              " -g <graph_file_name>" +
                                              " -q <num_of_queries>" +
                                              " -k <k>" +
-                                             " -l <num_of_landmarks>" +
                                              " \n\n";
 }
 
 void DistanceExperimentCommand::buildIndexes(bool saveTimes)
 {
     int iter = 0;
-    for(auto method : methods) {
+    for (auto method: methods) {
         StopWatch sw;
         sw.start();
         method->buildIndex(graph);
         sw.stop();
-        if(saveTimes) {
+        if (saveTimes) {
             results[iter].push_back(sw.getTimeMs());
         }
         iter++;
-        std::cout << "Time to generate " << method->getName() << " index" << ": " << sw.getTimeMs() << " ms" << std::endl;
+        std::cout << "Time to generate " << method->getName() << " index" << ": " << sw.getTimeMs() << " ms"
+                  << std::endl;
     }
 
 }
@@ -375,13 +523,13 @@ void DistanceExperimentCommand::loadQueries()
 {
 //    queries = QueryGenerator().randomExpandTargets(graph, numQueries, 0.000005);
 //    queries = QueryGenerator().randomExpandTargetsClustered(graph, numQueries, 3, 0.0001);
-    queries = QueryGenerator().random(graph, numQueries, numTargets, maxDist);
+    queries = QueryGenerator().random(graph, numQueries, numTargets, std::numeric_limits<unsigned long>::max());
 }
 
 void DistanceExperimentCommand::runAll(bool saveOnlyLastResult)
 {
     int iter = 0;
-    for(auto method : methods) {
+    for (auto method: methods) {
         runMethod(method, iter, saveOnlyLastResult);
         iter++;
     }
@@ -389,7 +537,7 @@ void DistanceExperimentCommand::runAll(bool saveOnlyLastResult)
 
 void DistanceExperimentCommand::validateAll()
 {
-    if(!validate) {
+    if (!validate) {
         std::cout << "WARNING: Skipping validation!" << std::endl;
         return;
     }
@@ -452,7 +600,7 @@ void DistanceExperimentCommand::validateAll()
     }
 }
 
-void DistanceExperimentCommand::runMethod(DistanceMethod* method)
+void DistanceExperimentCommand::runMethod(DistanceMethod *method)
 {
     std::cout << "*** Measuring " << method->getName() << "... ***" << std::endl;
     method->printInfo();
@@ -460,8 +608,8 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
     double cumulativeTime = 0;
     StopWatch sw;
     sw.start();
-    for(unsigned i = 0; true; ++i) {
-        if(isPowerOf(i, 2) || queries.size() == i) {
+    for (unsigned i = 0; true; ++i) {
+        if (isPowerOf(i, 2) || queries.size() == i) {
             std::cout << "    " << i << ", " << cumulativeTime << std::endl;
 //                method->printStatistics();
             if (i >= queries.size()) {
@@ -479,7 +627,7 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method)
     method->printStatistics();
 }
 
-void DistanceExperimentCommand::runMethod(DistanceMethod* method, int iter, bool saveOnlyLastResult)
+void DistanceExperimentCommand::runMethod(DistanceMethod *method, int iter, bool saveOnlyLastResult)
 {
     std::cout << "*** Measuring " << method->getName() << "... ***" << std::endl;
     method->printInfo();
@@ -487,8 +635,8 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method, int iter, bool
     double cumulativeTime = 0;
     StopWatch sw;
     sw.start();
-    for(unsigned i = 0; true; ++i) {
-        if((isPowerOf(i, 2) && !saveOnlyLastResult) || queries.size() == i) {
+    for (unsigned i = 0; true; ++i) {
+        if ((isPowerOf(i, 2) && !saveOnlyLastResult) || queries.size() == i) {
             std::cout << "    " << i << ", " << cumulativeTime << std::endl;
             results[iter].push_back(cumulativeTime);
 //                method->printStatistics();
@@ -517,8 +665,9 @@ void DistanceExperimentCommand::runMethod(DistanceMethod* method, int iter, bool
 ////    std::cout << "Edges accessed: " << alt.edgesAccessedCount << std::endl;
 //}
 
-void DistanceExperimentCommand::clearMethods() {
-    for (auto method : methods) {
+void DistanceExperimentCommand::clearMethods()
+{
+    for (auto method: methods) {
         delete method;
     }
     methods.clear();
@@ -526,7 +675,7 @@ void DistanceExperimentCommand::clearMethods() {
 
 DistanceExperimentCommand::~DistanceExperimentCommand()
 {
-    for(auto method : methods) {
+    for (auto method: methods) {
         delete method;
     }
 }

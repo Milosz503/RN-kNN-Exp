@@ -38,6 +38,7 @@ enum LANDMARK_TYPE {
     ADVANCED_AVOID = 4,
     FARTHEST = 5,
     MIN_DIST = 6,
+    HOPS = 7,
 };
 
 struct SizeNumNodesPair {
@@ -54,17 +55,24 @@ struct SizeNumNodesPair {
 };
 
 struct ALTParameters {
-    ALTParameters(double threshold, double numberOfTries) : threshold(threshold), numberOfTries(numberOfTries)
+    ALTParameters(double threshold, unsigned numberOfTries, std::vector<double>* results) :
+        threshold(threshold),
+        numberOfTries(numberOfTries),
+        results(results)
     {}
 
-    ALTParameters(double threshold) : threshold(threshold), numberOfTries(4096)
+    ALTParameters(double threshold, unsigned numberOfTries) : threshold(threshold), numberOfTries(numberOfTries)
     {}
 
-    ALTParameters() : threshold(0), numberOfTries(4096)
+    ALTParameters(double threshold) : ALTParameters(threshold, 4096)
+    {}
+
+    ALTParameters() : ALTParameters(0)
     {}
 
     double threshold;
-    double numberOfTries;
+    unsigned numberOfTries;
+    std::vector<double>* results = nullptr;
 };
 
 class ALT {
@@ -80,11 +88,12 @@ public:
     void
     buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE landmarkType, unsigned int numLandmarks);
 
-    void generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks);
+    void generateDistHopsLandmarks(Graph &graph, unsigned int maxNumLandmarks);
 
     double closestLandmarkNodesRatio(NodeID node,
                                       std::vector<std::vector<unsigned>>& landmarksPathLengths,
                                       std::vector<unsigned>& landmarksMaxPaths,
+                                      std::vector<unsigned>& landmarksMaxDists,
                                       unsigned numLandmarks
     );
 
@@ -140,6 +149,7 @@ private:
     std::vector<NodeID> landmarks;
     std::vector<int> vertexFromLandmarkDistances;
     ObjectList objectList;
+    LANDMARK_TYPE landmarkType;
 
     // Non-Serialized Members
 

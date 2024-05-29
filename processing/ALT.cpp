@@ -160,6 +160,7 @@ NodeID ALT::getMaxLeaf(
 void
 ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE landmarkType, unsigned int _numLandmarks)
 {
+    this->landmarkType = landmarkType;
     unsigned int numNodes = graph.getNumNodes();
     this->numNodes = graph.getNumNodes();
     this->numEdges = graph.getNumEdges();
@@ -190,7 +191,11 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         }
     }
     else if (landmarkType == LANDMARK_TYPE::MIN_DIST) {
-        generateMinDistLandmarks(graph, numLandmarks);
+        generateDistHopsLandmarks(graph, numLandmarks);
+        return;
+    }
+    else if (landmarkType == LANDMARK_TYPE::HOPS) {
+        generateDistHopsLandmarks(graph, numLandmarks);
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::AVOID) {
@@ -569,7 +574,7 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
 //    }
 }
 
-void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
+void ALT::generateDistHopsLandmarks(Graph &graph, unsigned int maxNumLandmarks)
 {
     landmarks.clear();
     landmarks.reserve(maxNumLandmarks);
@@ -577,6 +582,7 @@ void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
     vertexFromLandmarkDistances.resize(maxNumLandmarks * numNodes);
     std::vector<std::vector<unsigned>> landmarksPathLengths(maxNumLandmarks, std::vector<unsigned>((unsigned)graph.getNumNodes(), 0));
     std::vector<unsigned> landmarksMaxPaths(maxNumLandmarks, 1);
+    std::vector<unsigned> landmarksMaxDists(maxNumLandmarks, 0);
 
     // Use Dijkstra's to populate above vector for each landmark
     DijkstraSearch dijk;
@@ -590,7 +596,7 @@ void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
 
     for(unsigned j = 0; j < numberOfTries; ++j) {
         NodeID node = rand() % graph.getNumNodes();
-        auto landmarkNodesRatio = closestLandmarkNodesRatio(node, landmarksPathLengths, landmarksMaxPaths, currentNumLandmarks);
+        auto landmarkNodesRatio = closestLandmarkNodesRatio(node, landmarksPathLengths, landmarksMaxPaths, landmarksMaxDists, currentNumLandmarks);
         if(landmarkNodesRatio > threshold) {
 //            std::cout << "Creating landmark " << currentNumLandmarks << "... Dist ratio:" << landmarkNodesRatio << ", try number: " << j << std::endl;
             pqueue.clear();
@@ -603,6 +609,12 @@ void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
                 if(landmarksMaxPaths[currentNumLandmarks] < landmarksPathLengths[currentNumLandmarks][k]) {
                     landmarksMaxPaths[currentNumLandmarks] = landmarksPathLengths[currentNumLandmarks][k];
                 }
+                if(landmarksMaxDists[currentNumLandmarks] < nodeFromLandmarkDistance(currentNumLandmarks, k)) {
+                    landmarksMaxDists[currentNumLandmarks] = nodeFromLandmarkDistance(currentNumLandmarks, k);
+                }
+            }
+            if(parameters.results != nullptr) {
+                parameters.results->push_back(j);
             }
             currentNumLandmarks++;
             if(currentNumLandmarks >= maxNumLandmarks) {
@@ -616,16 +628,34 @@ void ALT::generateMinDistLandmarks(Graph &graph, unsigned int maxNumLandmarks)
 }
 
 double ALT::closestLandmarkNodesRatio(NodeID node, std::vector<std::vector<unsigned>>& landmarksPathLengths,
-                                      std::vector<unsigned>& landmarksMaxPaths, unsigned numLandmarks)
+                                      std::vector<unsigned>& landmarksMaxPaths,
+                                      std::vector<unsigned>& landmarksMaxDists, unsigned numLandmarks)
 {
-    double bestRatio = 1;
-    for (unsigned i = 0; i < numLandmarks; ++i) {
-        auto ratio = landmarksPathLengths[i][node] / (double) landmarksMaxPaths[i];
-        if (ratio < bestRatio) {
-            bestRatio = ratio;
+    if(landmarkType == LANDMARK_TYPE::HOPS) {
+        double bestRatio = 1;
+        for (unsigned i = 0; i < numLandmarks; ++i) {
+            auto ratio = landmarksPathLengths[i][node] / (double) landmarksMaxPaths[i];
+            if (ratio < bestRatio) {
+                bestRatio = ratio;
+            }
         }
+        return bestRatio;
     }
-    return bestRatio;
+    else if(landmarkType == LANDMARK_TYPE::MIN_DIST) {
+        double bestRatio = 1;
+        for (unsigned i = 0; i < numLandmarks; ++i) {
+            auto ratio = nodeFromLandmarkDistance(i, node) / (double) landmarksMaxDists[i];
+            if (ratio < bestRatio) {
+                bestRatio = ratio;
+            }
+        }
+        return bestRatio;
+    }
+    else {
+        std::cout << "Unrecognized landmark type: " << landmarkType << std::endl;
+        exit(-1);
+        return 0;
+    }
 }
 
 EdgeWeight ALT::getLowerBound(NodeID s, NodeID t)
