@@ -53,6 +53,7 @@ def create_axis(x_label, y_label, content, log_axis=False):
     axis = "\n"
     axis += format(r'''
     \begin{axis}[
+    width=\textwidth,
     xlabel={{{xlabel}}},
     ylabel={{{ylabel}}},
     % legend pos=north east,''',
