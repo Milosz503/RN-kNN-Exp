@@ -68,8 +68,16 @@ def draw_landmarks(landmarks_data, ax):
         marker='^'
     )
 
-def visualize_landmarks(network, landmarks_data, method):
+def draw_queries(queries_data, ax):
+    ax.scatter(
+        queries_data['x'],
+        queries_data['y'],
+        c='black',
+        s=1,
+        alpha=0.3,
+    )
 
+def visualize_landmarks(network, landmarks_data, method):
     graph_file = os.path.join(config.data_dir, f'{network}-t.coordinates')
     fig, ax = plt.subplots()
     draw_nodes_histogram(graph_file, ax)
@@ -79,6 +87,18 @@ def visualize_landmarks(network, landmarks_data, method):
 
     plt.savefig(f'{config.visualization_dir}/landmarks_{network}_{method}.png', bbox_inches='tight', pad_inches=0)
     # plt.show()
+
+def visualize_queries(network, queries_data, method):
+    graph_file = os.path.join(config.data_dir, f'{network}-t.coordinates')
+    fig, ax = plt.subplots()
+    draw_nodes_histogram(graph_file, ax)
+    draw_queries(queries_data, ax)
+
+    # ax.set_title(method)
+
+    plt.savefig(f'{config.visualization_dir}/queries_{network}_{method}.png', bbox_inches='tight', pad_inches=0)
+    plt.show()
+
 
 def visualize_graph(network):
     graph_file = os.path.join(config.data_dir, f'{network}-t.coordinates')

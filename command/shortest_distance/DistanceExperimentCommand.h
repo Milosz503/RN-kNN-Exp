@@ -54,6 +54,8 @@ private:
 
     void validateAll();
 
+    void visualizeQueries();
+
     void visualizeLandmarks();
 
     void compareLandmarksNumber();
@@ -89,7 +91,7 @@ private:
 
     void clearMethods();
 
-    void visualizeQueries(std::string name);
+    void saveQueries(std::string name);
 
     void exportLandmarks(std::string name);
 

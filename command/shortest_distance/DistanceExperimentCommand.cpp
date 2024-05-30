@@ -11,6 +11,15 @@
 #include "../../utils/Utils.h"
 #include <fstream>
 
+void DistanceExperimentCommand::visualizeQueries()
+{
+    queries = QueryGenerator().randomExpandTargetsClustered(graph, numQueries, 3, 0.0001);
+    saveQueries("clustered");
+
+    queries = QueryGenerator().random(graph, numQueries, numTargets, std::numeric_limits<unsigned long>::max());
+    saveQueries("random");
+}
+
 void DistanceExperimentCommand::visualizeLandmarks()
 {
     methods.push_back(new ALTMethod(15, LANDMARK_TYPE::FARTHEST, {}));
@@ -336,7 +345,7 @@ void DistanceExperimentCommand::compareMethods()
         std::cout << "Repeat: " << i << std::endl;
         buildIndexes();
         loadQueries();
-        visualizeQueries(network + "_compare_methods");
+        saveQueries(network + "_compare_methods");
         runAll();
         exportLandmarks(network + "_compare_methods");
         queries.clear();
@@ -471,6 +480,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         case 13:
             visualizeLandmarks();
             break;
+        case 14:
+            visualizeQueries();
+            break;
         default:
             compareMethods();
     }
@@ -490,24 +502,20 @@ void DistanceExperimentCommand::runStandardTestCase(const std::function<void()> 
     clearMethods();
 }
 
-void DistanceExperimentCommand::visualizeQueries(std::string name = "")
+void DistanceExperimentCommand::saveQueries(std::string name = "")
 {
-    std::ofstream file(name + "_query_data.csv");
+    std::ofstream file(resultsPath + "/" + name + "_query_data.csv");
     Coordinate x, y;
-    bool isSource, isTarget;
     file << "x,y,is_source,is_target" << std::endl;
-    for (auto graphNode: graph.getNodesIDsVector()) {
-        graph.getCoordinates(graphNode, x, y);
-        std::string color;
-        isSource = false;
-        isTarget = false;
-        for (auto query: queries) {
-            if (query.source == graphNode)
-                isSource = true;
-            if (std::find(query.targets.begin(), query.targets.end(), graphNode) != query.targets.end())
-                isTarget = true;
-        }
-        file << x << ',' << y << ',' << isSource << ',' << isTarget << std::endl;
+    for (auto query: queries) {
+        auto source = query.source;
+        auto target = query.targets[0];
+
+        graph.getCoordinates(source, x, y);
+        file << x << ',' << y << ',' << true << ',' << false << std::endl;
+
+        graph.getCoordinates(target, x, y);
+        file << x << ',' << y << ',' << false << ',' << true << std::endl;
     }
     file.close();
 }
