@@ -33,7 +33,6 @@ def generate_plot():
 
 
 def main():
-    config.init_config("alt_hops_threshold_landmarks")
     execute_experiment(f"-q {number_of_queries} -r 1 -x 9")
 
     generate_plot()

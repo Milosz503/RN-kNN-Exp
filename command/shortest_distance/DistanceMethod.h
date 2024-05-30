@@ -149,7 +149,24 @@ public:
     }
 
     std::string getInfo() {
-        return getName() + "_thr_" + std::to_string(parameters.threshold) + "_lan_" + std::to_string(numLandmarks) + "_type_" + std::to_string(landmarkType);
+        std::string landmarkTypeStr;
+        switch (landmarkType) {
+            case LANDMARK_TYPE::FARTHEST:
+                landmarkTypeStr = "Far";
+                break;
+            case LANDMARK_TYPE::AVOID:
+                landmarkTypeStr = "Avoid";
+                break;
+            case LANDMARK_TYPE::MIN_DIST:
+                landmarkTypeStr = "DistT";
+                break;
+            case LANDMARK_TYPE::HOPS:
+                landmarkTypeStr = "HopsT";
+                break;
+            default:
+                landmarkTypeStr = "Type" + std::to_string(landmarkType);
+        }
+        return getName() + "_" + landmarkTypeStr + "_thr_" + std::to_string(parameters.threshold) + "_lan_" + std::to_string(numLandmarks);
     }
 
     std::string getName() override {

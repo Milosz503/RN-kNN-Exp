@@ -21,7 +21,6 @@ def load_data():
     return plots
 
 def main():
-    config.init_config("alt_min_dist_threshold")
 
     execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 8")
 

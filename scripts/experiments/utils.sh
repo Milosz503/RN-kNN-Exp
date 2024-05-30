@@ -27,7 +27,7 @@ run_command() {
 run_experiment() {
   local EXPERIMENT=$1
 
-  python3 ./experiments/visualization/$EXPERIMENT.py "$output_path" "$idx_dir" "$exe_path"
+  python3 ./experiments/visualization/$EXPERIMENT.py "$output_path" "$idx_dir" "$exe_path" "$data_dir"
 
 }
 

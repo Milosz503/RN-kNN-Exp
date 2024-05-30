@@ -21,8 +21,6 @@ def load_data():
     return plots
 
 def main():
-    config.init_config("alt_avoid")
-
     execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 12")
 
     save_to_file(

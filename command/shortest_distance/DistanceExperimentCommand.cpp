@@ -11,6 +11,18 @@
 #include "../../utils/Utils.h"
 #include <fstream>
 
+void DistanceExperimentCommand::visualizeLandmarks()
+{
+    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::FARTHEST, {}));
+    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::AVOID, {}));
+    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::MIN_DIST, ALTParameters(0.28, numQueries)));
+    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::HOPS, ALTParameters(0.22, numQueries)));
+    results.resize(methods.size());
+
+    buildIndexes(false);
+    exportLandmarks(network);
+}
+
 void DistanceExperimentCommand::compareLandmarksNumber()
 {
     for (int i = 2; i <= 40; i += 2) {
@@ -456,6 +468,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
                 compareAvoidALT();
             });
             break;
+        case 13:
+            visualizeLandmarks();
+            break;
         default:
             compareMethods();
     }
@@ -514,7 +529,7 @@ void DistanceExperimentCommand::exportLandmarks(std::string name = "")
             csvData[j][i] = std::to_string(x) + "_" + std::to_string(y);
         }
     }
-    std::ofstream file(name + "_landmark_data.csv");
+    std::ofstream file(resultsPath + "/" + name + "_landmark_data.csv");
     if (file.is_open()) {
         for (size_t i = 0; i < methods.size(); ++i) {
             file << methods[i]->getInfo();

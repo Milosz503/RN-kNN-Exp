@@ -2,10 +2,12 @@
 
 . ./experiments/utils.sh
 
+run_experiment "visualize_networks"
+
 #run_experiment "alt_landmarks_number"
 
-run_experiment "alt_avoid"
-run_experiment "alt_farthest"
+#run_experiment "alt_avoid"
+#run_experiment "alt_farthest"
 
 
 #run_experiment "alt_min_dist_threshold"

@@ -3,9 +3,12 @@ import os
 from common.config import config
 
 
-def execute_experiment(params):
+def execute_experiment(params, network=None):
+    if network is None:
+        network = config.default_network
+
     if config.rerun_experiments:
-        execute(f"{config.executable} -c distance -g {config.graphs_dir}/{config.network}.bin"
+        execute(f"{config.executable} -c distance -g {config.graphs_dir}/{network}.bin"
                 f" -k 1 {params} {config.validate} -f {config.results_dir}")
     else:
         print("Skipping experiment execution")

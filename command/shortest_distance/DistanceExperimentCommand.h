@@ -54,6 +54,8 @@ private:
 
     void validateAll();
 
+    void visualizeLandmarks();
+
     void compareLandmarksNumber();
 
     void compareFarthestALT();

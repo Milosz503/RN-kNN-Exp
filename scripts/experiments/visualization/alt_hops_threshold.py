@@ -21,8 +21,6 @@ def load_data():
     return plots
 
 def main():
-    config.init_config("alt_hops_threshold")
-
     execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 10")
 
     save_to_file(
