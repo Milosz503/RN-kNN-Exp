@@ -90,11 +90,18 @@ public:
 
     void generateDistHopsLandmarks(Graph &graph, unsigned int maxNumLandmarks);
 
+    void generateFarthestLandmarks(Graph &graph, unsigned int numLandmarks);
+
     double closestLandmarkNodesRatio(NodeID node,
                                       std::vector<std::vector<unsigned>>& landmarksPathLengths,
                                       std::vector<unsigned>& landmarksMaxPaths,
                                       std::vector<unsigned>& landmarksMaxDists,
                                       unsigned numLandmarks
+    );
+
+    unsigned closestLandmarkDistance(NodeID node,
+                                     std::vector<std::vector<unsigned>>& landmarksHops,
+                                     unsigned numLandmarks
     );
 
     std::string getNetworkName();

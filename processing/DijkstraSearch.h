@@ -74,6 +74,8 @@ public:
                            std::unordered_map<NodeID, EdgeWeight> &results,
                            BinaryMinHeap<EdgeWeight, NodeID> *pqueue);
 
+    void findBFSDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances);
+
     EdgeWeight
     findShortestPathDistanceSubgraph(Graph &graph, NodeID source, NodeID target, std::vector<bool> &edgeInSubgraph);
 

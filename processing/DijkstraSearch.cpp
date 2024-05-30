@@ -17,6 +17,7 @@
  * LICENSE.txt; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <queue>
 #include "DijkstraSearch.h"
 
 #include "../queue/radix_heap.h"
@@ -387,6 +388,7 @@ void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<
     }
 }
 
+
 void DijkstraSearch::findSSSPDistances(Graph& graph, NodeID source, std::vector<EdgeWeight>& targetDistances)
 {
     // We assume targetDistances has been resized for the size of the graph
@@ -742,4 +744,32 @@ bool DijkstraSearch::colourizeMap(Graph& graph, NodeID source, std::vector<EdgeI
     }
     
     return (numColours == 1);
+}
+
+void DijkstraSearch::findBFSDistances(Graph &graph, NodeID source, std::vector<EdgeWeight> &targetDistances)
+{
+    std::vector<bool> isNodeSettled(graph.getNumNodes(),false);
+    std::queue<NodeID> bfsQueue;
+
+
+    bfsQueue.push(source);
+
+    while(!bfsQueue.empty()) {
+        NodeID currentNode = bfsQueue.front();
+        bfsQueue.pop();
+
+        int adjListStart = graph.getEdgeListStartIndex(currentNode);
+        int nextAdjListStart = graph.getEdgeListSize(currentNode);
+
+        for (int i = adjListStart; i < nextAdjListStart; ++i) {
+            NodeID adjNode = graph.edges[i].first;
+            // Only update those we haven't already settled
+            if (!isNodeSettled[adjNode]) {
+                isNodeSettled[adjNode] = true;
+                bfsQueue.push(adjNode);
+                targetDistances[adjNode] = targetDistances[currentNode] + 1;
+            }
+        }
+    }
+
 }

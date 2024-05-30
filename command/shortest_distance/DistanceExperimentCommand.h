@@ -56,6 +56,10 @@ private:
 
     void compareLandmarksNumber();
 
+    void compareFarthestALT();
+
+    void compareAvoidALT();
+
     void compareNumLandmarksMinDistALT();
 
     void compareThresholdMinDistALT();

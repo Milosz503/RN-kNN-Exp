@@ -14,7 +14,7 @@
 void DistanceExperimentCommand::compareLandmarksNumber()
 {
     for (int i = 2; i <= 40; i += 2) {
-        methods.push_back(new ALTMethod(i, LANDMARK_TYPE::AVOID, {}));
+        methods.push_back(new ALTMethod(i, LANDMARK_TYPE::FARTHEST, {}));
     }
     results.resize(methods.size());
 
@@ -28,17 +28,64 @@ void DistanceExperimentCommand::compareLandmarksNumber()
     queries.clear();
 }
 
+void DistanceExperimentCommand::compareFarthestALT()
+{
+    std::vector<unsigned> config = {
+            6, 8, 12, 20, 36
+    };
+
+    for(auto landmarksNum : config) {
+        methods.push_back(new ALTMethod(
+                landmarksNum,
+                LANDMARK_TYPE::FARTHEST,
+                ALTParameters()
+        ));
+    }
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
+void DistanceExperimentCommand::compareAvoidALT()
+{
+    std::vector<unsigned> config = {
+            6, 8, 12, 20, 36
+    };
+
+    for(auto landmarksNum : config) {
+        methods.push_back(new ALTMethod(
+                landmarksNum,
+                LANDMARK_TYPE::AVOID,
+                ALTParameters()
+        ));
+    }
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
 void DistanceExperimentCommand::compareNumLandmarksMinDistALT()
 {
-    std::vector<double> values;
-    for (double j = 0.06; j < 0.25; j += 0.02) {
-        values.push_back(j);
-    }
+    std::vector<double> values = {
+            0.16, 0.20, 0.24, 0.28, 0.32, 0.36
+    };
 
     results.resize(values.size());
     for (unsigned i = 0; i < values.size(); ++i) {
         methods.push_back(new ALTMethod(
-                100,
+                150,
                 LANDMARK_TYPE::MIN_DIST,
                 ALTParameters(values[i], numQueries, &results[i])
         ));
@@ -56,16 +103,12 @@ void DistanceExperimentCommand::compareNumLandmarksMinDistALT()
 void DistanceExperimentCommand::compareThresholdMinDistALT()
 {
     std::vector<std::tuple<int, double>> config = {
-            {60, 0.06},
-            {40, 0.08},
-            {30, 0.10},
-            {22, 0.12},
-            {16, 0.14},
-            {15, 0.16},
-            {13, 0.18},
-            {10, 0.20},
-            {9, 0.22},
-            {7, 0.24},
+            {60, 0.16},
+            {37, 0.20},
+            {27, 0.24},
+            {18, 0.28},
+            {12, 0.32},
+            {10, 0.36},
     };
 
     for(auto parameters : config) {
@@ -88,15 +131,13 @@ void DistanceExperimentCommand::compareThresholdMinDistALT()
 
 void DistanceExperimentCommand::compareNumLandmarksHopsALT()
 {
-    std::vector<double> values;
-    for (double j = 0.06; j < 0.25; j += 0.02) {
-        values.push_back(j);
-    }
-
+    std::vector<double> values = {
+            0.15, 0.20, 0.25, 0.30, 0.35, 0.40
+    };
     results.resize(values.size());
     for (unsigned i = 0; i < values.size(); ++i) {
         methods.push_back(new ALTMethod(
-                100,
+                150,
                 LANDMARK_TYPE::HOPS,
                 ALTParameters(values[i], numQueries, &results[i])
         ));
@@ -114,16 +155,12 @@ void DistanceExperimentCommand::compareNumLandmarksHopsALT()
 void DistanceExperimentCommand::compareThresholdHopsALT()
 {
     std::vector<std::tuple<int, double>> config = {
-            {60, 0.06},
-            {40, 0.08},
-            {30, 0.10},
-            {22, 0.12},
-            {16, 0.14},
-            {15, 0.16},
-            {13, 0.18},
-            {10, 0.20},
-            {9, 0.22},
-            {7, 0.24},
+            {35, 0.15},
+            {23, 0.20},
+            {14, 0.25},
+            {12, 0.30},
+            {10, 0.35},
+            {8, 0.40},
     };
 
     for(auto parameters : config) {
@@ -407,6 +444,16 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         case 10:
             runStandardTestCase([this] {
                 compareThresholdHopsALT();
+            });
+            break;
+        case 11:
+            runStandardTestCase([this] {
+                compareFarthestALT();
+            });
+            break;
+        case 12:
+            runStandardTestCase([this] {
+                compareAvoidALT();
             });
             break;
         default:

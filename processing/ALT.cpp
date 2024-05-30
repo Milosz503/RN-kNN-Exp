@@ -198,6 +198,10 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         generateDistHopsLandmarks(graph, numLandmarks);
         return;
     }
+    else if (landmarkType == LANDMARK_TYPE::FARTHEST) {
+        generateFarthestLandmarks(graph, numLandmarks);
+        return;
+    }
     else if (landmarkType == LANDMARK_TYPE::AVOID) {
         SetGenerator sg;
         //// Number to divide the number of total landmarks
@@ -513,34 +517,6 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
 //        objectList.setDistances(objectDistances, objectNodes.size());
         return;
     }
-    else if (landmarkType == LANDMARK_TYPE::FARTHEST) {
-        SetGenerator sg;
-        //// Number of random points from which to perform farthest
-        std::vector<NodeID> randomVertices = sg.generateRandomSampleSet(objectNodes.size(), numLandmarks);
-
-        landmarks.clear();
-        landmarks.reserve(numLandmarks);
-
-        unsigned distance, maxDistance = 0u;
-        NodeID nextLandmark;
-
-        //// For each random vertex get the farthest vertex from it and set it as a landmark
-        for (std::size_t i = 0; i < numLandmarks; ++i) {
-            pqueue->clear();
-            dijk.findSSSPDistances(graph, objectNodes[randomVertices[i]], landmarkDistances, pqueue);
-
-            for (auto j = 0; j < objectNodes.size(); j++) {
-                if (std::find(landmarks.begin(), landmarks.end(), objectNodes[j]) == landmarks.end()) {
-                    distance = landmarkDistances[objectNodes[j]];
-                    if (distance >= maxDistance) {
-                        maxDistance = distance;
-                        nextLandmark = objectNodes[j];
-                    }
-                }
-            }
-            landmarks.push_back(nextLandmark);
-        }
-    }
     else {
         std::cerr << "Unknown landmark type" << std::endl;
         std::exit(1);
@@ -587,7 +563,6 @@ void ALT::generateDistHopsLandmarks(Graph &graph, unsigned int maxNumLandmarks)
     // Use Dijkstra's to populate above vector for each landmark
     DijkstraSearch dijk;
     std::vector<EdgeWeight> landmarkDistances(numNodes, 0);
-    std::vector<EdgeWeight> nodesVisited(numNodes, 0);
     BinaryMinHeap<EdgeWeight, NodeData> pqueue;
 
     unsigned numberOfTries = parameters.numberOfTries;
@@ -602,7 +577,7 @@ void ALT::generateDistHopsLandmarks(Graph &graph, unsigned int maxNumLandmarks)
             pqueue.clear();
             landmarks.push_back(node);
             dijk.findSSSPDistances(graph, landmarks[currentNumLandmarks], landmarkDistances,
-                                   landmarksPathLengths[currentNumLandmarks], nodesVisited, &pqueue);
+                                   landmarksPathLengths[currentNumLandmarks], &pqueue);
 
             for (std::size_t k = 0; k < numNodes; ++k) {
                 vertexFromLandmarkDistances[k * maxNumLandmarks + currentNumLandmarks] = landmarkDistances[k];
@@ -626,6 +601,51 @@ void ALT::generateDistHopsLandmarks(Graph &graph, unsigned int maxNumLandmarks)
 //    this->numLandmarks = currentNumLandmarks;
     std::cout << "Created " << currentNumLandmarks << "/" << maxNumLandmarks << std::endl;
 }
+
+
+void ALT::generateFarthestLandmarks(Graph &graph, unsigned int numLandmarks)
+{
+    landmarks.clear();
+    landmarks.reserve(numLandmarks);
+    // Allocated space for distance from each landmark to each graph vertex
+    vertexFromLandmarkDistances.resize(numLandmarks * numNodes);
+    std::vector<std::vector<unsigned>> landmarksHops(numLandmarks, std::vector<unsigned>((unsigned)graph.getNumNodes(), 0));
+
+    // Use Dijkstra's to populate above vector for each landmark
+    DijkstraSearch dijk;
+    std::vector<EdgeWeight> landmarkDistances(numNodes, 0);
+    BinaryMinHeap<EdgeWeight, NodeID> pqueue;
+
+    for(unsigned i = 0; i < numLandmarks; i++) {
+        unsigned bestNode = 0;
+        unsigned bestDist = 0;
+
+        if(i == 0) {
+            bestNode = rand() % graph.getNumNodes();
+        }
+        else {
+            for(unsigned node = 0; node < numNodes; node++) {
+                auto dist = closestLandmarkDistance(node, landmarksHops, i);
+
+                if(dist > bestDist) {
+                    bestDist = dist;
+                    bestNode = node;
+                }
+            }
+        }
+
+//            std::cout << "Creating landmark " << currentNumLandmarks << "... Dist ratio:" << landmarkNodesRatio << ", try number: " << j << std::endl;
+        pqueue.clear();
+        landmarks.push_back(bestNode);
+        dijk.findBFSDistances(graph, landmarks[i], landmarksHops[i]);
+        dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, &pqueue);
+
+        for (std::size_t k = 0; k < numNodes; ++k) {
+            vertexFromLandmarkDistances[k * numLandmarks + i] = landmarkDistances[k];
+        }
+    }
+}
+
 
 double ALT::closestLandmarkNodesRatio(NodeID node, std::vector<std::vector<unsigned>>& landmarksPathLengths,
                                       std::vector<unsigned>& landmarksMaxPaths,
@@ -656,6 +676,20 @@ double ALT::closestLandmarkNodesRatio(NodeID node, std::vector<std::vector<unsig
         exit(-1);
         return 0;
     }
+}
+
+unsigned ALT::closestLandmarkDistance(NodeID node,
+                                    std::vector<std::vector<unsigned>>& landmarksHops,
+                                    unsigned numLandmarks)
+{
+    double closestDist = std::numeric_limits<double>::max();
+    for (unsigned i = 0; i < numLandmarks; ++i) {
+        auto dist = landmarksHops[i][node];
+        if (dist < closestDist) {
+            closestDist = dist;
+        }
+    }
+    return closestDist;
 }
 
 EdgeWeight ALT::getLowerBound(NodeID s, NodeID t)

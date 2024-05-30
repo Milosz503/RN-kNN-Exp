@@ -28,7 +28,7 @@ def load_data():
 def main():
     config.init_config("alt_landmarks_number")
 
-    execute_experiment(f"-q 4096 -r 3 -x 6")
+    execute_experiment(f"-q 4096 -r {config.repeats} -x 6")
 
     save_to_file(
         create_figure(create_axis(

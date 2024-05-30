@@ -23,7 +23,7 @@ def load_data():
 def main():
     config.init_config("alt_min_dist_threshold")
 
-    execute_experiment(f"-q {config.default_query_number} -r 1 -x 8")
+    execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 8")
 
     save_to_file(
         create_figure(

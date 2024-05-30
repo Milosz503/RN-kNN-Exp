@@ -2,10 +2,11 @@ import os
 import sys
 class Config:
     def __init__(self):
-        self.default_query_number=256 #todo change to 4096
+        self.default_query_number=4096
         self.rerun_experiments = True
         self.validate = "-v 0"
-        self.network = "DE"
+        self.network = "NW"
+        self.repeats = "1"
 
         self.results_dir = ""
         self.visualization_dir = ""
