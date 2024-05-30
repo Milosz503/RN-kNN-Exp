@@ -1,3 +1,5 @@
 /cmake-build-debug/
 /CMakeFiles/
 /scripts/workspaceVariables
+/build
+scripts/experiments/visualization/common/__pycache__/
