@@ -18,7 +18,10 @@ bool isPowerOf(int number, int base) {
     return std::floor(logResult) == logResult;
 }
 
-void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<DistanceMethod*> methods, std::string path, int numOfRepeats) {
+
+
+void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<std::string> methods, std::string path, int numOfRepeats)
+{
     std::cout << "Saving results to: " << path << std::endl;
 
     std::ofstream file(path + "_output.csv");
@@ -26,7 +29,7 @@ void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<D
 
 
     for (int i = 0; i < results.size(); ++i) {
-        file << methods[i]->getInfo() << ",";
+        file << methods[i] << ",";
     }
     file << std::endl;
 
@@ -77,6 +80,17 @@ void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<D
     file.close();
     file_deviation.close();
 }
+
+void write_to_csv(const std::vector<std::vector<double>>& results, std::vector<DistanceMethod*> methods, std::string path, int numOfRepeats) {
+    std::vector<std::string> methodNames;
+
+    for (auto method : methods) {
+        methodNames.push_back(method->getInfo());
+    }
+
+    write_to_csv(results, methodNames, path, numOfRepeats);
+}
+
 
 double func(unsigned queries) {
     if (queries < 2000)

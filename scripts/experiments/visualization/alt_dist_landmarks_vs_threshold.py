@@ -36,16 +36,21 @@ def main():
     for network in config.networks:
         execute_experiment(f"-q {config.default_query_number} -r 5 -x 15", network=network)
     networks_plots = []
+    sampled_plots = []
+    networks = config.networks
     for network in config.networks:
         points, trend_line = load_data(network)
         networks_plots.append(trend_line)
+        sampled_plots.append(trend_line[::2])
+
 
     save_to_file(
         suffix="networks",
         content=create_figure(
             content=create_axis(
                 "Threshold", "Number of landmarks",
-                [create_plot(plot, color) for plot, color in zip(networks_plots, color_classes)]
+                [create_plot(plot, color) for plot, color in zip(networks_plots, color_classes)] +
+                [create_scatter(plot, marks, network) for plot, marks, network in zip(sampled_plots, scatter_classes, networks)]
             )
 
         )
@@ -56,8 +61,8 @@ def main():
         suffix=config.network,
         content=create_figure(create_axis(
             "Threshold", "Number of landmarks",
-            [create_scatter(plot, "blackdotsalpha") for plot in plots] +
-            [create_plot(trend_line, "black")],
+            [create_plot(trend_line, "black", config.network)] +
+            [create_scatter(plot, "blackdotsalpha") for plot in plots],
         ))
     )
 

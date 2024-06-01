@@ -19,24 +19,21 @@ void DistanceExperimentCommand::compareAltDistLandmarksVsThreshold()
     }
 
     results.resize(values.size());
-    for (double value : values) {
-        methods.push_back(new ALTMethod(
-                150,
-                LANDMARK_TYPE::MIN_DIST,
-                ALTParameters(value, numQueries)
-        ));
-    }
-
     for (int i = 0; i < numRepeats; i++) {
-        std::cout << "Repeat: " << i << std::endl;
-        buildIndexes(false);
-        for(int j = 0; j < methods.size(); j++) {
-            results[j].push_back(methods[j]->getLandmarkNodeIDs().size());
+        std::cout  << "Repeat: " << i << std::endl;
+        std::vector<std::string> methodNames;
+        for (int j = 0; j < values.size(); j++) {
+            auto method = ALTMethod(100,
+                                    LANDMARK_TYPE::MIN_DIST,
+                                    ALTParameters(values[j], numQueries));
+            methodNames.push_back(method.getInfo());
+            method.buildIndex(graph);
+            results[j].push_back(method.getLandmarkNodeIDs().size());
         }
-    }
 
-    // Do not average results
-    write_to_csv(results, methods, resultsPath + "/" + network + "_results", 1);
+        // Write after each repeat in case program crashes, do not average results
+        write_to_csv(results, methodNames, resultsPath + "/" + network + "_results", 1);
+    }
 }
 
 void DistanceExperimentCommand::visualizeQueries()
@@ -83,7 +80,7 @@ void DistanceExperimentCommand::compareFarthestALT()
             6, 8, 12, 20, 36
     };
 
-    for(auto landmarksNum : config) {
+    for (auto landmarksNum: config) {
         methods.push_back(new ALTMethod(
                 landmarksNum,
                 LANDMARK_TYPE::FARTHEST,
@@ -107,7 +104,7 @@ void DistanceExperimentCommand::compareAvoidALT()
             6, 8, 12, 20, 36
     };
 
-    for(auto landmarksNum : config) {
+    for (auto landmarksNum: config) {
         methods.push_back(new ALTMethod(
                 landmarksNum,
                 LANDMARK_TYPE::AVOID,
@@ -160,7 +157,7 @@ void DistanceExperimentCommand::compareAltDistThresholdQueryVsTime()
             {10, 0.36},
     };
 
-    for(auto parameters : config) {
+    for (auto parameters: config) {
         methods.push_back(new ALTMethod(
                 std::get<0>(parameters),
                 LANDMARK_TYPE::MIN_DIST,
@@ -209,10 +206,10 @@ void DistanceExperimentCommand::compareAltHopsThresholdQueryVsTime()
             {14, 0.25},
             {12, 0.30},
             {10, 0.35},
-            {8, 0.40},
+            {8,  0.40},
     };
 
-    for(auto parameters : config) {
+    for (auto parameters: config) {
         methods.push_back(new ALTMethod(
                 std::get<0>(parameters),
                 LANDMARK_TYPE::HOPS,

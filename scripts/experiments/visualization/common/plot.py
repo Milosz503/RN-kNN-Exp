@@ -31,25 +31,31 @@ color_classes = [
     "class9color",
 ] * 3
 
-scatter_classes=r'''
+scatter_definitions=r'''
    scatter/classes={
-            blackdotsalpha={mark=*, black, mark size=1.5pt, opacity=0.2, draw opacity=0.2,},
-            airlin={mark=diamond, airlincolor},
-            air={mark=diamond, airlincolor},
-            rstar={mark=star, rstarcolor},
-            rquad={mark=pentagon, rquadcolor},
-            cs={mark=triangle, cscolor},
-            csr={mark=star, csrcolor},
-            gq={mark=x, gqcolor},
-            gqr={mark=o, gqrcolor},
-            gs={mark=oplus, gscolor},
-            gsr={mark=square, gsrcolor},
-            cq={mark=otimes, cqcolor},
-            cqr={mark=halfcircle, cqrcolor},
-            gsrc={mark=Mercedes star, gsrccolor},
-            gsrp={mark=+, gsrpcolor},
-	    quadtree={mark=o, quadtreecolor}
+            blackdotsalpha={mark=*, black, mark size=1pt, opacity=0.2, draw opacity=0.2,},
+            mark1={mark=diamond, class1color},
+            mark2={mark=diamond, class2color},
+            mark3={mark=star, class3color},
+            mark4={mark=pentagon, class4color},
+            mark5={mark=triangle, class5color},
+            mark6={mark=star, class6color},
+            mark7={mark=x, class7color},
+            mark8={mark=o, class8color},
+            mark9={mark=oplus, class9color}
 	    },'''
+
+scatter_classes = [
+    "mark1",
+    "mark2",
+    "mark3",
+    "mark4",
+    "mark5",
+    "mark6",
+    "mark7",
+    "mark8",
+    "mark9",
+]
 
 def append_content(current_content, new_content):
     if isinstance(new_content, list):
@@ -84,12 +90,14 @@ def create_axis(x_label, y_label, content, log_axis=False):
         xmode=log,
         ymode=log,'''
 
-    axis += scatter_classes
+    axis += scatter_definitions
 
     axis += r'''
     % xmin=1, xmax=1000,
     % mark size= 2.5pt,
     % line width=2pt,
+    legend style={font=\tiny},
+    tick label style={font=\tiny},
     label style={font=\normalsize}
 ]
     '''
@@ -100,7 +108,7 @@ def create_axis(x_label, y_label, content, log_axis=False):
     return axis
 
 
-def create_plot(values, color):
+def create_plot(values, color, legend=None):
     values_str = tuples_to_string(values)
     plot = "\n" + format(
         r'''
@@ -111,10 +119,15 @@ def create_plot(values, color):
 ''',
         {"values": values_str, "color": color}
     )
+    if legend:
+        plot += format(
+            r'''
+            \addlegendentry{{{legend}}}
+            ''', {"legend": legend})
     return plot
 
 
-def create_scatter(values, class_name):
+def create_scatter(values, class_name, legend=None):
     values_str = tuples_to_string_scatter(values, class_name)
     plot = "\n" + format(
         r'''
@@ -127,6 +140,11 @@ def create_scatter(values, class_name):
 ''',
         {"values": values_str}
     )
+    if legend:
+        plot += format(
+            r'''
+            \addlegendentry{{{legend}}}
+            ''', {"legend": legend})
     return plot
 
 

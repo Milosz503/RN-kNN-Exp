@@ -6,7 +6,7 @@ class Config:
         self.rerun_experiments = True
         self.validate = "-v 0"
         self.network = "DE"
-        self.networks = ["ME", "NW", "W", "US"]
+        self.networks = ["ME", "NW", "W", "USA"]
         self.repeats = "5"
 
         self.results_dir = ""
