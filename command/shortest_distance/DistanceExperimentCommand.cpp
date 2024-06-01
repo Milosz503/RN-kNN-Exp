@@ -9,6 +9,33 @@
 #include "../../utils/Utils.h"
 #include <fstream>
 
+void DistanceExperimentCommand::compareAltHopsLandmarksVsThreshold()
+{
+
+    std::vector<double> values;
+    for (unsigned i = 150; i < 500; i += 10) {
+        auto threshold = i / 1000.0;
+        values.push_back(threshold);
+    }
+
+    results.resize(values.size());
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout  << "Repeat: " << i << std::endl;
+        std::vector<std::string> methodNames;
+        for (int j = 0; j < values.size(); j++) {
+            auto method = ALTMethod(100,
+                                    LANDMARK_TYPE::HOPS,
+                                    ALTParameters(values[j], numQueries));
+            methodNames.push_back(method.getInfo());
+            method.buildIndex(graph);
+            results[j].push_back(method.getLandmarkNodeIDs().size());
+        }
+
+        // Write after each repeat in case program crashes, do not average results
+        write_to_csv(results, methodNames, resultsPath + "/" + network + "_results", 1);
+    }
+}
+
 void DistanceExperimentCommand::compareAltDistLandmarksVsThreshold()
 {
 
@@ -149,12 +176,11 @@ void DistanceExperimentCommand::compareAltDistThresholdQueryVsLandmarks()
 void DistanceExperimentCommand::compareAltDistThresholdQueryVsTime()
 {
     std::vector<std::tuple<int, double>> config = {
-            {60, 0.16},
-            {37, 0.20},
-            {27, 0.24},
-            {18, 0.28},
-            {12, 0.32},
-            {10, 0.36},
+            {6, 0.47},
+            {8, 0.39},
+            {12, 0.33},
+            {20, 0.26},
+            {36, 0.2}
     };
 
     for (auto parameters: config) {
@@ -201,12 +227,11 @@ void DistanceExperimentCommand::compareAltHopsThresholdQueryVsLandmarks()
 void DistanceExperimentCommand::compareAltHopsThresholdQueryVsTime()
 {
     std::vector<std::tuple<int, double>> config = {
-            {35, 0.15},
-            {23, 0.20},
-            {14, 0.25},
-            {12, 0.30},
-            {10, 0.35},
-            {8,  0.40},
+            {6, 0.4},
+            {8, 0.35},
+            {12, 0.27},
+            {20, 0.2},
+            {36, 0.15}
     };
 
     for (auto parameters: config) {
@@ -510,6 +535,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             break;
         case 15:
             compareAltDistLandmarksVsThreshold();
+            break;
+        case 16:
+            compareAltHopsLandmarksVsThreshold();
             break;
         default:
             compareMethods();

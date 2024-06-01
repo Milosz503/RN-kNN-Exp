@@ -33,7 +33,6 @@ color_classes = [
 
 scatter_definitions=r'''
    scatter/classes={
-            blackdotsalpha={mark=*, black, mark size=1pt, opacity=0.2, draw opacity=0.2,},
             mark1={mark=diamond, class1color},
             mark2={mark=diamond, class2color},
             mark3={mark=star, class3color},
@@ -42,7 +41,9 @@ scatter_definitions=r'''
             mark6={mark=star, class6color},
             mark7={mark=x, class7color},
             mark8={mark=o, class8color},
-            mark9={mark=oplus, class9color}
+            mark9={mark=oplus, class9color},
+            blackdotsalpha={mark=*, black, mark size=1pt, opacity=0.2, draw opacity=0.2},
+            none={mark=none}
 	    },'''
 
 scatter_classes = [
@@ -75,15 +76,19 @@ def create_figure(content):
     return figure
 
 
-def create_axis(x_label, y_label, content, log_axis=False):
+def create_axis(x_label, y_label, content, log_axis=False, params=None):
     axis = "\n"
     axis += format(r'''
     \begin{axis}[
-    width=\textwidth,
+    % width=\textwidth,
     xlabel={{{xlabel}}},
-    ylabel={{{ylabel}}},
+    ylabel={{{ylabel}}},{{params}}
     % legend pos=north east,''',
-                   {"xlabel": x_label, "ylabel": y_label})
+                   {
+                       "params": params,
+                       "xlabel": x_label,
+                       "ylabel": y_label
+                   })
 
     if log_axis:
         axis += r'''
@@ -96,8 +101,8 @@ def create_axis(x_label, y_label, content, log_axis=False):
     % xmin=1, xmax=1000,
     % mark size= 2.5pt,
     % line width=2pt,
-    legend style={font=\tiny},
-    tick label style={font=\tiny},
+    legend style={font=\small},
+    tick label style={font=\small},
     label style={font=\normalsize}
 ]
     '''
@@ -108,54 +113,75 @@ def create_axis(x_label, y_label, content, log_axis=False):
     return axis
 
 
-def create_plot(values, color, legend=None):
+def create_plot(values, color, legend=None, line_width="0.8pt"):
     values_str = tuples_to_string(values)
-    plot = "\n" + format(
-        r'''
-    \addplot[mark=none, color={{color}}, line width=0.8pt] 
+
+    forget = None
+    if not legend:
+        forget = ", forget plot"
+
+    scatter = None
+    if any(len(t) == 3 for t in values):
+        scatter = "scatter,"
+    plot = "\n" + r'''
+    \addplot[{{scatter}}mark=none, color={{color}}, line width={{line_width}}, scatter src=explicit symbolic{{forget}}] 
     coordinates{
     {{values}}
     };
-''',
-        {"values": values_str, "color": color}
-    )
+'''
     if legend:
-        plot += format(
-            r'''
+        plot += r'''
             \addlegendentry{{{legend}}}
-            ''', {"legend": legend})
+            '''
+    plot = format(plot, {
+        "scatter": scatter,
+        "line_width": line_width,
+        "values": values_str,
+        "color": color,
+        "legend": legend,
+        "forget": forget
+    })
     return plot
 
 
 def create_scatter(values, class_name, legend=None):
     values_str = tuples_to_string_scatter(values, class_name)
-    plot = "\n" + format(
-        r'''
+
+    forget = None
+    if not legend:
+        forget = ", forget plot"
+    plot = "\n" + r'''
     \addplot[
         scatter,only marks,
-        scatter src=explicit symbolic] 
+        scatter src=explicit symbolic{{forget}}] 
     coordinates{
     {{values}}
     };
-''',
-        {"values": values_str}
-    )
+'''
     if legend:
-        plot += format(
-            r'''
+        plot += r'''
             \addlegendentry{{{legend}}}
-            ''', {"legend": legend})
+            '''
+    plot = format(plot, {
+        "values": values_str,
+        "legend": legend,
+        "forget": forget
+    })
     return plot
 
 
 def format(string, variables):
+    variables = {k: v for k, v in variables.items() if v is not None}
     # Define a regular expression pattern to match variables in the format {{var_name}}
     pattern = r"\{\{(\w+)\}\}"
 
     # Define a function to replace each match with its corresponding value from the variables dictionary
     def replace(match):
         var_name = match.group(1)
-        return variables.get(var_name, match.group(0))
+        value = variables.get(var_name, None)
+        if value is None:
+            return ""
+        return value
 
     # Use re.sub() to replace all occurrences of variables in the string
     return re.sub(pattern, replace, string)

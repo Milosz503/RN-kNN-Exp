@@ -54,6 +54,8 @@ private:
 
     void validateAll();
 
+    void compareAltHopsLandmarksVsThreshold();
+
     void compareAltDistLandmarksVsThreshold();
 
     void visualizeQueries();

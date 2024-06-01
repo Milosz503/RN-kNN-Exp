@@ -34,7 +34,7 @@ def load_data(network):
 
 def main():
     for network in config.networks:
-        execute_experiment(f"-q {config.default_query_number} -r 5 -x 15", network=network)
+        execute_experiment(f"-q {config.default_query_number} -r 5 -x 16", network=network)
     networks_plots = []
     networks = config.networks
     for network, mark in zip(config.networks, scatter_classes):
