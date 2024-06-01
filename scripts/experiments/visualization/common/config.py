@@ -5,8 +5,9 @@ class Config:
         self.default_query_number=4096
         self.rerun_experiments = True
         self.validate = "-v 0"
-        self.network = "NW"
-        self.repeats = "1"
+        self.network = "DE"
+        self.networks = ["ME", "NW", "W", "US"]
+        self.repeats = "5"
 
         self.results_dir = ""
         self.visualization_dir = ""

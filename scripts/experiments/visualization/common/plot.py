@@ -1,4 +1,4 @@
-from common.utils import tuples_to_string
+from common.utils import tuples_to_string, tuples_to_string_scatter
 import re
 
 colors_definitions = '''
@@ -30,6 +30,26 @@ color_classes = [
     "class8color",
     "class9color",
 ] * 3
+
+scatter_classes=r'''
+   scatter/classes={
+            blackdotsalpha={mark=*, black, mark size=1.5pt, opacity=0.2, draw opacity=0.2,},
+            airlin={mark=diamond, airlincolor},
+            air={mark=diamond, airlincolor},
+            rstar={mark=star, rstarcolor},
+            rquad={mark=pentagon, rquadcolor},
+            cs={mark=triangle, cscolor},
+            csr={mark=star, csrcolor},
+            gq={mark=x, gqcolor},
+            gqr={mark=o, gqrcolor},
+            gs={mark=oplus, gscolor},
+            gsr={mark=square, gsrcolor},
+            cq={mark=otimes, cqcolor},
+            cqr={mark=halfcircle, cqrcolor},
+            gsrc={mark=Mercedes star, gsrccolor},
+            gsrp={mark=+, gsrpcolor},
+	    quadtree={mark=o, quadtreecolor}
+	    },'''
 
 def append_content(current_content, new_content):
     if isinstance(new_content, list):
@@ -64,6 +84,8 @@ def create_axis(x_label, y_label, content, log_axis=False):
         xmode=log,
         ymode=log,'''
 
+    axis += scatter_classes
+
     axis += r'''
     % xmin=1, xmax=1000,
     % mark size= 2.5pt,
@@ -88,6 +110,22 @@ def create_plot(values, color):
     };
 ''',
         {"values": values_str, "color": color}
+    )
+    return plot
+
+
+def create_scatter(values, class_name):
+    values_str = tuples_to_string_scatter(values, class_name)
+    plot = "\n" + format(
+        r'''
+    \addplot[
+        scatter,only marks,
+        scatter src=explicit symbolic] 
+    coordinates{
+    {{values}}
+    };
+''',
+        {"values": values_str}
     )
     return plot
 

@@ -5,11 +5,39 @@
 #include "DistanceExperimentCommand.h"
 #include "../../utility/serialization.h"
 #include "../../utility/StopWatch.h"
-#include "../../processing/DijkstraSearch.h"
-#include "../../processing/AStarSearch.h"
 #include "QueryGenerator.h"
 #include "../../utils/Utils.h"
 #include <fstream>
+
+void DistanceExperimentCommand::compareAltDistLandmarksVsThreshold()
+{
+
+    std::vector<double> values;
+    for (unsigned i = 150; i < 500; i += 10) {
+        auto threshold = i / 1000.0;
+        values.push_back(threshold);
+    }
+
+    results.resize(values.size());
+    for (double value : values) {
+        methods.push_back(new ALTMethod(
+                150,
+                LANDMARK_TYPE::MIN_DIST,
+                ALTParameters(value, numQueries)
+        ));
+    }
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(false);
+        for(int j = 0; j < methods.size(); j++) {
+            results[j].push_back(methods[j]->getLandmarkNodeIDs().size());
+        }
+    }
+
+    // Do not average results
+    write_to_csv(results, methods, resultsPath + "/" + network + "_results", 1);
+}
 
 void DistanceExperimentCommand::visualizeQueries()
 {
@@ -32,7 +60,7 @@ void DistanceExperimentCommand::visualizeLandmarks()
     exportLandmarks(network);
 }
 
-void DistanceExperimentCommand::compareLandmarksNumber()
+void DistanceExperimentCommand::compareLandmarksNumberVsTime()
 {
     for (int i = 2; i <= 40; i += 2) {
         methods.push_back(new ALTMethod(i, LANDMARK_TYPE::FARTHEST, {}));
@@ -97,7 +125,7 @@ void DistanceExperimentCommand::compareAvoidALT()
     }
 }
 
-void DistanceExperimentCommand::compareNumLandmarksMinDistALT()
+void DistanceExperimentCommand::compareAltDistThresholdQueryVsLandmarks()
 {
     std::vector<double> values = {
             0.16, 0.20, 0.24, 0.28, 0.32, 0.36
@@ -121,7 +149,7 @@ void DistanceExperimentCommand::compareNumLandmarksMinDistALT()
     write_to_csv(results, methods, resultsPath + "/results", 1);
 }
 
-void DistanceExperimentCommand::compareThresholdMinDistALT()
+void DistanceExperimentCommand::compareAltDistThresholdQueryVsTime()
 {
     std::vector<std::tuple<int, double>> config = {
             {60, 0.16},
@@ -150,7 +178,7 @@ void DistanceExperimentCommand::compareThresholdMinDistALT()
     }
 }
 
-void DistanceExperimentCommand::compareNumLandmarksHopsALT()
+void DistanceExperimentCommand::compareAltHopsThresholdQueryVsLandmarks()
 {
     std::vector<double> values = {
             0.15, 0.20, 0.25, 0.30, 0.35, 0.40
@@ -173,7 +201,7 @@ void DistanceExperimentCommand::compareNumLandmarksHopsALT()
     write_to_csv(results, methods, resultsPath + "/results", 1);
 }
 
-void DistanceExperimentCommand::compareThresholdHopsALT()
+void DistanceExperimentCommand::compareAltHopsThresholdQueryVsTime()
 {
     std::vector<std::tuple<int, double>> config = {
             {35, 0.15},
@@ -448,23 +476,23 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             break;
         case 6:
             runStandardTestCase([this] {
-                compareLandmarksNumber();
+                compareLandmarksNumberVsTime();
             });
             break;
         case 7:
-            compareNumLandmarksMinDistALT();
+            compareAltDistThresholdQueryVsLandmarks();
             break;
         case 8:
             runStandardTestCase([this] {
-                compareThresholdMinDistALT();
+                compareAltDistThresholdQueryVsTime();
             });
             break;
         case 9:
-            compareNumLandmarksHopsALT();
+            compareAltHopsThresholdQueryVsLandmarks();
             break;
         case 10:
             runStandardTestCase([this] {
-                compareThresholdHopsALT();
+                compareAltHopsThresholdQueryVsTime();
             });
             break;
         case 11:
@@ -482,6 +510,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             break;
         case 14:
             visualizeQueries();
+            break;
+        case 15:
+            compareAltDistLandmarksVsThreshold();
             break;
         default:
             compareMethods();

@@ -54,23 +54,25 @@ private:
 
     void validateAll();
 
+    void compareAltDistLandmarksVsThreshold();
+
     void visualizeQueries();
 
     void visualizeLandmarks();
 
-    void compareLandmarksNumber();
+    void compareLandmarksNumberVsTime();
 
     void compareFarthestALT();
 
     void compareAvoidALT();
 
-    void compareNumLandmarksMinDistALT();
+    void compareAltDistThresholdQueryVsLandmarks();
 
-    void compareThresholdMinDistALT();
+    void compareAltDistThresholdQueryVsTime();
 
-    void compareNumLandmarksHopsALT();
+    void compareAltHopsThresholdQueryVsLandmarks();
 
-    void compareThresholdHopsALT();
+    void compareAltHopsThresholdQueryVsTime();
 
 
     void createMethodsConstABestThreshold();

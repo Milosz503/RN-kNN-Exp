@@ -5,7 +5,7 @@ from common.config import config
 
 def execute_experiment(params, network=None):
     if network is None:
-        network = config.default_network
+        network = config.network
 
     if config.rerun_experiments:
         execute(f"{config.executable} -c distance -g {config.graphs_dir}/{network}.bin"

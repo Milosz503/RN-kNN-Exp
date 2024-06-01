@@ -3,17 +3,14 @@
 . ./experiments/utils.sh
 
 #run_experiment "visualize_networks"
-run_experiment "visualize_queries"
+#run_experiment "visualize_queries"
 
 #run_experiment "alt_landmarks_number"
 
 #run_experiment "alt_avoid"
 #run_experiment "alt_farthest"
 
+run_experiment "alt_dist_landmarks_vs_threshold"
 
-#run_experiment "alt_min_dist_threshold"
-#run_experiment "alt_min_dist_threshold_landmarks"
 
-#run_experiment "alt_hops_threshold"
-#run_experiment "alt_hops_threshold_landmarks"
 
