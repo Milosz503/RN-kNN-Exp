@@ -1,5 +1,6 @@
 from common.config import config
 from common.experiments import execute_experiment
+from common.parameters import landmarks_vs_threshold_max_y
 from common.plot import *
 from common.utils import save_to_file, add_marks
 import pandas as pd
@@ -41,13 +42,14 @@ def main():
         points, trend_line = load_data(network)
         networks_plots.append(add_marks(trend_line, mark, sampling_rate=2))
 
-
     save_to_file(
         suffix="networks",
         content=create_figure(
             content=create_axis(
                 "Threshold", "Number of landmarks",
-                [create_plot(plot, color, network, line_width="0.5pt") for plot, color, network in zip(networks_plots, color_classes, networks)]
+                params=f"ymax={landmarks_vs_threshold_max_y}",
+                content=[create_plot(plot, color, network, line_width="0.5pt") for plot, color, network in
+                         zip(networks_plots, color_classes, networks)]
             )
 
         )
@@ -58,9 +60,11 @@ def main():
         suffix=config.network,
         content=create_figure(create_axis(
             "Threshold", "Number of landmarks",
-            [create_plot(trend_line, "black", config.network)] +
-            [create_scatter(plot, "blackdotsalpha") for plot in plots],
+            params=f"ymax={landmarks_vs_threshold_max_y}",
+            content=[create_plot(trend_line, "black", config.network)] +
+                    [create_scatter(plot, "blackdotsalpha") for plot in plots],
         ))
     )
+
 
 main()

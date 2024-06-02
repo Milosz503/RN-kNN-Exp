@@ -12,7 +12,7 @@ def load_data():
     plots = []
     for column in data:
         num_of_queries = 1
-        name = (column[0].split("_")[4])
+        name = (column[0].split("_")[5])
         # name = "{:.2f}".format(name)
         headers.append(name)
         build_time = float(column[1])

@@ -553,7 +553,7 @@ void DistanceExperimentCommand::runStandardTestCase(const std::function<void()> 
 
     testCase();
 
-    write_to_csv(results, methods, resultsPath + "/results", numRepeats);
+    write_to_csv(results, methods, resultsPath + "/" + network + "_results", numRepeats);
     results.clear();
     clearMethods();
 }

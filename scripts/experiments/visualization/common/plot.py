@@ -1,7 +1,7 @@
 from common.utils import tuples_to_string, tuples_to_string_scatter
 import re
 
-colors_definitions = '''
+colors_definitions = r'''
 \definecolor{altcolor}{HTML}{1f78b4}
 \definecolor{aaltcolor}{HTML}{33a02c}
 \definecolor{gtree}{HTML}{4d9221}
@@ -77,6 +77,8 @@ def create_figure(content):
 
 
 def create_axis(x_label, y_label, content, log_axis=False, params=None):
+    if not params.endswith(","):
+        params += ","
     axis = "\n"
     axis += format(r'''
     \begin{axis}[

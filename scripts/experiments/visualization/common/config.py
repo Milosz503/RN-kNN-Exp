@@ -33,7 +33,7 @@ class Config:
             os.makedirs(self.visualization_dir)
 
     def get_default_results_file(self):
-        return self.results_dir + "/results_output.csv"
+        return self.results_dir + f"/{config.network}_results_output.csv"
 
 
     def _get_result_path(self):
