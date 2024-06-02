@@ -5,7 +5,7 @@ class Config:
         self.default_query_number=4096
         self.rerun_experiments = True
         self.validate = "-v 0"
-        self.network = "DE"
+        self.network = "NW"
         self.networks = ["ME", "NW", "W", "USA"]
         self.repeats = "5"
 
@@ -31,6 +31,9 @@ class Config:
 
         if not os.path.exists(self.visualization_dir):
             os.makedirs(self.visualization_dir)
+
+    def get_results_file(self, experiment_name, network ):
+        return sys.argv[1] + "/results/" + experiment_name + f"/{config.network}_results_output.csv"
 
     def get_default_results_file(self):
         return self.results_dir + f"/{config.network}_results_output.csv"
