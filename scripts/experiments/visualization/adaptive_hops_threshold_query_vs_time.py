@@ -1,11 +1,12 @@
 from common.config import config
 from common.csv_utils import read_csv_columns
+from common.experiments import execute_experiment
 from common.plot import *
 from common.utils import save_to_file, add_marks
 
 
-def load_data(experiment, network):
-    data = read_csv_columns(config.get_results_file(experiment, network))
+def load_data():
+    data = read_csv_columns(config.get_default_results_file())
 
     headers = []
     plots = []
@@ -24,33 +25,9 @@ def load_data(experiment, network):
     return plots, headers
 
 
-def load_plot(experiment, network, index):
-    data, headers = load_data(experiment, network)
-    return data[index], headers[index]
-
-
-def load_experiments(experiments, network):
-    plots = []
-    headers = []
-    for experiment, index, name in experiments:
-        plot, header = load_plot(experiment, network, index)
-        plots.append(plot)
-        headers.append(f"{name}({header})")
-    return plots, headers
-
-
-experiments = [
-    ("alt_dist_threshold_query_vs_time", 1, "DistS"),
-    ("alt_hops_threshold_query_vs_time", 1, "HopsS"),
-    ("alt_farthest", 1, "Far"),
-    ("alt_avoid", 1, "Avoid"),
-    ("adaptive_dist_threshold_query_vs_time", 1, "A-DistS"),
-    ("adaptive_hops_threshold_query_vs_time", 1, "A-HopsS"),
-]
-
-
 def main():
-    plots, headers = load_experiments(experiments, config.network)
+    execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 18")
+    plots, headers = load_data()
     plots = [add_marks(plot, mark) for plot, mark in zip(plots, scatter_classes)]
 
     save_to_file(

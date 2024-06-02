@@ -158,10 +158,10 @@ public:
                 landmarkTypeStr = "Avoid";
                 break;
             case LANDMARK_TYPE::MIN_DIST:
-                landmarkTypeStr = "DistT";
+                landmarkTypeStr = "DistS";
                 break;
             case LANDMARK_TYPE::HOPS:
-                landmarkTypeStr = "HopsT";
+                landmarkTypeStr = "HopsS";
                 break;
             default:
                 landmarkTypeStr = "Type" + std::to_string(landmarkType);
@@ -218,8 +218,20 @@ public:
         return alt->getLandmarks();
     }
 
-    std::string getInfo() {
-        return getName() + "_lan_" + std::to_string(params.maxLandmarks) + "_a_" + std::to_string(params.a) + "_b_" + std::to_string(params.b) + "_c_" + std::to_string(params.c) + "_thr_" + params.threshold;
+
+    std::string getInfo() override {
+        std::string heuristicTypeStr;
+        if(params.a == 1.0 && params.b == 0.0 && params.c == 0.0) {
+            heuristicTypeStr = "DistS";
+        } else if(params.a == 0.0 && params.b == 1.0 && params.c == 0.0) {
+            heuristicTypeStr = "HopsS";
+        } else if(params.a == 0.0 && params.b == 0.0 && params.c == 1.0) {
+            heuristicTypeStr = "EstQ";
+        }else {
+            heuristicTypeStr = "Mixed";
+        }
+        return getName() + "_" + heuristicTypeStr + "_thr_" + std::to_string(params.thresholdFunction(0)) + "_lan_" + std::to_string(params.maxLandmarks) +
+         "_abc_" + std::to_string(params.a) + "_" + std::to_string(params.b) + "_" + std::to_string(params.c) +"_thrT_" + params.threshold;
     }
 
     std::string getName() {

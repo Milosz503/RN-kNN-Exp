@@ -9,6 +9,66 @@
 #include "../../utils/Utils.h"
 #include <fstream>
 
+std::vector<std::tuple<int, double>> distConfigs = {
+        {6,  0.47},
+        {8,  0.39},
+        {12, 0.33},
+        {20, 0.26},
+        {36, 0.2}
+};
+
+std::vector<std::tuple<int, double>> hopsConfigs = {
+        {6,  0.4},
+        {8,  0.35},
+        {12, 0.27},
+        {20, 0.2},
+        {36, 0.15}
+};
+
+void DistanceExperimentCommand::compareAdaptiveDistThresholdQueryVsTime()
+{
+    for (auto parameters: distConfigs) {
+        methods.push_back(
+                new AdaptiveALTMethod(
+                        AdaptiveALTParams(
+                                std::get<0>(parameters),
+                                1.0, 0.0, 0.0, std::get<1>(parameters)
+                        )
+                ));
+    }
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
+void DistanceExperimentCommand::compareAdaptiveHopsThresholdQueryVsTime()
+{
+    for (auto parameters: distConfigs) {
+        methods.push_back(
+                new AdaptiveALTMethod(
+                        AdaptiveALTParams(
+                                std::get<0>(parameters),
+                                0.0, 1.0, 0.0, std::get<1>(parameters)
+                        )
+                ));
+    }
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
 void DistanceExperimentCommand::compareAltHopsLandmarksVsThreshold()
 {
 
@@ -20,7 +80,7 @@ void DistanceExperimentCommand::compareAltHopsLandmarksVsThreshold()
 
     results.resize(values.size());
     for (int i = 0; i < numRepeats; i++) {
-        std::cout  << "Repeat: " << i << std::endl;
+        std::cout << "Repeat: " << i << std::endl;
         std::vector<std::string> methodNames;
         for (int j = 0; j < values.size(); j++) {
             auto method = ALTMethod(100,
@@ -47,7 +107,7 @@ void DistanceExperimentCommand::compareAltDistLandmarksVsThreshold()
 
     results.resize(values.size());
     for (int i = 0; i < numRepeats; i++) {
-        std::cout  << "Repeat: " << i << std::endl;
+        std::cout << "Repeat: " << i << std::endl;
         std::vector<std::string> methodNames;
         for (int j = 0; j < values.size(); j++) {
             auto method = ALTMethod(100,
@@ -175,15 +235,8 @@ void DistanceExperimentCommand::compareAltDistThresholdQueryVsLandmarks()
 
 void DistanceExperimentCommand::compareAltDistThresholdQueryVsTime()
 {
-    std::vector<std::tuple<int, double>> config = {
-            {6, 0.47},
-            {8, 0.39},
-            {12, 0.33},
-            {20, 0.26},
-            {36, 0.2}
-    };
 
-    for (auto parameters: config) {
+    for (auto parameters: distConfigs) {
         methods.push_back(new ALTMethod(
                 std::get<0>(parameters),
                 LANDMARK_TYPE::MIN_DIST,
@@ -226,15 +279,7 @@ void DistanceExperimentCommand::compareAltHopsThresholdQueryVsLandmarks()
 
 void DistanceExperimentCommand::compareAltHopsThresholdQueryVsTime()
 {
-    std::vector<std::tuple<int, double>> config = {
-            {6, 0.4},
-            {8, 0.35},
-            {12, 0.27},
-            {20, 0.2},
-            {36, 0.15}
-    };
-
-    for (auto parameters: config) {
+    for (auto parameters: hopsConfigs) {
         methods.push_back(new ALTMethod(
                 std::get<0>(parameters),
                 LANDMARK_TYPE::HOPS,
@@ -538,6 +583,16 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             break;
         case 16:
             compareAltHopsLandmarksVsThreshold();
+            break;
+        case 17:
+            runStandardTestCase([this] {
+                compareAdaptiveDistThresholdQueryVsTime();
+            });
+            break;
+        case 18:
+            runStandardTestCase([this] {
+                compareAdaptiveHopsThresholdQueryVsTime();
+            });
             break;
         default:
             compareMethods();

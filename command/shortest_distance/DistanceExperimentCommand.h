@@ -54,6 +54,10 @@ private:
 
     void validateAll();
 
+    void compareAdaptiveDistThresholdQueryVsTime();
+
+    void compareAdaptiveHopsThresholdQueryVsTime();
+
     void compareAltHopsLandmarksVsThreshold();
 
     void compareAltDistLandmarksVsThreshold();
