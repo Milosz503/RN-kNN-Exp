@@ -8,6 +8,8 @@ class Config:
         self.network = "NW"
         self.networks = ["ME", "NW", "W", "USA"]
         self.repeats = "5"
+        self.include_random = True
+        self.include_clustered = True
 
         self.results_dir = ""
         self.visualization_dir = ""
@@ -32,8 +34,11 @@ class Config:
         if not os.path.exists(self.visualization_dir):
             os.makedirs(self.visualization_dir)
 
-    def get_results_file(self, experiment_name, network ):
-        return sys.argv[1] + "/results/" + experiment_name + f"/{config.network}_results_output.csv"
+    def get_results_file(self, experiment_name, network, clustered=False):
+        prefix = ""
+        if clustered:
+            prefix = "clustered_"
+        return sys.argv[1] + "/results/" + experiment_name + f"/{prefix}{network}_results_output.csv"
 
     def get_default_results_file(self):
         return self.results_dir + f"/{config.network}_results_output.csv"

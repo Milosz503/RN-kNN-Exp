@@ -18,6 +18,10 @@
 #include "../../processing/adaptive_gtree/AdaptiveGtree.h"
 #include "DistanceMethod.h"
 
+enum class WorkloadType {
+    RANDOM = 0,
+    CLUSTER = 1,
+};
 
 class DistanceExperimentCommand : public Command {
 
@@ -35,6 +39,7 @@ private:
     unsigned long maxDist;
     unsigned long numTargets;
     std::string network = "";
+    WorkloadType workloadType = WorkloadType::RANDOM;
     bool validate = true;
     unsigned numRepeats = 1;
     std::string resultsPath = "./";
@@ -53,6 +58,8 @@ private:
     void runMethod(DistanceMethod* method, int iter, bool saveOnlyLastResult = false);
 
     void validateAll();
+
+    void compareOtherMethods();
 
     void compareAdaptiveDistThresholdQueryVsTime();
 
@@ -102,6 +109,8 @@ private:
     void saveQueries(std::string name);
 
     void exportLandmarks(std::string name);
+
+    std::string getResultsPath();
 
 //    void runMultiTargetALT();
 };

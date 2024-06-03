@@ -25,6 +25,21 @@ std::vector<std::tuple<int, double>> hopsConfigs = {
         {36, 0.15}
 };
 
+void DistanceExperimentCommand::compareOtherMethods()
+{
+    methods.push_back(new DijkstraMethod());
+    methods.push_back(new AStarMethod());
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
 void DistanceExperimentCommand::compareAdaptiveDistThresholdQueryVsTime()
 {
     for (auto parameters: distConfigs) {
@@ -92,7 +107,7 @@ void DistanceExperimentCommand::compareAltHopsLandmarksVsThreshold()
         }
 
         // Write after each repeat in case program crashes, do not average results
-        write_to_csv(results, methodNames, resultsPath + "/" + network + "_results", 1);
+        write_to_csv(results, methodNames, getResultsPath(), 1);
     }
 }
 
@@ -119,7 +134,7 @@ void DistanceExperimentCommand::compareAltDistLandmarksVsThreshold()
         }
 
         // Write after each repeat in case program crashes, do not average results
-        write_to_csv(results, methodNames, resultsPath + "/" + network + "_results", 1);
+        write_to_csv(results, methodNames, getResultsPath(), 1);
     }
 }
 
@@ -230,7 +245,7 @@ void DistanceExperimentCommand::compareAltDistThresholdQueryVsLandmarks()
     }
 
     // Do not average results, doesn't make sense
-    write_to_csv(results, methods, resultsPath + "/results", 1);
+    write_to_csv(results, methods, getResultsPath(), 1);
 }
 
 void DistanceExperimentCommand::compareAltDistThresholdQueryVsTime()
@@ -274,7 +289,7 @@ void DistanceExperimentCommand::compareAltHopsThresholdQueryVsLandmarks()
     }
 
     // Do not average results, doesn't make sense
-    write_to_csv(results, methods, resultsPath + "/results", 1);
+    write_to_csv(results, methods, getResultsPath(), 1);
 }
 
 void DistanceExperimentCommand::compareAltHopsThresholdQueryVsTime()
@@ -459,7 +474,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     LANDMARK_TYPE landmarkType = LANDMARK_TYPE::MIN_DIST;
     int testNum = -1;
     int opt;
-    while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:t:x:")) != -1) {
+    while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:t:x:w:")) != -1) {
         switch (opt) {
             case 'g':
                 bgrFilePath = optarg;
@@ -488,6 +503,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             case 'f':
                 resultsPath = std::string(optarg);
                 break;
+            case 'w':
+                workloadType = static_cast<WorkloadType>(std::stoi(optarg));
+                break;
             default:
                 std::cerr << "Unknown option(s) provided!\n\n";
 //                std::cout << "Provided option: " << opt << std::endl;
@@ -510,6 +528,18 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         std::cout << "WARNING! Validation is disabled!" << std::endl;
     }
     std::cout << "Number of repeats: " << numRepeats << std::endl;
+    switch (workloadType) {
+        case WorkloadType::RANDOM:
+            std::cout << "Workload type: Random" << std::endl;
+            break;
+        case WorkloadType::CLUSTER:
+            std::cout << "Workload type: Clustered" << std::endl;
+            break;
+        default:
+            std::cout << "Unknown workload type!" << std::endl;
+            exit(1);
+            break;
+    }
 
     graph = serialization::getIndexFromBinaryFile<Graph>(bgrFilePath);
 
@@ -594,6 +624,11 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
                 compareAdaptiveHopsThresholdQueryVsTime();
             });
             break;
+        case 19:
+            runStandardTestCase([this] {
+                compareOtherMethods();
+            });
+            break;
         default:
             compareMethods();
     }
@@ -608,7 +643,7 @@ void DistanceExperimentCommand::runStandardTestCase(const std::function<void()> 
 
     testCase();
 
-    write_to_csv(results, methods, resultsPath + "/" + network + "_results", numRepeats);
+    write_to_csv(results, methods, getResultsPath(), numRepeats);
     results.clear();
     clearMethods();
 }
@@ -702,9 +737,22 @@ void DistanceExperimentCommand::buildIndexes(bool saveTimes)
 
 void DistanceExperimentCommand::loadQueries()
 {
+    switch (workloadType) {
+        case WorkloadType::RANDOM:
+            queries = QueryGenerator().random(graph, numQueries, numTargets, std::numeric_limits<unsigned long>::max());
+            break;
+        case WorkloadType::CLUSTER:
+            queries = QueryGenerator().randomExpandTargetsClustered(
+                    graph, numQueries, 3, 100.0/graph.getNumNodes());
+            break;
+        default:
+            std::cout << "Unknown workload type!" << std::endl;
+            exit(1);
+            break;
+    }
 //    queries = QueryGenerator().randomExpandTargets(graph, numQueries, 0.000005);
 //    queries = QueryGenerator().randomExpandTargetsClustered(graph, numQueries, 3, 0.0001);
-    queries = QueryGenerator().random(graph, numQueries, numTargets, std::numeric_limits<unsigned long>::max());
+
 }
 
 void DistanceExperimentCommand::runAll(bool saveOnlyLastResult)
@@ -859,6 +907,24 @@ DistanceExperimentCommand::~DistanceExperimentCommand()
     for (auto method: methods) {
         delete method;
     }
+}
+
+std::string DistanceExperimentCommand::getResultsPath()
+{
+    std::string workloadPrefix;
+    switch (workloadType) {
+        case WorkloadType::RANDOM:
+            workloadPrefix = "";
+            break;
+        case WorkloadType::CLUSTER:
+            workloadPrefix = "clustered_";
+            break;
+        default:
+            std::cout << "Unknown workload type!" << std::endl;
+            exit(1);
+            break;
+    }
+    return resultsPath + "/" + workloadPrefix + network + "_results";
 }
 
 
