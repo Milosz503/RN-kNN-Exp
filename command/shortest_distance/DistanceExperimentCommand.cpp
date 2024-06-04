@@ -29,6 +29,7 @@ void DistanceExperimentCommand::compareOtherMethods()
 {
     methods.push_back(new DijkstraMethod());
     methods.push_back(new AStarMethod());
+    methods.push_back(new PhlMethod());
     results.resize(methods.size());
 
     for (int i = 0; i < numRepeats; i++) {
@@ -36,8 +37,10 @@ void DistanceExperimentCommand::compareOtherMethods()
         buildIndexes();
         loadQueries();
         runAll();
+        validateAll();
         queries.clear();
     }
+
 }
 
 void DistanceExperimentCommand::compareAdaptiveDistThresholdQueryVsTime()
@@ -478,6 +481,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         switch (opt) {
             case 'g':
                 bgrFilePath = optarg;
+                graphPath = bgrFilePath;
                 break;
             case 'q':
                 numQueries = std::stoul(optarg);
@@ -522,6 +526,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     auto indexSlash = bgrFilePath.find_last_of('/');
     auto indexDot = bgrFilePath.find_last_of('.');
     network = bgrFilePath.substr(indexSlash + 1, indexDot - indexSlash - 1);
+    dataPath = bgrFilePath.substr(0, indexSlash);
+    tsvPath = dataPath + "/" + network + ".tsv";
+    std::cout << "tsvPath: " << tsvPath << std::endl;
 
     std::cout << "** " << network << " **" << std::endl;
     if (!validate) {
@@ -721,15 +728,22 @@ void DistanceExperimentCommand::buildIndexes(bool saveTimes)
 {
     int iter = 0;
     for (auto method: methods) {
-        StopWatch sw;
-        sw.start();
-        method->buildIndex(graph);
-        sw.stop();
+        double time;
+        if (method->getName() == "PHL") {
+            time = dynamic_cast<PhlMethod*>(method)->buildIndex(graph, tsvPath);
+        } else {
+            StopWatch sw;
+            sw.start();
+            method->buildIndex(graph);
+            sw.stop();
+            time = sw.getTimeMs();
+        }
+
         if (saveTimes) {
-            results[iter].push_back(sw.getTimeMs());
+            results[iter].push_back(time);
         }
         iter++;
-        std::cout << "Time to generate " << method->getName() << " index" << ": " << sw.getTimeMs() << " ms"
+        std::cout << "Time to generate " << method->getName() << " index" << ": " << time << " ms"
                   << std::endl;
     }
 
@@ -743,7 +757,7 @@ void DistanceExperimentCommand::loadQueries()
             break;
         case WorkloadType::CLUSTER:
             queries = QueryGenerator().randomExpandTargetsClustered(
-                    graph, numQueries, 3, 100.0/graph.getNumNodes());
+                    graph, numQueries, 3, 100.0 / graph.getNumNodes());
             break;
         default:
             std::cout << "Unknown workload type!" << std::endl;

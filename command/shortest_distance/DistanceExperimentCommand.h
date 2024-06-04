@@ -33,6 +33,9 @@ public:
     ~DistanceExperimentCommand() override;
 
 private:
+    std::string graphPath;
+    std::string dataPath;
+    std::string tsvPath;
     Graph graph;
     std::vector<Query> queries;
     unsigned long numQueries;
