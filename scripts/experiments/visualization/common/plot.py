@@ -68,11 +68,16 @@ def append_content(current_content, new_content):
     return current_content
 
 def create_figure(content):
-    figure = ""
+    figure = r'''
+    \ifhideplots
+        \emptyplot
+    \else
+    '''
     figure += colors_definitions
     figure += r"\begin{tikzpicture}" + "\n"
     figure = append_content(figure, content)
     figure += r"\end{tikzpicture}" + "\n"
+    figure += r"\fi" + "\n"
     return figure
 
 
