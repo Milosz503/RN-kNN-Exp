@@ -7,7 +7,7 @@ class Config:
         self.validate = "-v 0"
         self.network = "NW"
         self.networks = ["ME", "NW", "W", "USA"]
-        self.repeats = "5"
+        self.repeats = "10"
         self.include_random = True
         self.include_clustered = True
 

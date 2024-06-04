@@ -77,24 +77,24 @@ def main():
         )
     )
 
-
-    plots, headers = load_experiments(experiments, config.network, clustered=True)
-    plots = [add_marks(plot, mark) for plot, mark in zip(plots, scatter_classes)]
-    save_to_file(
-        suffix="clustered",
-        content=create_figure(
-            content=[
-                create_axis(
-                    "Number of queries",
-                    "Cumulative time (ms)",
-                    log_axis=True,
-                    params="legend columns=2, legend pos=north west,",
-                    content=[create_plot(plot, color, legend=header) for plot, header, color in
-                             zip(plots, headers, color_classes)],
-                ),
-            ]
+    if config.include_clustered:
+        plots, headers = load_experiments(experiments, config.network, clustered=True)
+        plots = [add_marks(plot, mark) for plot, mark in zip(plots, scatter_classes)]
+        save_to_file(
+            suffix="clustered",
+            content=create_figure(
+                content=[
+                    create_axis(
+                        "Number of queries",
+                        "Cumulative time (ms)",
+                        log_axis=True,
+                        params="legend columns=2, legend pos=north west,",
+                        content=[create_plot(plot, color, legend=header) for plot, header, color in
+                                zip(plots, headers, color_classes)],
+                    ),
+                ]
+            )
         )
-    )
 
 
 main()
