@@ -15,6 +15,7 @@
 #include "../../processing/DijkstraSearch.h"
 #include "../../processing/adaptive_alt/AdaptiveALT.h"
 #include "../../processing/adaptive_gtree/AdaptiveGtree.h"
+#include "../../processing/pruned_highway_labeling.h"
 
 class Query {
 public:
@@ -353,5 +354,67 @@ private:
     std::size_t maxLeafSize;
     Gtree *gtree;
 };
+
+class PhlMethod : public DistanceMethod {
+public:
+    explicit PhlMethod()
+    {}
+
+    void buildIndex(Graph &graph) override
+    {
+        std::cout << "PhlMethod::buildIndex not implemented!" << std::endl;
+        exit(1);
+    }
+
+    double buildIndex(Graph& graph, std::string tsvPath)
+    {
+        std::cout << "Writing TSV file..." << std::endl;
+        graph.outputToTSVFile(tsvPath);
+        std::cout << "TSV file written successfully." << std::endl;
+        phl.ConstructLabel(tsvPath.c_str());
+        return phl.getConstructionTime();
+    }
+
+    void findDistances(Graph &graph, Query &query, std::vector <EdgeWeight> &distances) override
+    {
+        for (unsigned i = 0; i < query.targets.size(); ++i) {
+            auto target = query.targets[i];
+            distances[i] = phl.Query(query.source, target);
+        }
+    }
+
+    void printInfo() override
+    {
+        phl.Statistics();
+    }
+
+    void printStatistics() override
+    {
+
+    }
+
+    ~PhlMethod() override
+    {
+
+    }
+
+    std::vector<NodeID> getLandmarkNodeIDs() override {
+        return std::vector<NodeID>();
+    }
+
+    std::string getInfo() {
+        return getName();
+    }
+
+    std::string getName() {
+        return "PHL";
+    }
+
+private:
+    int fanout;
+    std::size_t maxLeafSize;
+    PrunedHighwayLabeling phl;
+};
+
 
 #endif //ND_KNN_DISTANCEMETHOD_H

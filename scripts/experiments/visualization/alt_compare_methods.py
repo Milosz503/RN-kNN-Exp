@@ -88,7 +88,7 @@ def main():
                         "Number of queries",
                         "Cumulative time (ms)",
                         log_axis=True,
-                        params="legend columns=2, legend pos=north west,",
+                        params="legend columns=2, legend pos=south east,",
                         content=[create_plot(plot, color, legend=header) for plot, header, color in
                                 zip(plots, headers, color_classes)],
                     ),
