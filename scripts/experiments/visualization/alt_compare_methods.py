@@ -50,11 +50,12 @@ experiments = [
     ("alt_dist_threshold_query_vs_time", 1, "DistS", default_header_index),
     ("alt_hops_threshold_query_vs_time", 1, "HopsS", default_header_index),
     ("alt_farthest", 1, "Far", default_header_index),
-    ("alt_avoid", 1, "Avoid", default_header_index),
+    # ("alt_avoid", 1, "Avoid", default_header_index),
     ("adaptive_dist_threshold_query_vs_time", 1, "ADistS", default_header_index),
     ("adaptive_hops_threshold_query_vs_time", 1, "AHopsS", default_header_index),
     ("other_methods", 0, None, 0),
     ("other_methods", 1, None, 0),
+    ("other_methods", 2, None, 0),
 ]
 
 

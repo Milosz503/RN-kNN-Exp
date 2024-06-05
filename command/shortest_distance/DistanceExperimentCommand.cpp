@@ -9,6 +9,14 @@
 #include "../../utils/Utils.h"
 #include <fstream>
 
+std::unordered_map<std::string, std::unordered_map<std::string, double>> gtreeConfig = {
+        {"DE", {{"fanout", 4}, {"maxleafsize", 64}}},
+        {"ME", {{"fanout", 4}, {"maxleafsize", 128}}},
+        {"NW", {{"fanout", 4}, {"maxleafsize", 256}}},
+        {"W", {{"fanout", 4}, {"maxleafsize", 512}}},
+        {"USA", {{"fanout", 4}, {"maxleafsize", 512}}}
+};
+
 std::vector<std::tuple<int, double>> distConfigs = {
         {6,  0.47},
         {8,  0.39},
@@ -27,9 +35,17 @@ std::vector<std::tuple<int, double>> hopsConfigs = {
 
 void DistanceExperimentCommand::compareOtherMethods()
 {
+    if(gtreeConfig.find(network) == gtreeConfig.end()) {
+        std::cerr << "No gtree configuration found for network: " << network << std::endl;
+        exit(1);
+    }
+    auto gtreeParams = gtreeConfig[network];
+    methods.push_back(new AdaptiveGtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
+    methods.push_back(new GtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
     methods.push_back(new DijkstraMethod());
     methods.push_back(new AStarMethod());
     methods.push_back(new PhlMethod());
+
     results.resize(methods.size());
 
     for (int i = 0; i < numRepeats; i++) {
@@ -40,7 +56,6 @@ void DistanceExperimentCommand::compareOtherMethods()
         validateAll();
         queries.clear();
     }
-
 }
 
 void DistanceExperimentCommand::compareAdaptiveDistThresholdQueryVsTime()
@@ -528,7 +543,6 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     network = bgrFilePath.substr(indexSlash + 1, indexDot - indexSlash - 1);
     dataPath = bgrFilePath.substr(0, indexSlash);
     tsvPath = dataPath + "/" + network + ".tsv";
-    std::cout << "tsvPath: " << tsvPath << std::endl;
 
     std::cout << "** " << network << " **" << std::endl;
     if (!validate) {
