@@ -9,6 +9,22 @@
 #include "../../utils/Utils.h"
 #include <fstream>
 
+std::unordered_map<std::string, std::unordered_map<std::string, double>> gtreeConfig = {
+        {"DE", {{"fanout", 4}, {"maxleafsize", 64}}},
+        {"ME", {{"fanout", 4}, {"maxleafsize", 128}}},
+        {"NW", {{"fanout", 4}, {"maxleafsize", 256}}},
+        {"W", {{"fanout", 4}, {"maxleafsize", 512}}},
+        {"USA", {{"fanout", 4}, {"maxleafsize", 512}}}
+};
+
+std::vector<std::tuple<int, double>> estConfigs = {
+        {6,  0.32},
+        {8,  0.26},
+        {12, 0.2},
+        {20, 0.16},
+        {36, 0.12}
+};
+
 std::vector<std::tuple<int, double>> distConfigs = {
         {6,  0.47},
         {8,  0.39},
@@ -25,11 +41,20 @@ std::vector<std::tuple<int, double>> hopsConfigs = {
         {36, 0.15}
 };
 
+
 void DistanceExperimentCommand::compareOtherMethods()
 {
+    if (gtreeConfig.find(network) == gtreeConfig.end()) {
+        std::cerr << "No gtree configuration found for network: " << network << std::endl;
+        exit(1);
+    }
+    auto gtreeParams = gtreeConfig[network];
+    methods.push_back(new AdaptiveGtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
+    methods.push_back(new GtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
     methods.push_back(new DijkstraMethod());
     methods.push_back(new AStarMethod());
     methods.push_back(new PhlMethod());
+
     results.resize(methods.size());
 
     for (int i = 0; i < numRepeats; i++) {
@@ -40,7 +65,28 @@ void DistanceExperimentCommand::compareOtherMethods()
         validateAll();
         queries.clear();
     }
+}
 
+void DistanceExperimentCommand::compareAdaptiveEstThresholdQueryVsTime()
+{
+    for (auto parameters: estConfigs) {
+        methods.push_back(
+                new AdaptiveALTMethod(
+                        AdaptiveALTParams(
+                                std::get<0>(parameters),
+                                0.0, 0.0, 1.0, std::get<1>(parameters)
+                        )
+                ));
+    }
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
 }
 
 void DistanceExperimentCommand::compareAdaptiveDistThresholdQueryVsTime()
@@ -84,6 +130,43 @@ void DistanceExperimentCommand::compareAdaptiveHopsThresholdQueryVsTime()
         loadQueries();
         runAll();
         queries.clear();
+    }
+}
+
+void DistanceExperimentCommand::compareAltEstLandmarksVsThreshold()
+{
+
+    std::vector<double> values;
+    for (unsigned i = 120; i < 500; i += 10) {
+        auto threshold = i / 1000.0;
+        values.push_back(threshold);
+    }
+
+    std::vector<EdgeWeight> distances(numTargets, 0);
+    results.resize(values.size());
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        loadQueries();
+        std::vector<std::string> methodNames;
+        for (int j = 0; j < values.size(); j++) {
+            auto params = AdaptiveALTParams(
+                    150,
+                    0.0, 0.0, 1.0, values[j]
+            );
+            auto method = AdaptiveALTMethod(params);
+            methodNames.push_back(method.getInfo());
+            method.buildIndex(graph);
+            std::cout << "Running method: " << method.getInfo() << std::endl;
+            for (unsigned k = 0; k < queries.size(); ++k) {
+                method.findDistances(graph, queries[k], distances);
+            }
+            method.printStatistics();
+            std::cout << std::endl;
+            results[j].push_back(method.getLandmarkNodeIDs().size());
+        }
+
+        // Write after each repeat in case program crashes, do not average results
+        write_to_csv(results, methodNames, getResultsPath(), 1);
     }
 }
 
@@ -173,7 +256,7 @@ void DistanceExperimentCommand::compareLandmarksNumberVsTime()
         std::cout << "Repeat: " << i << std::endl;
         buildIndexes(false);
         loadQueries();
-        runAll(true);
+        runAll(ResultsType::LAST);
     }
 
     queries.clear();
@@ -226,6 +309,34 @@ void DistanceExperimentCommand::compareAvoidALT()
         queries.clear();
     }
 }
+
+void DistanceExperimentCommand::compareAltEstThresholdQueryVsLandmarks()
+{
+    std::vector<double> values = {
+            0.12, 0.16, 0.20, 0.24, 0.28, 0.32
+    };
+
+    results.resize(values.size());
+    for (unsigned i = 0; i < values.size(); ++i) {
+        auto params = AdaptiveALTParams(
+                150,
+                0.0, 0.0, 1.0, values[i]
+        );
+        params.results = &results[i];
+        methods.push_back(new AdaptiveALTMethod(params));
+    }
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes(false);
+        loadQueries();
+        runAll(ResultsType::NONE);
+    }
+
+    // Do not average results, doesn't make sense
+    write_to_csv(results, methods, getResultsPath(), 1);
+}
+
 
 void DistanceExperimentCommand::compareAltDistThresholdQueryVsLandmarks()
 {
@@ -528,7 +639,6 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     network = bgrFilePath.substr(indexSlash + 1, indexDot - indexSlash - 1);
     dataPath = bgrFilePath.substr(0, indexSlash);
     tsvPath = dataPath + "/" + network + ".tsv";
-    std::cout << "tsvPath: " << tsvPath << std::endl;
 
     std::cout << "** " << network << " **" << std::endl;
     if (!validate) {
@@ -636,6 +746,17 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
                 compareOtherMethods();
             });
             break;
+        case 20:
+            compareAltEstThresholdQueryVsLandmarks();
+            break;
+        case 21:
+            compareAltEstLandmarksVsThreshold();
+            break;
+        case 22:
+            runStandardTestCase([this] {
+                compareAdaptiveEstThresholdQueryVsTime();
+            });
+            break;
         default:
             compareMethods();
     }
@@ -730,7 +851,7 @@ void DistanceExperimentCommand::buildIndexes(bool saveTimes)
     for (auto method: methods) {
         double time;
         if (method->getName() == "PHL") {
-            time = dynamic_cast<PhlMethod*>(method)->buildIndex(graph, tsvPath);
+            time = dynamic_cast<PhlMethod *>(method)->buildIndex(graph, tsvPath);
         } else {
             StopWatch sw;
             sw.start();
@@ -769,11 +890,11 @@ void DistanceExperimentCommand::loadQueries()
 
 }
 
-void DistanceExperimentCommand::runAll(bool saveOnlyLastResult)
+void DistanceExperimentCommand::runAll(ResultsType resultsType)
 {
     int iter = 0;
     for (auto method: methods) {
-        runMethod(method, iter, saveOnlyLastResult);
+        runMethod(method, iter, resultsType);
         iter++;
     }
 }
@@ -870,7 +991,7 @@ void DistanceExperimentCommand::runMethod(DistanceMethod *method)
     method->printStatistics();
 }
 
-void DistanceExperimentCommand::runMethod(DistanceMethod *method, int iter, bool saveOnlyLastResult)
+void DistanceExperimentCommand::runMethod(DistanceMethod *method, int iter, ResultsType resultsType)
 {
     std::cout << "*** Measuring " << method->getName() << "... ***" << std::endl;
     method->printInfo();
@@ -879,9 +1000,14 @@ void DistanceExperimentCommand::runMethod(DistanceMethod *method, int iter, bool
     StopWatch sw;
     sw.start();
     for (unsigned i = 0; true; ++i) {
-        if ((isPowerOf(i, 2) && !saveOnlyLastResult) || queries.size() == i) {
+        if (isPowerOf(i, 2) || queries.size() == i) {
             std::cout << "    " << i << ", " << cumulativeTime << std::endl;
-            results[iter].push_back(cumulativeTime);
+
+            if (resultsType == ResultsType::POWER_OF_2 ||
+                (resultsType == ResultsType::LAST && queries.size() == i)) {
+                results[iter].push_back(cumulativeTime);
+            }
+
 //                method->printStatistics();
             if (i >= queries.size()) {
                 break;

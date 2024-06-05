@@ -23,6 +23,12 @@ enum class WorkloadType {
     CLUSTER = 1,
 };
 
+enum class ResultsType {
+    POWER_OF_2 = 0,
+    LAST = 1,
+    NONE = 2,
+};
+
 class DistanceExperimentCommand : public Command {
 
 public:
@@ -54,19 +60,23 @@ private:
 
     void loadQueries();
 
-    void runAll(bool saveOnlyLastResult = false);
+    void runAll(ResultsType resultsType = ResultsType::POWER_OF_2);
 
     void runMethod(DistanceMethod* method);
 
-    void runMethod(DistanceMethod* method, int iter, bool saveOnlyLastResult = false);
+    void runMethod(DistanceMethod* method, int iter, ResultsType resultsType = ResultsType::POWER_OF_2);
 
     void validateAll();
 
     void compareOtherMethods();
 
+    void compareAdaptiveEstThresholdQueryVsTime();
+
     void compareAdaptiveDistThresholdQueryVsTime();
 
     void compareAdaptiveHopsThresholdQueryVsTime();
+
+    void compareAltEstLandmarksVsThreshold();
 
     void compareAltHopsLandmarksVsThreshold();
 
@@ -81,6 +91,8 @@ private:
     void compareFarthestALT();
 
     void compareAvoidALT();
+
+    void compareAltEstThresholdQueryVsLandmarks();
 
     void compareAltDistThresholdQueryVsLandmarks();
 

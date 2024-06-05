@@ -74,6 +74,11 @@ set_target_properties(nd_knn PROPERTIES COMPILE_FLAGS "${DefaultDefinitions}")
 #set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
 #set_target_properties(nd_knn PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DLOGGING")
 
+## comment to enable assertions
+set_target_properties(nd_knn PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DNDEBUG")
+
+
+
 
 
 # Additional Executables for Experiments

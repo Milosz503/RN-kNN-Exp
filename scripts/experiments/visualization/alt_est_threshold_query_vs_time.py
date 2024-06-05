@@ -12,8 +12,7 @@ def load_data():
     plots = []
     for column in data:
         num_of_queries = 1
-        # name = (column[0].split("_")[5])
-        name = (column[0])
+        name = (column[0].split("_")[5])
         headers.append(name)
         build_time = float(column[1])
         values = column[2:]
@@ -26,10 +25,9 @@ def load_data():
 
     return plots, headers
 
-
 def main():
-    execute_experiment(f"-q 4096 -r {config.repeats} -x 19")
 
+    execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 22")
     plots, headers = load_data()
     plots = [add_marks(plot, mark) for plot, mark in zip(plots, scatter_classes)]
 

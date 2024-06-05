@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
+#include "../command/shortest_distance/DistanceMethod.h"
 
 bool isPowerOf(int number, int base) {
     if (number <= 0 || base <= 1) {

@@ -116,6 +116,10 @@ EdgeWeight AdaptiveALT::getLowerBound(Graph& graph, NodeID s, NodeID t)
 
 unsigned AdaptiveALT::createLandmark(Graph &graph, NodeID node)
 {
+    if(params.results != nullptr) {
+        params.results->push_back(queryNumber);
+    }
+
     static double cumulativeTime = 0;
 //    StopWatch sw;
 //    sw.start();
@@ -127,7 +131,7 @@ unsigned AdaptiveALT::createLandmark(Graph &graph, NodeID node)
     dijkstra.findSSSPDistances(graph, node, landmark.distances, landmark.pathLengths, &tempPqueue);
 #else
 #ifdef ESTIMATE_VISITED_NODES
-    dijkstra.findSSSPDistances(graph, node, landmarkDistances, landmark.pathLengths, landmark.nodesVisited,
+    dijkstra.findSSSPDistances(graph, node, tempLandmarkDistances, landmark.pathLengths, landmark.nodesVisited,
                                &tempPqueue);
 #else
     dijkstra.findSSSPDistances(graph, node, tempLandmarkDistances, landmark.pathLengths,
