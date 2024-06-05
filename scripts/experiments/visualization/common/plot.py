@@ -82,7 +82,7 @@ def create_figure(content):
 
 
 def create_axis(x_label, y_label, content, log_axis=False, params=None):
-    if not params.endswith(","):
+    if params and not params.endswith(","):
         params += ","
     axis = "\n"
     axis += format(r'''
