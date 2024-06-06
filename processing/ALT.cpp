@@ -72,23 +72,34 @@ ALT::buildALT(Graph &graph, LANDMARK_TYPE landmarkType, unsigned int _numLandmar
 }
 
 //// Recursively calculate size of each node
-unsigned long ALT::calculateSizes(
+std::tuple<unsigned long, bool> ALT::calculateSizes(
         NodeID root,
-        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree,
-        std::vector<NodeID>& landmarks
+        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree
 ) {
     EdgeWeight weight = std::get<1>(tree[root]);
     unsigned long size = weight;
 
-    for (auto child : std::get<0>(tree[root])) {
-        if (std::find(landmarks.begin(), landmarks.end(), child) == landmarks.end())
-            size += calculateSizes(child, tree, landmarks);
+    bool hasLandmark = false;
+
+    auto children = std::get<0>(tree[root]);
+    for (auto child : children) {
+        bool isChildLandmark = std::find(landmarks.begin(), landmarks.end(), child) != landmarks.end();
+        if(isChildLandmark) {
+            hasLandmark = true;
+        }
+        auto result = calculateSizes(child, tree);
+        if (std::get<1>(result)) {
+            hasLandmark = true;
+        }
+        size += std::get<0>(result);
     }
 
     tree[root] = std::make_tuple(std::get<0>(tree[root]), weight, size);
 
-    return size;
-
+    if(hasLandmark) {
+        return std::make_tuple(0, true);
+    }
+    return std::make_tuple(size, false);
 }
 
 SizeNumNodesPair ALT::calculateSizes(
@@ -115,22 +126,33 @@ NodeID ALT::getMaxLeaf(
         std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree
 ) {
     unsigned long maxSize = 0ul;
-    NodeID maxLeaf = root;
-    unsigned long childSize = 0ul;
+    NodeID maxNode = root;
+    for(unsigned i = 0; i < tree.size(); i++) {
+        auto treeNode = tree[i];
+        auto size = std::get<2>(treeNode);
+        if(size > maxSize) {
+            maxSize = size;
+            maxNode = i;
+        }
+    }
+
+    NodeID currentNode = maxNode;
+
     while (true) {
-        if (std::get<0>(tree[root]).size() == 0)
-            break;
-        for (NodeID child : std::get<0>(tree[root])) {
-            childSize = std::get<2>(tree[child]);
-            if (childSize >= maxSize) {
-                maxSize = childSize;
-                maxLeaf = child;
+        if (std::get<0>(tree[currentNode]).empty())
+            return currentNode;
+
+        unsigned long maxChildSize = 0ul;
+        NodeID maxChild;
+        for (NodeID child : std::get<0>(tree[currentNode])) {
+            auto childSize = std::get<2>(tree[child]);
+            if (childSize >= maxChildSize) {
+                maxChildSize = childSize;
+                maxChild = child;
             }
         }
-        maxSize = 0ul;
-        root = maxLeaf;
+        currentNode = maxChild;
     }
-    return maxLeaf;
 }
 
 NodeID ALT::getMaxLeaf(
@@ -203,98 +225,7 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::AVOID) {
-        SetGenerator sg;
-        //// Number to divide the number of total landmarks
-        int divideBy = 10;
-        //// get the rounded up number of divided landmarks
-        int numInitialLandmarks = std::ceil(numLandmarks / divideBy);
-        std::vector<NodeID> randomSet = sg.generateRandomSampleSet(objectNodes.size(), numLandmarks);
-        //// init first a certain % of landmark starting points
-        std::vector<NodeID> initialLandmarkVertices(randomSet.begin(), randomSet.begin() + numInitialLandmarks);
-        //// init random vertices from which we want to run avoid in every iteration to find a landmark candidate
-        std::vector<NodeID> randomVertices(randomSet.begin() + numInitialLandmarks, randomSet.end());
-
-        landmarks.clear();
-        landmarks.reserve(randomSet.size());
-
-        for (auto vert : initialLandmarkVertices) {
-            landmarks.push_back(objectNodes[vert]);
-        }
-
-        //// init the first landmarks - de facto the random objects approach
-        std::size_t startingIndex = initialLandmarkVertices.size();
-        for (std::size_t i = 0; i < initialLandmarkVertices.size(); ++i) {
-            pqueue->clear();
-            dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-//                NodeID object = objectNodes[j];
-//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-//            }
-//            auto olStart = objectDistances.begin() + i * objectNodes.size();
-//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-//            std::sort(olStart, olEnd, compareObjectListElement);
-
-            for (std::size_t j = 0; j < numNodes; ++j) {
-                vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
-            }
-        }
-
-        //// Shortest path tree as a vector of tuples of children ids, weights, and sizes
-        std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>> spTree(numNodes);
-        int adjListStart, nextAdjListStart;
-        NodeID randomVertex;
-        EdgeWeight vertexWeight;
-
-        for (std::size_t i = startingIndex; i < numLandmarks; ++i) {
-            pqueue->clear();
-            //// randomVertex should be indexed from 0
-            randomVertex = objectNodes[randomVertices[i - numInitialLandmarks]];
-            dijk.findSSSPDistances(graph, randomVertex, landmarkDistances, pqueue);
-
-            for (auto j = 0; j < objectNodes.size(); j++) {
-                //// get vertex weight
-                vertexWeight = landmarkDistances[objectNodes[j]] - getLowerBound(randomVertex, objectNodes[j]);
-                std::vector<NodeID> readyToPush;
-
-                adjListStart = graph.getEdgeListStartIndex(objectNodes[j]);
-                nextAdjListStart = graph.getEdgeListSize(objectNodes[j]);
-
-                // check if a child in the Shortest Path Tree
-                for (int k = adjListStart; k < nextAdjListStart; ++k) {
-                    if (landmarkDistances[graph.edges[k].first] == landmarkDistances[objectNodes[j]] + graph.edges[k].second) {
-                        readyToPush.push_back(graph.edges[k].first);
-                    }
-                }
-                // Add node - a tuple of vertex children and weight - to the tree
-                spTree[objectNodes[j]] = std::make_tuple(readyToPush, vertexWeight, 0ul);
-            }
-
-            // recursively calculate sizes of each node v
-            // (size is defined as a sum of weights in a subtree of the spTree with node v as a root)
-            // if a node is a landmark - size = 0
-            calculateSizes(randomVertex, spTree, landmarks);
-
-            // Calculate a path of max size - on each node go to node with highest size, repeat until leaf.
-            landmarks.push_back(getMaxLeaf(randomVertex, spTree));
-
-            // perform normal landmark creation
-            pqueue->clear();
-            dijk.findSSSPDistances(graph, landmarks[i], landmarkDistances, pqueue);
-//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
-//                NodeID object = objectNodes[j];
-//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
-//            }
-//            auto olStart = objectDistances.begin() + i * objectNodes.size();
-//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
-//            std::sort(olStart, olEnd, compareObjectListElement);
-
-            for (std::size_t j = 0; j < numNodes; ++j) {
-                vertexFromLandmarkDistances[j * numLandmarks + i] = landmarkDistances[j];
-            }
-        }
-        delete pqueue;
-//        objectList.setDistances(objectDistances, objectNodes.size());
-        return;
+        generateAvoidLandmarks(graph, numLandmarks);
     }
     else if (landmarkType == LANDMARK_TYPE::AVOID_PEQUE_URATA_IRYO) {
         SetGenerator sg;
@@ -646,6 +577,95 @@ void ALT::generateFarthestLandmarks(Graph &graph, unsigned int numLandmarks)
     }
 }
 
+void ALT::generateAvoidLandmarks(Graph &graph, unsigned int numLandmarks) {
+    std::vector<EdgeWeight> landmarkDistances(numNodes, 0);
+
+    vertexFromLandmarkDistances.resize(numLandmarks * numNodes);
+
+    std::vector<ObjectListElement> objectDistances;
+    objectDistances.resize(numLandmarks * graph.getNumNodes());
+
+    SetGenerator sg;
+    //// Number to divide the number of total landmarks
+    int divideBy = 10;
+    //// get the rounded up number of divided landmarks
+    int numInitialLandmarks = 1;//std::ceil(numLandmarks / (float)divideBy);
+//    std::vector<NodeID> randomSet = sg.generateRandomSampleSet(graph.getNumNodes(), numLandmarks);
+    //// init first a certain % of landmark starting points
+    std::vector<NodeID> initialLandmarkVertices;
+    initialLandmarkVertices.push_back(rand()%graph.getNumNodes());
+    //(randomSet.begin(), randomSet.begin() + numInitialLandmarks);
+
+    landmarks.clear();
+    landmarks.reserve(numLandmarks);
+
+    //// init the first landmarks - de facto the random objects approach
+    for (auto vert : initialLandmarkVertices) {
+        createLandmark(graph, vert, landmarkDistances);
+    }
+
+    std::size_t startingIndex = initialLandmarkVertices.size();
+
+    //// Shortest path tree as a vector of tuples of children ids, weights, and sizes
+    std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>> spTree(numNodes);
+    int adjListStart, nextAdjListStart;
+    NodeID root;
+    EdgeWeight vertexWeight;
+
+    for (std::size_t i = startingIndex; i < numLandmarks; ++i) {
+        pqueue.clear();
+        //// random root
+        root = rand() % graph.getNumNodes();
+        dijk.findSSSPDistances(graph, root, landmarkDistances, &pqueue);
+
+        for (auto j = 0; j < graph.getNumNodes(); j++) {
+            //// get vertex weight
+            vertexWeight = landmarkDistances[j] - getLowerBound(root, j);
+            std::vector<NodeID> readyToPush;
+
+            adjListStart = graph.getEdgeListStartIndex(j);
+            nextAdjListStart = graph.getEdgeListSize(j);
+
+            // check if a child in the Shortest Path Tree
+            for (int k = adjListStart; k < nextAdjListStart; ++k) {
+                if (landmarkDistances[graph.edges[k].first] == landmarkDistances[j] + graph.edges[k].second) {
+                    readyToPush.push_back(graph.edges[k].first);
+                }
+            }
+            // Add node - a tuple of vertex children and weight - to the tree
+            spTree[j] = std::make_tuple(readyToPush, vertexWeight, 0ul);
+        }
+
+        // recursively calculate sizes of each node v
+        // (size is defined as a sum of weights in a subtree of the spTree with node v as a root)
+        // if a node is a landmark - size = 0
+        calculateSizes(root, spTree);
+
+        // Calculate a path of max size - on each node go to node with highest size, repeat until leaf.
+        auto newLandmarkNode = getMaxLeaf(root, spTree);
+        createLandmark(graph, newLandmarkNode, landmarkDistances);
+    }
+//        objectList.setDistances(objectDistances, objectNodes.size());
+}
+
+void ALT::createLandmark(Graph& graph, NodeID node, std::vector<EdgeWeight>& landmarkDistances) {
+    pqueue.clear();
+    landmarks.push_back(node);
+    auto landmarkIndex = landmarks.size() - 1;
+    dijk.findSSSPDistances(graph, node, landmarkDistances, &pqueue);
+//            for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+//                NodeID object = objectNodes[j];
+//                objectDistances[i * objectNodes.size() + j] = std::make_pair(object, landmarkDistances[object]);
+//            }
+//            auto olStart = objectDistances.begin() + i * objectNodes.size();
+//            auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+//            std::sort(olStart, olEnd, compareObjectListElement);
+
+    for (std::size_t j = 0; j < numNodes; ++j) {
+        vertexFromLandmarkDistances[j * numLandmarks + landmarkIndex] = landmarkDistances[j];
+    }
+
+}
 
 double ALT::closestLandmarkNodesRatio(NodeID node, std::vector<std::vector<unsigned>>& landmarksPathLengths,
                                       std::vector<unsigned>& landmarksMaxPaths,

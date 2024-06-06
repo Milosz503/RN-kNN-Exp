@@ -369,6 +369,7 @@ std::vector<int> Graph::countOutdegreeFrequencies()
     int numCountedEdges = 0;
     for (NodeID i = 0; i < this->numNodes; ++i) {
         // Outdegree for node i-1 (not node i)
+
         outdegree = this->firstEdgeIndex[i+1]-firstEdgeIndex[i];
         if (frequencies.size() <= outdegree) {
             // Note: resize doesn't change the values

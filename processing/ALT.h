@@ -24,6 +24,7 @@
 #include "Path.h"
 #include "ier/ObjectList.h"
 #include "../queue/BinaryMinHeap.h"
+#include "DijkstraSearch.h"
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
@@ -92,6 +93,10 @@ public:
 
     void generateFarthestLandmarks(Graph &graph, unsigned int numLandmarks);
 
+    void generateAvoidLandmarks(Graph &graph, unsigned int numLandmarks);
+
+    void createLandmark(Graph& graph, NodeID node, std::vector<EdgeWeight>& landmarkDistances);
+
     double closestLandmarkNodesRatio(NodeID node,
                                       std::vector<std::vector<unsigned>>& landmarksPathLengths,
                                       std::vector<unsigned>& landmarksMaxPaths,
@@ -138,7 +143,7 @@ public:
 
     unsigned long edgesAccessedCount = 0;
 
-    unsigned long calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree, std::vector<NodeID>& landmarks);
+    std::tuple<unsigned long, bool> calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree);
     NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long>>& tree);
     SizeNumNodesPair calculateSizes(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree, std::vector<NodeID>& landmarks);
     NodeID getMaxLeaf(NodeID root, std::vector<std::tuple<std::vector<NodeID>, EdgeWeight, unsigned long, unsigned>>& tree);
@@ -147,7 +152,7 @@ public:
     }
 private:
     friend class boost::serialization::access;
-
+    DijkstraSearch dijk;
     ALTParameters parameters;
     std::string networkName;
     unsigned int numNodes;
