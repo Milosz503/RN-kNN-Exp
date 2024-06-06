@@ -78,6 +78,8 @@ class AdaptiveALT {
 public:
     AdaptiveALT(int numNodes, int numEdges, AdaptiveALTParams &params);
 
+    void refineIndex(Graph &graph, NodeID source, NodeID target);
+
     PathDistance findShortestPathDistance(Graph &graph, NodeID source, NodeID target);
 
     EdgeWeight getLowerBound(Graph& graph, NodeID s, NodeID t);
