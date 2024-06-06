@@ -27,6 +27,33 @@ AdaptiveALT::AdaptiveALT(int numNodes, int numEdges, AdaptiveALTParams &params) 
 //    vertexFromLandmarkDistances.resize(maxNumLandmarks * numNodes);
 }
 
+void AdaptiveALT::refineIndex(Graph &graph, NodeID source, NodeID target)
+{
+    queryNumber++;
+
+
+    auto landmarkDistRatio = closestLandmarkDistanceRatio(target);
+    auto landmarkNodesRatio = closestLandmarkNodesRatio(target);
+    double estimatedPathLength = 1;
+    if (numLandmarks > 0) {
+        estimatedPathLength = estimatePathLengthRatio(source, target) * landmarkDistRatio
+                              - landmarks[findClosestLandmark(source)].pathLengths[target] / (double)numNodes;
+    }
+
+    double score = params.a * landmarkDistRatio +
+                   params.b * landmarkNodesRatio +
+                   params.c * estimatedPathLength;
+    double threshold = params.thresholdFunction(queryNumber);
+
+    if (score > threshold && numLandmarks < maxNumLandmarks) {
+        StopWatch sw;
+        sw.start();
+        createLandmark(graph, target);
+        sw.stop();
+        landmarkCreateTime += sw.getTimeMs();
+    }
+}
+
 PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, NodeID target)
 {
     queryNumber++;
@@ -38,6 +65,7 @@ PathDistance AdaptiveALT::findShortestPathDistance(Graph &graph, NodeID source, 
     if (numLandmarks > 0) {
         estimatedPathLength = estimatePathLengthRatio(source, target) * landmarkDistRatio
                               - landmarks[findClosestLandmark(source)].pathLengths[target] / (double)numNodes;
+        estimatedPathLength = std::max(estimatedPathLength, 0.0);
     }
 
     double score = params.a * landmarkDistRatio +

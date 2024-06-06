@@ -192,6 +192,14 @@ public:
         alt = new AdaptiveALT(graph.getNumNodes(), graph.getNumNodes(), params);
     }
 
+    void refineIndex(Graph &graph, Query &query)
+    {
+        for (unsigned i = 0; i < query.targets.size(); ++i) {
+            auto target = query.targets[i];
+            alt->refineIndex(graph, query.source, target);
+        }
+    }
+
     void findDistances(Graph &graph, Query &query, std::vector <EdgeWeight> &distances) override
     {
         for (unsigned i = 0; i < query.targets.size(); ++i) {

@@ -158,7 +158,7 @@ void DistanceExperimentCommand::compareAltEstLandmarksVsThreshold()
             method.buildIndex(graph);
             std::cout << "Running method: " << method.getInfo() << std::endl;
             for (unsigned k = 0; k < queries.size(); ++k) {
-                method.findDistances(graph, queries[k], distances);
+                method.refineIndex(graph, queries[k], distances);
             }
             method.printStatistics();
             std::cout << std::endl;
