@@ -50,6 +50,7 @@ class AdaptiveGtree {
         int getNumNodes();
         int getNumEdges();
         int getFanout();
+        int minLeafLevel = 2487628;
         int getTreeSize();
         int getLeafIndex(NodeID nodeID);
         int getParentIndex(int treeIdx);

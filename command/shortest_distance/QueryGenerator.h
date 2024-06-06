@@ -28,6 +28,15 @@ public:
 
     std::vector<NodeID> generateClusters(Graph& graph, unsigned numClusters);
 
+    std::vector<NodeID> randomObjects(Graph &graph, double density);
+
+    std::vector<NodeID> randomKNN(Graph &graph, unsigned int n);
+
+    std::vector<NodeID>
+    randomExpandObjectsClustered(Graph &graph, double density, unsigned int numClusters, double probability);
+
+    std::vector<NodeID>
+    randomExpandKNNQueriesClustered(Graph &graph, unsigned int n, unsigned int numClusters, double probability);
 };
 
 

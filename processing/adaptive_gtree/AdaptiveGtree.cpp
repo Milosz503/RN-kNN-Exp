@@ -138,6 +138,8 @@ AdaptiveGtree::addNode(int parentIdx, std::unordered_set<NodeID> &subgraph, Grap
         // If this has less than tau graph node then we stop partitions
         this->treeNodes[treeIdx].setLeafNode();
         this->leafIdxs.push_back(treeIdx);
+        if (this->minLeafLevel > level)
+            this->minLeafLevel = level;
     }
 
     // Determine and add borders for this Gtree node
@@ -348,7 +350,7 @@ void AdaptiveGtree::computeDistanceMatrix(Graph &graph)
             }
 
         }
-        if (i < treeLevelIdxs.size() - 4) {
+        if (i < this->minLeafLevel) {
             size_t m = 0;
             while (m < remainingNodes.size()) {
                 auto node = remainingNodes[m];
