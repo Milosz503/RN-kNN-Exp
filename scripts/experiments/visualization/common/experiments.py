@@ -3,7 +3,7 @@ import os
 from common.config import config
 
 
-def execute_experiment(params, network=None, include_clustered=None):
+def execute_experiment(params, network=None, include_clustered=False):
     if network is None:
         network = config.network
 

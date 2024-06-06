@@ -380,7 +380,7 @@ public:
         graph.outputToTSVFile(tsvPath);
         std::cout << "TSV file written successfully." << std::endl;
         phl.ConstructLabel(tsvPath.c_str());
-        return phl.getConstructionTime();
+        return phl.getConstructionTime() * 1000;
     }
 
     void findDistances(Graph &graph, Query &query, std::vector <EdgeWeight> &distances) override

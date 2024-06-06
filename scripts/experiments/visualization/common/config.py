@@ -3,11 +3,12 @@ import sys
 class Config:
     def __init__(self):
         self.default_query_number=4096
+        self.clustered_query_number=16384
         self.rerun_experiments = True
         self.validate = "-v 0"
         self.network = "NW"
         self.networks = ["ME", "NW", "W", "USA"]
-        self.repeats = "5"
+        self.repeats = "10"
         self.include_random = True
         self.include_clustered = True
 
