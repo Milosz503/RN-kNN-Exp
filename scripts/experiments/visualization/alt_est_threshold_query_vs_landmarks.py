@@ -33,7 +33,7 @@ def generate_plot():
 
 
 def main():
-    execute_experiment(f"-q {number_of_queries} -r 1 -x 20", include_clustered=False)
+    execute_experiment(f"-q {number_of_queries} -r {config.repeats} -x 20", include_clustered=False)
 
     generate_plot()
 
