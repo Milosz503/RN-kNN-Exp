@@ -41,6 +41,8 @@ private:
                            std::string objVariable,
                            std::string filePathPrefix, std::string statsOutputFile);
 
+    void runSingleMethodQueries(std::string bgrFileName, unsigned method, double density, unsigned r, unsigned tau, unsigned fanout, unsigned k, int verify, std::string special, std::string output);
+
     void runINEQueries();
 
     void runExperiment(Experiment &experiment);
