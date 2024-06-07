@@ -134,11 +134,12 @@ private:
 class IERALTExperiment : public Experiment {
 public:
 
-    explicit IERALTExperiment(unsigned int branchFactor, unsigned int numLandmarks, LANDMARK_TYPE landmarkType) :
+    explicit IERALTExperiment(unsigned int branchFactor, unsigned int numLandmarks, LANDMARK_TYPE landmarkType, ALTParameters params) :
             branchFactor(branchFactor),
             numLandmarks(numLandmarks),
             rtree(nullptr),
-            landmarkType(landmarkType)
+            landmarkType(landmarkType),
+            alt("", 0, 0, params)
     {}
 
     void buildIndex(Graph &graph) override

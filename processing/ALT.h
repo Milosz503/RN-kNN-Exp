@@ -71,9 +71,16 @@ struct ALTParameters {
     ALTParameters() : ALTParameters(0)
     {}
 
+    static ALTParameters buildKnnParameters() {
+        auto params = ALTParameters();
+        params.buildKnn = true;
+        return params;
+    }
+
     double threshold;
     unsigned numberOfTries;
     std::vector<double>* results = nullptr;
+    bool buildKnn = false;
 };
 
 class ALT {
@@ -96,6 +103,8 @@ public:
     void generateAvoidLandmarks(Graph &graph, unsigned int numLandmarks);
 
     void createLandmark(Graph& graph, NodeID node, std::vector<EdgeWeight>& landmarkDistances);
+
+    void buildObjectLists(std::vector<NodeID> &objectNodes);
 
     double closestLandmarkNodesRatio(NodeID node,
                                       std::vector<std::vector<unsigned>>& landmarksPathLengths,

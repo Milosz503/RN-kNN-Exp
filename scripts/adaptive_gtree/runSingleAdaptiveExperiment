@@ -16,7 +16,7 @@
 . globalVariables
 
 # Concatenate special parameters to pass to program
-special_knn_parameters="landmarks=20,landmarks_type=2"
+special_knn_parameters="landmarks=20,landmarks_type=5"
 #if [[ $4 != "none" ]]; then
 #    IFS=',' read -a special_fields <<< "$4"
 #    for i in "${!special_fields[@]}"

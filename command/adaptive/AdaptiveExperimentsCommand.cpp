@@ -190,7 +190,7 @@ std::unordered_map<std::string, std::string> AdaptiveExperimentsCommand::getPara
 //             std::cout << "Value = " << pair[1] << std::endl;
             parameterMap[pair[0]] = pair[1];
         } else {
-            std::cerr << "Invalid key-value pair in parameter string" << std::endl;
+            std::cerr << "Invalid key-value pair in parameter string: " << pair[i] << std::endl;
             exit(1);
         }
     }
@@ -467,6 +467,6 @@ void AdaptiveExperimentsCommand::runIERAStarQueries(unsigned int branchFactor)
 
 void AdaptiveExperimentsCommand::runIERALTQueries(unsigned int branchFactor, unsigned int numLandmarks, LANDMARK_TYPE landmarkType)
 {
-    IERALTExperiment experiment(branchFactor, numLandmarks, landmarkType);
+    IERALTExperiment experiment(branchFactor, numLandmarks, landmarkType, ALTParameters::buildKnnParameters());
     this->runExperiment(experiment);
 }

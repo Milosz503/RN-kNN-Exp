@@ -195,9 +195,6 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
 
     vertexFromLandmarkDistances.resize(numLandmarks * numNodes);
 
-    std::vector<ObjectListElement> objectDistances;
-    objectDistances.resize(numLandmarks * objectNodes.size());
-
     if (landmarkType == LANDMARK_TYPE::RANDOM) {
         SetGenerator sg;
         std::vector<NodeID> randomVertices = sg.generateRandomSampleSet(numNodes, numLandmarks);
@@ -214,18 +211,23 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
     }
     else if (landmarkType == LANDMARK_TYPE::MIN_DIST) {
         generateDistHopsLandmarks(graph, numLandmarks);
+        buildObjectLists(objectNodes);
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::HOPS) {
         generateDistHopsLandmarks(graph, numLandmarks);
+        buildObjectLists(objectNodes);
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::FARTHEST) {
         generateFarthestLandmarks(graph, numLandmarks);
+        buildObjectLists(objectNodes);
         return;
     }
     else if (landmarkType == LANDMARK_TYPE::AVOID) {
         generateAvoidLandmarks(graph, numLandmarks);
+        buildObjectLists(objectNodes);
+        return;
     }
     else if (landmarkType == LANDMARK_TYPE::AVOID_PEQUE_URATA_IRYO) {
         SetGenerator sg;
@@ -473,6 +475,7 @@ ALT::buildALT(Graph &graph, std::vector<NodeID> &objectNodes, LANDMARK_TYPE land
         }
     }
     delete pqueue;
+    buildObjectLists(objectNodes);
 //    objectList.setDistances(objectDistances, objectNodes.size());
 
 //    for(int i = 0; i < 100; i++) {
@@ -665,6 +668,28 @@ void ALT::createLandmark(Graph& graph, NodeID node, std::vector<EdgeWeight>& lan
         vertexFromLandmarkDistances[j * numLandmarks + landmarkIndex] = landmarkDistances[j];
     }
 
+}
+
+void ALT::buildObjectLists(std::vector<NodeID> &objectNodes) {
+    if(!parameters.buildKnn) {
+        return;
+    }
+
+    std::vector<ObjectListElement> objectDistances;
+    objectDistances.resize(numLandmarks * objectNodes.size());
+
+    for (std::size_t i = 0; i < landmarks.size(); ++i) {
+
+        for (std::size_t j = 0; j < objectNodes.size(); ++j) {
+            NodeID object = objectNodes[j];
+            auto distance = vertexFromLandmarkDistances[object * numLandmarks + i];
+            objectDistances[i * objectNodes.size() + j] = std::make_pair(object, distance);
+        }
+        auto olStart = objectDistances.begin() + i * objectNodes.size();
+        auto olEnd = objectDistances.begin() + (i + 1) * objectNodes.size();
+        std::sort(olStart, olEnd, compareObjectListElement);
+    }
+    objectList.setDistances(objectDistances, objectNodes.size());
 }
 
 double ALT::closestLandmarkNodesRatio(NodeID node, std::vector<std::vector<unsigned>>& landmarksPathLengths,
