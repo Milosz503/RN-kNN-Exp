@@ -1797,3 +1797,54 @@ void AdaptiveGtree::printInfo()
 //        dijkstra.printEdgeAccess();
     }
 }
+
+void AdaptiveGtree::printInfo(std::vector<std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>>& results)
+{
+    std::vector<std::vector<int>> treeLevelIdxs = this->getTreeNodesByLevel();
+    int level = 0;
+
+    unsigned allLeavesCellsNumber = 0;
+    unsigned allLeavesFilledCells = 0;
+
+    unsigned allInternalCellsNumber = 0;
+    unsigned allInternalFilledCells = 0;
+    for(const auto& treeLevel : treeLevelIdxs) {
+
+        unsigned leavesCellsNumber = 0;
+        unsigned leavesFilledCells = 0;
+
+        unsigned internalCellsNumber = 0;
+        unsigned internalFilledCells = 0;
+
+        for(const auto& currentIndex : treeLevel) {
+            auto& node = this->treeNodes[currentIndex];
+            auto &nodeDistanceMatrix = node.distanceMatrix;
+            if (node.isLeafNode()) {
+                leavesCellsNumber += nodeDistanceMatrix.size();
+                for (int i = 0; i < nodeDistanceMatrix.size(); ++i) {
+                    if (nodeDistanceMatrix.isAssigned(i)) {
+                        leavesFilledCells++;
+                    }
+                }
+            } else {
+                internalCellsNumber += nodeDistanceMatrix.size();
+                for (int i = 0; i < nodeDistanceMatrix.size(); ++i) {
+                    if (nodeDistanceMatrix.isAssigned(i)) {
+                        internalFilledCells++;
+                    }
+                }
+            }
+        }
+        allLeavesCellsNumber += leavesCellsNumber;
+        allLeavesFilledCells += leavesFilledCells;
+        allInternalCellsNumber += internalCellsNumber;
+        allInternalFilledCells += internalFilledCells;
+
+        if (results.size() < level + 1)
+            results.push_back(std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>());
+
+        results[level].push_back(std::make_tuple(leavesCellsNumber, leavesFilledCells, internalCellsNumber, internalFilledCells));
+        level++;
+    }
+    results[level].push_back(std::make_tuple(allLeavesCellsNumber, allLeavesFilledCells, allInternalCellsNumber, allInternalFilledCells));
+}

@@ -96,6 +96,7 @@ class AdaptiveGtree {
         double computeMemoryUsage();
         double computeDistanceMatrixMemoryUsage();
         void printInfo();
+        void printInfo(std::vector<std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>>& results);
         int getComputations(int leafIdx, int currIdx);
 
 

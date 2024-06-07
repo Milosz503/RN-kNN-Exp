@@ -264,7 +264,7 @@ void experimentQueryDistribution(Graph &graph, unsigned fanout = 4, unsigned max
                 queries = QueryGenerator().randomKNN(graph, 8192);
             } else {
                 int numClusters = std::pow(2, query_c - 1);
-                queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, 8192, query_c, 100.0 / graph.getNumNodes());
+                queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, 8192, numClusters, 100.0 / graph.getNumNodes());
             }
             sw.reset();
             sw.start();
@@ -336,7 +336,7 @@ void experimentQueryDistributionNA(Graph &graph, unsigned fanout = 4, unsigned m
                 queries = QueryGenerator().randomKNN(graph, 8192);
             } else {
                 int numClusters = std::pow(2, query_c - 1);
-                queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, 8192, query_c, 100.0 / graph.getNumNodes());
+                queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, 8192, numClusters, 100.0 / graph.getNumNodes());
             }
             sw.reset();
             sw.start();
@@ -518,6 +518,142 @@ void experimentKSizeNA(Graph &graph, unsigned fanout = 4, unsigned maxLeafSize =
         i++;
     }
     write_to_csv2(results, std::vector<std::string>({"k: 1", "k: 2", "k: 4", "k: 8", "k: 16"}), output + "/gtree/" + graph.getNetworkName() + "_k", r);
+}
+
+void experimentKSizeClusteredObjects(Graph &graph, unsigned fanout = 4, unsigned maxLeafSize = 128, unsigned int r = 1, double density = 0.001, bool verifyKNN = false, std::string output = "")
+{
+    AdaptiveGTreeExperiment experiment(fanout, maxLeafSize);
+    INEExperiment verifyExperiment;
+    std::string message;
+
+
+    std::vector <std::vector<double>> results(5);
+    StopWatch sw;
+    std::vector<NodeID> kNNs, ineKNNs;
+    std::vector<EdgeWeight> kNNDistances, ineKNNDistances;
+    unsigned queryCounter = 0;
+    double totalQueryTime = 0.0;
+    int i = 0;
+    for (int k = 1; k < 17; k *= 2) {
+        for (int repeats = 0; repeats < r; repeats++) {
+            queryCounter = 0;
+            totalQueryTime = 0.0;
+            std::vector <NodeID> queries = QueryGenerator().randomKNN(graph, 8192);
+            std::vector <NodeID> objects = QueryGenerator().randomExpandObjectsClustered(graph, density, 4,
+                                                                        100.0 / graph.getNumNodes());
+            sw.reset();
+            sw.start();
+            experiment.buildIndex(graph);
+            sw.stop();
+            results[i].push_back(sw.getTimeMs());
+            experiment.printInfo();
+            experiment.clearObjects();
+            experiment.loadObjects(graph, objects);
+            for (auto queryNodeIt = queries.begin(); queryNodeIt != queries.end(); ++queryNodeIt) {
+                kNNs.clear();
+                kNNDistances.clear();
+                kNNs.reserve(k);
+                kNNDistances.reserve(k);
+                sw.reset();
+                sw.start();
+                experiment.runQuery(graph, k, *queryNodeIt, kNNs, kNNDistances);
+                sw.stop();
+                totalQueryTime += sw.getTimeMs();
+
+                if (verifyKNN) {
+                    ineKNNs.clear();
+                    ineKNNDistances.clear();
+                    verifyExperiment.clearObjects();
+                    verifyExperiment.loadObjects(graph, objects);
+                    verifyExperiment.runQuery(graph, k, *queryNodeIt, ineKNNs, ineKNNDistances);
+                    if (!utility::verifyKNN(ineKNNs, ineKNNDistances, kNNs, kNNDistances, false, k,
+                                            message, true)) {
+                        std::cout << "Verfication failed for query node " << *queryNodeIt << " with k = "
+                                  << k
+                                  << std::endl;
+                        std::cout << "Message: " << message << std::endl;
+                        exit(1);
+                    }
+                }
+                queryCounter++;
+                if (queryCounter == 4 || queryCounter == 16 || queryCounter == 64 ||
+                    queryCounter == 256 || queryCounter == 1024 || queryCounter == 4196 || queryCounter == 8192) {
+                    results[i].push_back(totalQueryTime);
+                    std::cout << "Q: " << queryCounter << ", t: " << totalQueryTime << std::endl;
+                }
+            }
+        }
+        i++;
+    }
+    write_to_csv2(results, std::vector<std::string>({"k: 1", "k: 2", "k: 4", "k: 8", "k: 16"}), output + "/agtree/" + graph.getNetworkName() + "_k_objects-clustered", r);
+}
+
+void experimentKSizeClusteredObjectsNA(Graph &graph, unsigned fanout = 4, unsigned maxLeafSize = 128, unsigned int r = 1, double density = 0.001, bool verifyKNN = false, std::string output = "")
+{
+    GTreeExperiment experiment(fanout, maxLeafSize);
+    INEExperiment verifyExperiment;
+    std::string message;
+
+
+    std::vector <std::vector<double>> results(5);
+    StopWatch sw;
+    std::vector<NodeID> kNNs, ineKNNs;
+    std::vector<EdgeWeight> kNNDistances, ineKNNDistances;
+    unsigned queryCounter = 0;
+    double totalQueryTime = 0.0;
+    int i = 0;
+    for (int k = 1; k < 17; k *= 2) {
+        for (int repeats = 0; repeats < r; repeats++) {
+            queryCounter = 0;
+            totalQueryTime = 0.0;
+            std::vector <NodeID> queries = QueryGenerator().randomKNN(graph, 8192);
+            std::vector <NodeID> objects = QueryGenerator().randomExpandObjectsClustered(graph, density, 4,
+                                                                100.0 / graph.getNumNodes());
+            sw.reset();
+            sw.start();
+            experiment.buildIndex(graph);
+            sw.stop();
+            results[i].push_back(sw.getTimeMs());
+            experiment.printInfo();
+            experiment.clearObjects();
+            experiment.loadObjects(graph, objects);
+            for (auto queryNodeIt = queries.begin(); queryNodeIt != queries.end(); ++queryNodeIt) {
+                kNNs.clear();
+                kNNDistances.clear();
+                kNNs.reserve(k);
+                kNNDistances.reserve(k);
+                sw.reset();
+                sw.start();
+                experiment.runQuery(graph, k, *queryNodeIt, kNNs, kNNDistances);
+                sw.stop();
+                totalQueryTime += sw.getTimeMs();
+
+                if (verifyKNN) {
+                    ineKNNs.clear();
+                    ineKNNDistances.clear();
+                    verifyExperiment.clearObjects();
+                    verifyExperiment.loadObjects(graph, objects);
+                    verifyExperiment.runQuery(graph, k, *queryNodeIt, ineKNNs, ineKNNDistances);
+                    if (!utility::verifyKNN(ineKNNs, ineKNNDistances, kNNs, kNNDistances, false, k,
+                                            message, true)) {
+                        std::cout << "Verfication failed for query node " << *queryNodeIt << " with k = "
+                                  << k
+                                  << std::endl;
+                        std::cout << "Message: " << message << std::endl;
+                        exit(1);
+                    }
+                }
+                queryCounter++;
+                if (queryCounter == 4 || queryCounter == 16 || queryCounter == 64 ||
+                    queryCounter == 256 || queryCounter == 1024 || queryCounter == 4196 || queryCounter == 8192) {
+                    results[i].push_back(totalQueryTime);
+                    std::cout << "Q: " << queryCounter << ", t: " << totalQueryTime << std::endl;
+                }
+            }
+        }
+        i++;
+    }
+    write_to_csv2(results, std::vector<std::string>({"k: 1", "k: 2", "k: 4", "k: 8", "k: 16"}), output + "/gtree/" + graph.getNetworkName() + "_k_objects-clustered", r);
 }
 
 void experimentObjectSize(Graph &graph, unsigned fanout = 4, unsigned maxLeafSize = 128, unsigned int r = 1, unsigned k = 10, bool verifyKNN = false, std::string output = "")
@@ -728,10 +864,175 @@ void experimentFAndTau(Graph& graph, unsigned int r = 1, double density = 0.001,
     results.clear();
 }
 
-void experimentDistanceMatrixConvergence(unsigned int r = 1)
+void experimentDistanceMatrixConvergence(Graph& graph, std::string output = "", int repeats = 5, unsigned int r = 1, unsigned fanout=4, unsigned maxLeafSize=128, unsigned k=10, double density=0.001, bool verifyKNN = false)
 {
+    AdaptiveGTreeExperiment experiment(fanout, maxLeafSize);
+    INEExperiment verifyExperiment;
+    std::string message;
+    std::vector < std::vector< std::tuple< unsigned, unsigned, unsigned, unsigned > > > results;
+    std::vector<NodeID> kNNs, ineKNNs;
+    std::vector<EdgeWeight> kNNDistances, ineKNNDistances;
+    unsigned queryCounter = 0;
+    unsigned totalQueryTime = 0.0;
 
+    for (int repeats = 0; repeats < r; repeats++) {
+        queryCounter = 0;
+        totalQueryTime = 0.0;
+        std::vector <NodeID> queries = QueryGenerator().randomKNN(graph, 8192);
+        std::vector <NodeID> objects = QueryGenerator().randomObjects(graph, density);
+        experiment.buildIndex(graph);
+        experiment.printInfo();
+        experiment.clearObjects();
+        experiment.loadObjects(graph, objects);
+        for (auto queryNodeIt = queries.begin(); queryNodeIt != queries.end(); ++queryNodeIt) {
+            kNNs.clear();
+            kNNDistances.clear();
+            kNNs.reserve(k);
+            kNNDistances.reserve(k);
+            experiment.runQuery(graph, k, *queryNodeIt, kNNs, kNNDistances);
+
+            if (verifyKNN) {
+                ineKNNs.clear();
+                ineKNNDistances.clear();
+                verifyExperiment.clearObjects();
+                verifyExperiment.loadObjects(graph, objects);
+                verifyExperiment.runQuery(graph, k, *queryNodeIt, ineKNNs, ineKNNDistances);
+                if (!utility::verifyKNN(ineKNNs, ineKNNDistances, kNNs, kNNDistances, false, k,
+                                        message, true)) {
+                    std::cout << "Verfication failed for query node " << *queryNodeIt << " with k = "
+                                << k
+                                << std::endl;
+                    std::cout << "Message: " << message << std::endl;
+                    exit(1);
+                }
+            }
+            queryCounter++;
+            if (queryCounter < 11) {
+                experiment.getConvergence(results);
+            }
+            else if (queryCounter < 101 && queryCounter % 10 == 0) {
+                experiment.getConvergence(results);
+            }
+            else if (queryCounter < 1001 && queryCounter % 100 == 0) {
+                experiment.getConvergence(results);
+            }
+            else if (queryCounter < 10001 && queryCounter % 1000 == 0) {
+                experiment.getConvergence(results);
+            }
+        }
+    }
+    int measurements = results[0].size() / repeats;
+    std::vector<std::vector<double>> leafResults(measurements);
+    std::vector<std::vector<double>> internalResults(measurements);
+    std::vector<std::string> columnNames(results.size());
+    for (int i = 0; i < results.size(); i++) {
+        for (int j = 0; j < measurements; j++) {
+            double avgFilledLeaf = 0.0;
+            double avgFilledInternal = 0.0;
+            for (int k = 0; k < repeats; k++) {
+                auto cell = results[i][j + k * measurements];
+                avgFilledLeaf += std::get<1>(cell) / ((double) std::get<0>(cell));
+                avgFilledInternal += std::get<3>(cell) / ((double) std::get<2>(cell));
+            }
+            leafResults[i].push_back(avgFilledLeaf);
+            internalResults[i].push_back(avgFilledInternal);
+        }
+    }
+    for (int i = 0; i < results.size(); i++){
+        columnNames[i] = "level " + std::to_string(i + 1);;
+    }
+    columnNames[results.size() - 1] = "total";
+
+
+    write_to_csv2(leafResults, columnNames, output + "/agtree/" + graph.getNetworkName() + "_convergence-leaf", r);
+    write_to_csv2(internalResults, columnNames, output + "/agtree/" + graph.getNetworkName() + "_convergence-internal", r);
 }
+
+
+void experimentDistanceMatrixConvergenceClusteredQueries(Graph& graph, std::string output = "", int repeats = 5, unsigned int r = 1, unsigned fanout=4, unsigned maxLeafSize=128, unsigned k=10, double density=0.001, bool verifyKNN = false)
+{
+    AdaptiveGTreeExperiment experiment(fanout, maxLeafSize);
+    INEExperiment verifyExperiment;
+    std::string message;
+    std::vector < std::vector< std::tuple< unsigned, unsigned, unsigned, unsigned > > > results;
+    std::vector<NodeID> kNNs, ineKNNs;
+    std::vector<EdgeWeight> kNNDistances, ineKNNDistances;
+    unsigned queryCounter = 0;
+    unsigned totalQueryTime = 0.0;
+
+    for (int repeats = 0; repeats < r; repeats++) {
+        queryCounter = 0;
+        totalQueryTime = 0.0;
+        std::vector <NodeID> queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, 8192, 4, 100.0 / graph.getNumNodes());
+        std::vector <NodeID> objects = QueryGenerator().randomObjects(graph, density);
+        experiment.buildIndex(graph);
+        experiment.printInfo();
+        experiment.clearObjects();
+        experiment.loadObjects(graph, objects);
+        for (auto queryNodeIt = queries.begin(); queryNodeIt != queries.end(); ++queryNodeIt) {
+            kNNs.clear();
+            kNNDistances.clear();
+            kNNs.reserve(k);
+            kNNDistances.reserve(k);
+            experiment.runQuery(graph, k, *queryNodeIt, kNNs, kNNDistances);
+
+            if (verifyKNN) {
+                ineKNNs.clear();
+                ineKNNDistances.clear();
+                verifyExperiment.clearObjects();
+                verifyExperiment.loadObjects(graph, objects);
+                verifyExperiment.runQuery(graph, k, *queryNodeIt, ineKNNs, ineKNNDistances);
+                if (!utility::verifyKNN(ineKNNs, ineKNNDistances, kNNs, kNNDistances, false, k,
+                                        message, true)) {
+                    std::cout << "Verfication failed for query node " << *queryNodeIt << " with k = "
+                                << k
+                                << std::endl;
+                    std::cout << "Message: " << message << std::endl;
+                    exit(1);
+                }
+            }
+            queryCounter++;
+            if (queryCounter < 11) {
+                experiment.getConvergence(results);
+            }
+            else if (queryCounter < 101 && queryCounter % 10 == 0) {
+                experiment.getConvergence(results);
+            }
+            else if (queryCounter < 1001 && queryCounter % 100 == 0) {
+                experiment.getConvergence(results);
+            }
+            else if (queryCounter < 10001 && queryCounter % 1000 == 0) {
+                experiment.getConvergence(results);
+            }
+        }
+    }
+    int measurements = results[0].size() / repeats;
+    std::vector<std::vector<double>> leafResults(measurements);
+    std::vector<std::vector<double>> internalResults(measurements);
+    std::vector<std::string> columnNames(results.size());
+    for (int i = 0; i < results.size(); i++) {
+        for (int j = 0; j < measurements; j++) {
+            double avgFilledLeaf = 0.0;
+            double avgFilledInternal = 0.0;
+            for (int k = 0; k < repeats; k++) {
+                auto cell = results[i][j + k * measurements];
+                avgFilledLeaf += std::get<1>(cell) / ((double) std::get<0>(cell));
+                avgFilledInternal += std::get<3>(cell) / ((double) std::get<2>(cell));
+            }
+            leafResults[i].push_back(avgFilledLeaf);
+            internalResults[i].push_back(avgFilledInternal);
+        }
+    }
+    for (int i = 0; i < results.size(); i++){
+        columnNames[i] = "level " + std::to_string(i + 1);;
+    }
+    columnNames[results.size() - 1] = "total";
+
+
+    write_to_csv2(leafResults, columnNames, output + "/agtree/" + graph.getNetworkName() + "_convergence-leaf_queries-clustered", r);
+    write_to_csv2(internalResults, columnNames, output + "/agtree/" + graph.getNetworkName() + "_convergence-internal_queries-clustered", r);
+}
+
 
 
 
@@ -973,11 +1274,17 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string bgrFileName,
             experimentObjectDistributionNA(graph, fanout, tau, r, density, k, verifyKNN, output);
             break;
         case 4:
+        //those
             experimentQueryDistribution(graph, fanout, tau, r, density, k, verifyKNN, output);
             experimentQueryDistributionNA(graph, fanout, tau, r, density, k, verifyKNN, output);
             break;
         case 5:
-            experimentDistanceMatrixConvergence(r);
+            experimentDistanceMatrixConvergence(graph, output, r);
+            experimentDistanceMatrixConvergenceClusteredQueries(graph, output, r);
+            break;
+        case 6:
+            experimentKSizeClusteredObjects(graph, fanout, tau, r, density, verifyKNN, output);
+            experimentKSizeClusteredObjectsNA(graph, fanout, tau, r, density, verifyKNN, output);
             break;
         default:
             break;
