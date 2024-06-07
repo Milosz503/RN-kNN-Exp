@@ -22,7 +22,8 @@ def draw_nodes_histogram(graph_file, ax):
         x_max = data['x'].max()
         y_max = data['y'].max()
 
-        cm = matplotlib.colormaps['YlOrRd'].resampled(256)
+        cm = matplotlib.colormaps['Greys'].resampled(256)
+        # cm = matplotlib.colormaps['YlOrRd'].resampled(256)
         # cm = matplotlib.colormaps['PuBu'].resampled(256)
         newcolors = cm(np.linspace(0.1, 1, 256))
         white = np.array([1, 1, 1, 1])
@@ -61,31 +62,38 @@ def draw_landmarks(landmarks_data, ax):
     ax.scatter(
         landmarks_x,
         landmarks_y,
-            c='black',
-            s=200,
-            alpha=1,
-            edgecolor='white', linewidths=1,
+        c='black',
+        s=200,
+        alpha=1,
+        edgecolor='white', linewidths=1,
         marker='^'
     )
 
-def draw_queries(queries_data, ax):
+    # for i in range(len(landmarks_x)):
+    #     plt.text(landmarks_x[i], landmarks_y[i], str(i), c='red')
+
+
+def draw_queries(queries_data, ax, color='black'):
     ax.scatter(
         queries_data['x'],
         queries_data['y'],
-        c='black',
+        c=color,
         s=1,
         alpha=0.3,
     )
 
-def visualize_landmarks(network, landmarks_data, method):
+def visualize_landmarks(network, landmarks_data, method, queries_data=None, clustered=False):
     graph_file = os.path.join(config.data_dir, f'{network}-t.coordinates')
     fig, ax = plt.subplots()
     draw_nodes_histogram(graph_file, ax)
+    if queries_data is not None:
+        draw_queries(queries_data, ax, color="#4287f5")
     draw_landmarks(landmarks_data, ax)
-
     # ax.set_title(method)
-
-    plt.savefig(f'{config.visualization_dir}/landmarks_{network}_{method}.png', bbox_inches='tight', pad_inches=0)
+    prefix=""
+    if clustered:
+        prefix="clustered_"
+    plt.savefig(f'{config.visualization_dir}/{prefix}{config.experiment_name}_{network}_{method}.png', bbox_inches='tight', pad_inches=0)
     # plt.show()
 
 def visualize_queries(network, queries_data, method):

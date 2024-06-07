@@ -10,10 +10,10 @@
 #include <fstream>
 
 std::unordered_map<std::string, std::unordered_map<std::string, double>> gtreeConfig = {
-        {"DE", {{"fanout", 4}, {"maxleafsize", 64}}},
-        {"ME", {{"fanout", 4}, {"maxleafsize", 128}}},
-        {"NW", {{"fanout", 4}, {"maxleafsize", 256}}},
-        {"W", {{"fanout", 4}, {"maxleafsize", 512}}},
+        {"DE",  {{"fanout", 4}, {"maxleafsize", 64}}},
+        {"ME",  {{"fanout", 4}, {"maxleafsize", 128}}},
+        {"NW",  {{"fanout", 4}, {"maxleafsize", 256}}},
+        {"W",   {{"fanout", 4}, {"maxleafsize", 512}}},
         {"USA", {{"fanout", 4}, {"maxleafsize", 512}}}
 };
 
@@ -227,22 +227,74 @@ void DistanceExperimentCommand::compareAltDistLandmarksVsThreshold()
 void DistanceExperimentCommand::visualizeQueries()
 {
     queries = QueryGenerator().randomExpandTargetsClustered(graph, numQueries, 3, 0.0001);
-    saveQueries("clustered");
+    saveQueries("clustered_");
 
     queries = QueryGenerator().random(graph, numQueries, numTargets, std::numeric_limits<unsigned long>::max());
-    saveQueries("random");
+    saveQueries("random_");
 }
 
 void DistanceExperimentCommand::visualizeLandmarks()
 {
-    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::FARTHEST, {}));
-    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::AVOID, {}));
-    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::MIN_DIST, ALTParameters(0.28, numQueries)));
-    methods.push_back(new ALTMethod(15, LANDMARK_TYPE::HOPS, ALTParameters(0.22, numQueries)));
+    auto numberOfLandmarks = 12u;
+
+    methods.push_back(new ALTMethod(numberOfLandmarks, LANDMARK_TYPE::FARTHEST, {}));
+    methods.push_back(new ALTMethod(numberOfLandmarks, LANDMARK_TYPE::AVOID, {}));
+    results.resize(methods.size());
+    buildIndexes(false);
+
+    exportLandmarks();
+}
+
+void DistanceExperimentCommand::visualizeAdaptiveLandmarks()
+{
+    auto distParams = distConfigs[2];
+    auto hopsParams = hopsConfigs[2];
+    auto estParams = estConfigs[2];
+    auto numberOfLandmarks = 12u;
+    if (std::get<0>(distParams) != numberOfLandmarks ||
+        std::get<0>(hopsParams) != numberOfLandmarks ||
+        std::get<0>(estParams) != numberOfLandmarks) {
+        std::cerr << "Number of landmarks must be the same for all methods!" << std::endl;
+        exit(1);
+    }
+    std::vector<AdaptiveALTMethod*> adaptiveMethods;
+
+    auto distMethod = new AdaptiveALTMethod(AdaptiveALTParams(
+            std::get<0>(distParams),
+            1.0, 0.0, 0.0, std::get<1>(distParams)
+    ));
+
+    auto hopsMethod = new AdaptiveALTMethod(AdaptiveALTParams(
+            std::get<0>(hopsParams),
+            0.0, 1.0, 0.0, std::get<1>(hopsParams)
+    ));
+
+    auto estMethod = new AdaptiveALTMethod(AdaptiveALTParams(
+            std::get<0>(estParams),
+            0.0, 0.0, 1.0, std::get<1>(estParams)
+    ));
+    adaptiveMethods.push_back(distMethod);
+    adaptiveMethods.push_back(hopsMethod);
+    adaptiveMethods.push_back(estMethod);
+
+
     results.resize(methods.size());
 
-    buildIndexes(false);
-    exportLandmarks(network);
+
+    loadQueries();
+    for (auto method: adaptiveMethods) {
+        methods.push_back(method);
+        std::cout << "Running method: " << estMethod->getInfo() << std::endl;
+        method->buildIndex(graph);
+        for (auto &query: queries) {
+            method->refineIndex(graph, query);
+        }
+        method->printStatistics();
+        std::cout << std::endl;
+    }
+
+    exportLandmarks();
+    saveQueries();
 }
 
 void DistanceExperimentCommand::compareLandmarksNumberVsTime()
@@ -571,7 +623,7 @@ void DistanceExperimentCommand::compareMethods()
         loadQueries();
         saveQueries(network + "_compare_methods");
         runAll();
-        exportLandmarks(network + "_compare_methods");
+        exportLandmarks();
         queries.clear();
     }
     write_to_csv(results, methods, network + "_compare_methods", numRepeats);
@@ -757,6 +809,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
                 compareAdaptiveEstThresholdQueryVsTime();
             });
             break;
+        case 23:
+            visualizeAdaptiveLandmarks();
+            break;
         default:
             compareMethods();
     }
@@ -776,9 +831,13 @@ void DistanceExperimentCommand::runStandardTestCase(const std::function<void()> 
     clearMethods();
 }
 
-void DistanceExperimentCommand::saveQueries(std::string name = "")
+void DistanceExperimentCommand::saveQueries(std::string name)
 {
-    std::ofstream file(resultsPath + "/" + name + "_query_data.csv");
+    if(name == "") {
+        name = getResultsPrefix();
+    }
+
+    std::ofstream file(resultsPath + "/" + name + "query_data.csv");
     Coordinate x, y;
     file << "x,y,is_source,is_target" << std::endl;
     for (auto query: queries) {
@@ -794,7 +853,7 @@ void DistanceExperimentCommand::saveQueries(std::string name = "")
     file.close();
 }
 
-void DistanceExperimentCommand::exportLandmarks(std::string name = "")
+void DistanceExperimentCommand::exportLandmarks()
 {
     size_t max_size = 0;
     for (const auto &method: methods) {
@@ -811,7 +870,9 @@ void DistanceExperimentCommand::exportLandmarks(std::string name = "")
             csvData[j][i] = std::to_string(x) + "_" + std::to_string(y);
         }
     }
-    std::ofstream file(resultsPath + "/" + name + "_landmark_data.csv");
+    std::string prefix = "";
+
+    std::ofstream file(resultsPath + "/" + getResultsPrefix() + "landmark_data.csv");
     if (file.is_open()) {
         for (size_t i = 0; i < methods.size(); ++i) {
             file << methods[i]->getInfo();
@@ -1051,6 +1112,12 @@ DistanceExperimentCommand::~DistanceExperimentCommand()
 
 std::string DistanceExperimentCommand::getResultsPath()
 {
+
+    return resultsPath + "/" + getResultsPrefix() +  + "results";
+}
+
+std::string DistanceExperimentCommand::getResultsPrefix()
+{
     std::string workloadPrefix;
     switch (workloadType) {
         case WorkloadType::RANDOM:
@@ -1064,7 +1131,7 @@ std::string DistanceExperimentCommand::getResultsPath()
             exit(1);
             break;
     }
-    return resultsPath + "/" + workloadPrefix + network + "_results";
+    return workloadPrefix + network + "_";
 }
 
 

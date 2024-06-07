@@ -86,6 +86,8 @@ private:
 
     void visualizeLandmarks();
 
+    void visualizeAdaptiveLandmarks();
+
     void compareLandmarksNumberVsTime();
 
     void compareFarthestALT();
@@ -121,9 +123,11 @@ private:
 
     void clearMethods();
 
-    void saveQueries(std::string name);
+    void saveQueries(std::string name = "");
 
-    void exportLandmarks(std::string name);
+    void exportLandmarks();
+
+    std::string getResultsPrefix();
 
     std::string getResultsPath();
 
