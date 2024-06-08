@@ -17,27 +17,31 @@ std::unordered_map<std::string, std::unordered_map<std::string, double>> gtreeCo
         {"USA", {{"fanout", 4}, {"maxleafsize", 512}}}
 };
 
-std::vector<std::tuple<int, double>> estConfigs = {
-        {6,  0.32},
-        {8,  0.26},
-        {12, 0.2},
-        {20, 0.16},
-        {36, 0.12}
-};
 
 std::vector<std::tuple<int, double>> distConfigs = {
-        {6,  0.47},
-        {8,  0.39},
-        {12, 0.33},
-        {20, 0.26},
-        {36, 0.2}
+        {5,  0.45},
+        {6,  0.43},
+        {8,  0.35},
+        {12, 0.29},
+        {20, 0.23},
+        {36, 0.18}
 };
 
 std::vector<std::tuple<int, double>> hopsConfigs = {
-        {6,  0.4},
-        {8,  0.35},
-        {12, 0.27},
-        {20, 0.2},
+        {5,  0.40},
+        {6,  0.37},
+        {8,  0.29},
+        {12, 0.24},
+        {20, 0.18},
+        {36, 0.14}
+};
+
+std::vector<std::tuple<int, double>> estConfigs = {
+        {5,  0.42},
+        {6,  0.38},
+        {8,  0.32},
+        {12, 0.25},
+        {20, 0.19},
         {36, 0.15}
 };
 
@@ -317,7 +321,7 @@ void DistanceExperimentCommand::compareLandmarksNumberVsTime()
 void DistanceExperimentCommand::compareFarthestALT()
 {
     std::vector<unsigned> config = {
-            6, 8, 12, 20, 36
+            5, 6, 8, 12, 20, 36
     };
 
     for (auto landmarksNum: config) {
@@ -341,7 +345,7 @@ void DistanceExperimentCommand::compareFarthestALT()
 void DistanceExperimentCommand::compareAvoidALT()
 {
     std::vector<unsigned> config = {
-            6, 8, 12, 20, 36
+            5, 6, 8, 12, 20, 36
     };
 
     for (auto landmarksNum: config) {
