@@ -93,7 +93,7 @@ void write_to_csv2(const std::vector<std::vector<double>>& results, std::vector<
     file_deviation.close();
 }
 
-void experimentCompareKnn(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, int exp = 0, unsigned k = 10, double density = 0.001)
+void experimentCompareKnn(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, int exp = 0, unsigned q = 8192, unsigned k = 10, double density = 0.001)
 {
     std::vector<std::vector<double>> results(1);
     StopWatch sw;
@@ -106,7 +106,7 @@ void experimentCompareKnn(Experiment &experiment, Graph &graph, std::string outp
         queryCounter = 0;
         totalQueryTime = 0.0;
         std::vector <NodeID> objects = QueryGenerator().randomObjects(graph, density);
-        std::vector <NodeID> queries = QueryGenerator().randomKNN(graph, 8192);
+        std::vector <NodeID> queries = QueryGenerator().randomKNN(graph, q);
         if (exp == 2) {
             graph.resetAllObjects();
             graph.parseObjectSet(objects);
@@ -148,7 +148,7 @@ void experimentCompareKnn(Experiment &experiment, Graph &graph, std::string outp
     write_to_csv2(results, std::vector<std::string>({experiment.getName()}), output + "/agtree/" + graph.getNetworkName() + "_compare_knn_" + std::to_string(exp), r);
 }
 
-void experimentCompareKnnClusteredQueries(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, unsigned exp=0, unsigned k = 10, double density = 0.001)
+void experimentCompareKnnClusteredQueries(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, unsigned exp=0, unsigned q = 8192, unsigned k = 10, double density = 0.001)
 {
     std::vector<std::vector<double>> results(1);
     StopWatch sw;
@@ -162,7 +162,7 @@ void experimentCompareKnnClusteredQueries(Experiment &experiment, Graph &graph, 
         queryCounter = 0;
         totalQueryTime = 0.0;
         std::vector <NodeID> objects = QueryGenerator().randomObjects(graph, density);
-        std::vector <NodeID> queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, 8192, 1, 100.0 / graph.getNumNodes());
+        std::vector <NodeID> queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, q, 1, 100.0 / graph.getNumNodes());
         if (exp == 2) {
             graph.resetAllObjects();
             graph.parseObjectSet(objects);
@@ -203,7 +203,7 @@ void experimentCompareKnnClusteredQueries(Experiment &experiment, Graph &graph, 
     write_to_csv2(results, std::vector<std::string>({experiment.getName()}), output + "/agtree/" + graph.getNetworkName() + "_compare_knn_clustered_queries_" + std::to_string(exp), r);
 }
 
-void experimentCompareKnnClusteredObjects(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, unsigned exp=0, unsigned k = 10, double density = 0.001)
+void experimentCompareKnnClusteredObjects(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, unsigned exp=0, unsigned q = 8192, unsigned k = 10, double density = 0.001)
 {
     std::vector<std::vector<double>> results(1);
     StopWatch sw;
@@ -218,7 +218,7 @@ void experimentCompareKnnClusteredObjects(Experiment &experiment, Graph &graph, 
         totalQueryTime = 0.0;
         std::vector <NodeID> objects = QueryGenerator().randomExpandObjectsClustered(graph, 0.001, 1,
                                                                                      100.0 / graph.getNumNodes());
-        std::vector <NodeID> queries = QueryGenerator().randomKNN(graph, 8192);
+        std::vector <NodeID> queries = QueryGenerator().randomKNN(graph, q);
         if (exp == 2) {
             graph.resetAllObjects();
             graph.parseObjectSet(objects);
@@ -259,7 +259,7 @@ void experimentCompareKnnClusteredObjects(Experiment &experiment, Graph &graph, 
     write_to_csv2(results, std::vector<std::string>({experiment.getName()}), output + "/agtree/" + graph.getNetworkName() + "_compare_knn_clustered_objects_" + std::to_string(exp), r);
 }
 
-void experimentCompareKnnClustered(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, unsigned exp = 0, unsigned k = 10, double density = 0.001)
+void experimentCompareKnnClustered(Experiment &experiment, Graph &graph, std::string output, unsigned r = 5, unsigned exp = 0, unsigned q = 8192, unsigned k = 10, double density = 0.001)
 {
     std::vector<std::vector<double>> results(1);
     StopWatch sw;
@@ -274,7 +274,7 @@ void experimentCompareKnnClustered(Experiment &experiment, Graph &graph, std::st
         totalQueryTime = 0.0;
         std::vector <NodeID> objects = QueryGenerator().randomExpandObjectsClustered(graph, 0.001, 1,
                                                                                      100.0 / graph.getNumNodes());
-        std::vector <NodeID> queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, 8192, 1, 100.0 / graph.getNumNodes());
+        std::vector <NodeID> queries = QueryGenerator().randomExpandKNNQueriesClustered(graph, q, 1, 100.0 / graph.getNumNodes());
         if (exp == 2) {
             graph.resetAllObjects();
             graph.parseObjectSet(objects);
@@ -1777,19 +1777,21 @@ void AdaptiveExperimentsCommand::runSingleMethodQueries(std::string bgrFileName,
                     experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp);
                 } else if (exp == 3) {
                     IERAStarExperiment experiment(4);
-                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp);
-                } else if (exp == 4) {
+                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp, 64);
+                } else
+                    if (exp == 4) {
                     IERALTExperiment experiment(4, 8, LANDMARK_TYPE::FARTHEST, ALTParameters::buildKnnParameters());
-                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp);
-                } else if (exp == 5) {
+                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp, 1024);
+                }
+                else if (exp == 5) {
                     IERALTExperiment experiment(4, 8, LANDMARK_TYPE::AVOID, ALTParameters::buildKnnParameters());
-                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp);
+                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp, 1024);
                 } else if (exp == 6) {
                     IERALTExperiment experiment(4, 20, LANDMARK_TYPE::FARTHEST, ALTParameters::buildKnnParameters());
-                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp);
+                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp), 1024;
                 } else if (exp == 7) {
                     IERALTExperiment experiment(4, 20, LANDMARK_TYPE::AVOID, ALTParameters::buildKnnParameters());
-                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp);
+                    experimentCompareKnnClusteredObjects(experiment, graph, output, r, exp, 1024);
                 }
             }
             break;
