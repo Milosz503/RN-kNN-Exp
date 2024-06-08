@@ -103,6 +103,9 @@ if [[ ${12} != "" && ${12} != "default" ]]; then
     if [[ ${11} == "0" ]]; then
         special=("4" "8" "16")
     fi
+    if [[ ${11} == "7" || ${11} == "8" || ${11} == "9" || ${11} == "10" ]]; then
+      special=("0" "1" "2" "3" "4" "5" "6" "7")
+    fi
 fi
 
 num_sets="1"
@@ -111,7 +114,7 @@ k_values="1"
 for i in "${!road_networks[@]}"; do
     if [[ ${12} != "" && ${12} != "default" ]]; then
         for j in "${!special[@]}"; do
-            echo -e "\nRun kNN queries for ${road_networks[$i]} with $1..."
+            echo -e "\nRun special kNN queries for ${road_networks[$i]} with $1..."
             args="-c adaptive_exp knn_special -E xd -M $method -R 5 -F 4 -T 128 -D 0.001 -K 10 -g $idx_dir/${road_networks[$i]}.bin -f $output_path/knn -S ${special[$j]}"
             ${exe_path}/$2 $args
         done

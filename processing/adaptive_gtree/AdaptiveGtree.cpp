@@ -1846,5 +1846,9 @@ void AdaptiveGtree::printInfo(std::vector<std::vector<std::tuple<unsigned, unsig
         results[level].push_back(std::make_tuple(leavesCellsNumber, leavesFilledCells, internalCellsNumber, internalFilledCells));
         level++;
     }
+    if (results.size() < level + 1) {
+        results.push_back(std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>());
+    }
+    std::cout << "Leaves: " << allLeavesFilledCells << "/" << allLeavesCellsNumber << ", internal: " << allInternalFilledCells << "/" << allInternalCellsNumber << std::endl;
     results[level].push_back(std::make_tuple(allLeavesCellsNumber, allLeavesFilledCells, allInternalCellsNumber, allInternalFilledCells));
 }
