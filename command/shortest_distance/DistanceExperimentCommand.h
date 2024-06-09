@@ -68,6 +68,8 @@ private:
 
     void validateAll();
 
+    void compareOptimizations();
+
     void compareOtherMethods();
 
     void compareAdaptiveEstThresholdQueryVsTime();

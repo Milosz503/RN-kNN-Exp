@@ -18,6 +18,8 @@ class Config:
         self.data_dir = ""
         self.experiment_name = ""
         self.executable = ""
+        self.executable_alt_dynamic = ""
+        self.executable_alt_euclidean = ""
 
     def init_config(self):
         experiment_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
@@ -28,6 +30,8 @@ class Config:
         self.graphs_dir = self._get_graphs_dir()
         self.data_dir = self._get_data_dir()
         self.executable = self._get_executable_dir() + "/nd_knn"
+        self.executable_alt_dynamic = self._get_executable_dir() + "/nd_knn_alt_dynamic"
+        self.executable_alt_euclidean = self._get_executable_dir() + "/nd_knn_alt_euclidean"
 
         if not os.path.exists(self.results_dir):
             os.makedirs(self.results_dir)

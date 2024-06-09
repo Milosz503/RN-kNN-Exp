@@ -46,6 +46,36 @@ std::vector<std::tuple<int, double>> estConfigs = {
 };
 
 
+void DistanceExperimentCommand::compareOptimizations()
+{
+    auto parameters = hopsConfigs[3];
+    methods.push_back(
+            new AdaptiveALTMethod(
+                    AdaptiveALTParams(
+                            std::get<0>(parameters),
+                            0.0, 1.0, 0.0, std::get<1>(parameters)
+                    )
+            ));
+
+    parameters = hopsConfigs[1];
+    methods.push_back(
+            new AdaptiveALTMethod(
+                    AdaptiveALTParams(
+                            std::get<0>(parameters),
+                            0.0, 1.0, 0.0, std::get<1>(parameters)
+                    )
+            ));
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        queries.clear();
+    }
+}
+
 void DistanceExperimentCommand::compareOtherMethods()
 {
     if (gtreeConfig.find(network) == gtreeConfig.end()) {
@@ -690,6 +720,18 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         exit(1);
     }
 
+#ifdef DYNAMIC_LANDMARKS_A_ALT
+    std::cout << "!!!! Dynamic landmarks Adaptive ALT !!!" << std::endl;
+#else
+    std::cout << "Info: Static landmarks Adaptive ALT" << std::endl;
+#endif
+
+#ifdef USE_EUCLIDEAN
+    std::cout << "!!!! Using Euclidean Adaptive ALT !!!!" << std::endl;
+#else
+    std::cout << "Info: Not using Euclidean Adaptive ALT" << std::endl;
+#endif
+
     auto indexSlash = bgrFilePath.find_last_of('/');
     auto indexDot = bgrFilePath.find_last_of('.');
     network = bgrFilePath.substr(indexSlash + 1, indexDot - indexSlash - 1);
@@ -815,6 +857,11 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             break;
         case 23:
             visualizeAdaptiveLandmarks();
+            break;
+        case 24:
+            runStandardTestCase([this] {
+                compareOptimizations();
+            });
             break;
         default:
             compareMethods();

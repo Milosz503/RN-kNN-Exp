@@ -77,7 +77,17 @@ set_target_properties(nd_knn PROPERTIES COMPILE_FLAGS "${DefaultDefinitions}")
 ## comment to enable assertions
 set_target_properties(nd_knn PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DNDEBUG")
 
+# ------- Adaptive ALT dynamic landmark allocation
+add_executable(nd_knn_alt_dynamic ${MAIN_SRC})
+target_link_libraries (nd_knn_alt_dynamic boost_serialization metis)
+set_target_properties(nd_knn_alt_dynamic PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DNDEBUG -DDYNAMIC_LANDMARKS_A_ALT")
+# ------------------------------------------------------
 
+# ------- Adaptive ALT dynamic landmark allocation
+add_executable(nd_knn_alt_euclidean ${MAIN_SRC})
+target_link_libraries (nd_knn_alt_euclidean boost_serialization metis)
+set_target_properties(nd_knn_alt_euclidean PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DNDEBUG -DUSE_EUCLIDEAN")
+# ------------------------------------------------------
 
 
 

@@ -3,6 +3,7 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import os
+from PIL import Image, ImageOps
 
 from matplotlib.colors import ListedColormap
 
@@ -12,7 +13,7 @@ matplotlib.rc('figure', figsize=(10, 10))
 
 base_bins = 400
 
-def draw_nodes_histogram(graph_file, ax):
+def draw_nodes_histogram(graph_file, ax, as_bg=False):
     with open(graph_file, 'r') as file:
         data = pd.read_csv(file, header=0, delimiter=" ")
         data.columns = ['nodeId', 'x', 'y']
@@ -22,10 +23,14 @@ def draw_nodes_histogram(graph_file, ax):
         x_max = data['x'].max()
         y_max = data['y'].max()
 
+        stop = 1
+        if as_bg:
+            stop = 0.6
         cm = matplotlib.colormaps['Greys'].resampled(256)
+        newcolors = cm(np.linspace(0.15, stop, 256))
         # cm = matplotlib.colormaps['YlOrRd'].resampled(256)
         # cm = matplotlib.colormaps['PuBu'].resampled(256)
-        newcolors = cm(np.linspace(0.1, 1, 256))
+        # newcolors = cm(np.linspace(0.1, stop, 256))
         white = np.array([1, 1, 1, 1])
         newcolors[:1, :] = white
         newcmp = ListedColormap(newcolors)
@@ -62,10 +67,10 @@ def draw_landmarks(landmarks_data, ax):
     ax.scatter(
         landmarks_x,
         landmarks_y,
-        c='black',
-        s=200,
+        c='#db1f1f',
+        s=350,
         alpha=1,
-        edgecolor='white', linewidths=1,
+        edgecolor='white', linewidths=2.5,
         marker='^'
     )
 
@@ -73,13 +78,13 @@ def draw_landmarks(landmarks_data, ax):
     #     plt.text(landmarks_x[i], landmarks_y[i], str(i), c='red')
 
 
-def draw_queries(queries_data, ax, color='black'):
+def draw_queries(queries_data, ax, alpha=0.3, color='#006086'):
     ax.scatter(
         queries_data['x'],
         queries_data['y'],
         c=color,
         s=1,
-        alpha=0.3,
+        alpha=alpha,
     )
 
 def visualize_landmarks(network, landmarks_data, method, queries_data=None, clustered=False):
@@ -87,7 +92,7 @@ def visualize_landmarks(network, landmarks_data, method, queries_data=None, clus
     fig, ax = plt.subplots()
     draw_nodes_histogram(graph_file, ax)
     if queries_data is not None:
-        draw_queries(queries_data, ax, color="#4287f5")
+        draw_queries(queries_data, ax) #, color="#006086")
     draw_landmarks(landmarks_data, ax)
     # ax.set_title(method)
     prefix=""
@@ -99,8 +104,8 @@ def visualize_landmarks(network, landmarks_data, method, queries_data=None, clus
 def visualize_queries(network, queries_data, method):
     graph_file = os.path.join(config.data_dir, f'{network}-t.coordinates')
     fig, ax = plt.subplots()
-    draw_nodes_histogram(graph_file, ax)
-    draw_queries(queries_data, ax)
+    draw_nodes_histogram(graph_file, ax, as_bg=True)
+    draw_queries(queries_data, ax, alpha=0.6)
 
     # ax.set_title(method)
 
@@ -108,12 +113,28 @@ def visualize_queries(network, queries_data, method):
     plt.show()
 
 
+def make_square(image_path, output_path, background_color=(255, 255, 255)):
+    image = Image.open(image_path)
+    width, height = image.size
+
+    if width > height:
+        new_size = width
+    else:
+        new_size = height
+
+    new_image = Image.new("RGB", (new_size, new_size), background_color)
+    paste_position = ((new_size - width) // 2, (new_size - height) // 2)
+    new_image.paste(image, paste_position)
+    new_image.save(output_path)
+
 def visualize_graph(network):
     graph_file = os.path.join(config.data_dir, f'{network}-t.coordinates')
     fig, ax = plt.subplots()
     draw_nodes_histogram(graph_file, ax)
 
-    plt.savefig(f'{config.visualization_dir}/graph_{network}.png')
+    file = f'{config.visualization_dir}/graph_{network}.png'
+    plt.savefig(file, bbox_inches='tight', pad_inches=0)
+    make_square(file, file)
     # plt.show()
 
 
