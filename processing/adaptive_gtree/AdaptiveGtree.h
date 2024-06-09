@@ -50,6 +50,7 @@ class AdaptiveGtree {
         int getNumNodes();
         int getNumEdges();
         int getFanout();
+        int minLeafLevel = 2487628;
         int getTreeSize();
         int getLeafIndex(NodeID nodeID);
         int getParentIndex(int treeIdx);
@@ -95,6 +96,7 @@ class AdaptiveGtree {
         double computeMemoryUsage();
         double computeDistanceMatrixMemoryUsage();
         void printInfo();
+        void printInfo(std::vector<std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>>& results);
         int getComputations(int leafIdx, int currIdx);
 
 

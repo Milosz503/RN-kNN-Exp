@@ -52,6 +52,8 @@ special_knn_parameters="landmarks=20,landmarks_type=5"
 # default_network="NW"
 # default_parameters="$NW_index_parameters,$NW_obj_index_parameters"
 # default_verification="verify=1"
+special=("-1")
+method="0"
 
 if [[ $5 != "" && $5 != "default" ]]; then
     if [[ $5 != "all" ]]; then
@@ -93,13 +95,35 @@ if [[ ${10} != "" && ${10} != "default" ]]; then
     num_sets=${10}
 fi
 
+if [[ ${11} != "" && ${11} != "default" ]]; then
+    method=${11}
+fi
+
+if [[ ${12} != "" && ${12} != "default" ]]; then
+    if [[ ${11} == "0" ]]; then
+        special=("2")
+    fi
+    if [[ ${11} == "7" || ${11} == "8" || ${11} == "9" || ${11} == "10" ]]; then
+      special=("0" "1" "2" "3" "4" "5" "6" "7")
+    fi
+fi
+
 num_sets="1"
 num_points="1000"
 k_values="1"
-for i in "${!road_networks[@]}"; do 
-    echo -e "\nRun kNN queries for ${road_networks[$i]} with $1..."
-    pts_filename="$(printf "%03d" $num_points)"
-    args="-c adaptive_exp -e knn_special -m $1 -g $idx_dir/${road_networks[$i]}.bin -q $sets_dir/${road_networks[$i]}_$pts_filename.txt -k $k_values -n $num_sets -d $densities -t $default_type -v $ignore_variable -p ${knn_parameters[$i]} -f $output_path -s $stats_dir/$3"
-#    echo $exe_path $2 $args
-    ${exe_path}/$2 $args
+for i in "${!road_networks[@]}"; do
+    if [[ ${12} != "" && ${12} != "default" ]]; then
+        for j in "${!special[@]}"; do
+            echo -e "\nRun special kNN queries for ${road_networks[$i]} with $1..."
+            args="-c adaptive_exp knn_special -E xd -M $method -R 5 -F 4 -T 128 -D 0.001 -K 10 -g $idx_dir/${road_networks[$i]}.bin -f $output_path/knn -S ${special[$j]}"
+            ${exe_path}/$2 $args
+        done
+        else
+            echo -e "\nRun kNN queries for ${road_networks[$i]} with $1..."
+            #pts_filename="$(printf "%03d" $num_points)"
+            #args="-c adaptive_exp -e knn_special -m $1 -g $idx_dir/${road_networks[$i]}.bin -q $sets_dir/${road_networks[$i]}_$pts_filename.txt -k $k_values -n $num_sets -d $densities -t $default_type -v $ignore_variable -p ${knn_parameters[$i]} -f $output_path -s $stats_dir/$3"
+            #     echo $exe_path $2 $args
+            args="-c adaptive_exp knn_special -E xd -M $method -R 5 -F 4 -T 128 -D 0.001 -K 10 -g $idx_dir/${road_networks[$i]}.bin -f $output_path/knn"
+            ${exe_path}/$2 $args
+    fi
 done

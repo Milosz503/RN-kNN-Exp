@@ -222,6 +222,11 @@ public:
                   << std::endl;
     }
 
+    
+    void getConvergence(std::vector<std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>>>& results) {
+        this->agtree->printInfo(results);
+    }
+
     ~AdaptiveGTreeExperiment() override
     {
         delete agtree;

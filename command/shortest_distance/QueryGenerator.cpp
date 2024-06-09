@@ -33,6 +33,34 @@ std::vector<Query> QueryGenerator::random(Graph &graph, unsigned int n, unsigned
     return queries;
 }
 
+std::vector<NodeID> QueryGenerator::randomObjects(Graph &graph, double density)
+{
+    int numObjects = graph.getNumNodes() * density;
+
+    std::cout << "Generating objects..." << "density: " << density << " numObjects: " << numObjects << std::endl;
+    std::vector<NodeID> objects;
+
+    for (int i = 0; i < numObjects; i++) {
+        NodeID object = rand() % graph.getNumNodes();
+        objects.push_back(object);
+    }
+    std::cout << "Finished generating objects. Number of objects: " << objects.size() << std::endl;
+    return objects;
+}
+
+std::vector<NodeID> QueryGenerator::randomKNN(Graph &graph, unsigned int n)
+{
+    std::cout << "Generating queries..." << "numQueries: " << n << std::endl;
+    std::vector<NodeID> queries;
+
+    for (int i = 0; i < n; i++) {
+        NodeID object = rand() % graph.getNumNodes();
+        queries.push_back(object);
+    }
+    std::cout << "Finished generating kNN queries. Number of queries: " << queries.size() << std::endl;
+    return queries;
+}
+
 std::vector<Query>
 QueryGenerator::randomWalkClustered(Graph &graph, unsigned int n, unsigned int numClusters, unsigned int steps)
 {
@@ -104,6 +132,40 @@ QueryGenerator::randomExpandTargetsClustered(Graph &graph, unsigned int n, unsig
         queries.push_back(query);
     }
     std::cout << "Finished generating queries. Number of queries: " << queries.size() << std::endl;
+    return queries;
+}
+
+std::vector<NodeID>
+QueryGenerator::randomExpandObjectsClustered(Graph &graph, double density, unsigned int numClusters, double probability)
+{
+    int numObjects = graph.getNumNodes() * density;
+
+    std::cout << "Generating objects..." << "numObjects: " << numObjects << " probability: " << probability << std::endl;
+    std::vector<NodeID> objects;
+    auto clusters = generateClusters(graph, numClusters);
+
+    for (int i = 0; i < numObjects; i++) {
+        NodeID cluster = clusters[rand() % clusters.size()];
+        NodeID object = randomExpand(graph, cluster, probability);
+        objects.push_back(object);
+    }
+    std::cout << "Finished generating objects. Number of objects: " << objects.size() << std::endl;
+    return objects;
+}
+
+std::vector<NodeID>
+QueryGenerator::randomExpandKNNQueriesClustered(Graph &graph, unsigned int n, unsigned int numClusters, double probability)
+{
+    std::cout << "Generating queries..." << "numQueries: " << n << " probability: " << probability << std::endl;
+    std::vector<NodeID> queries;
+    auto clusters = generateClusters(graph, numClusters);
+
+    for (int i = 0; i < n; i++) {
+        NodeID cluster = clusters[rand() % clusters.size()];
+        NodeID query = randomExpand(graph, cluster, probability);
+        queries.push_back(query);
+    }
+    std::cout << "Finished generating kNN queries. Number of queries: " << queries.size() << std::endl;
     return queries;
 }
 
