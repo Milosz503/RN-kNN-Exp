@@ -732,6 +732,12 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     std::cout << "Info: Not using Euclidean Adaptive ALT" << std::endl;
 #endif
 
+#ifdef ESTIMATE_VISITED_NODES
+    std::cout << "!!!! Estimate visited nodes Adaptive ALT !!!!" << std::endl;
+#else
+    std::cout << "Info: Not estimating visited nodes Adaptive ALT" << std::endl;
+#endif
+
     auto indexSlash = bgrFilePath.find_last_of('/');
     auto indexDot = bgrFilePath.find_last_of('.');
     network = bgrFilePath.substr(indexSlash + 1, indexDot - indexSlash - 1);

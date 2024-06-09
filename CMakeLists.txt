@@ -89,6 +89,12 @@ target_link_libraries (nd_knn_alt_euclidean boost_serialization metis)
 set_target_properties(nd_knn_alt_euclidean PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DNDEBUG -DUSE_EUCLIDEAN")
 # ------------------------------------------------------
 
+# ------- Adaptive ALT estimate visited nodes
+add_executable(nd_knn_alt_estimate ${MAIN_SRC})
+target_link_libraries (nd_knn_alt_estimate boost_serialization metis)
+set_target_properties(nd_knn_alt_estimate PROPERTIES COMPILE_FLAGS "${DefaultDefinitions} -DNDEBUG -DESTIMATE_VISITED_NODES")
+# ------------------------------------------------------
+
 
 
 # Additional Executables for Experiments

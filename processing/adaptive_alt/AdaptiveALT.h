@@ -18,7 +18,7 @@
 #include <boost/unordered_map.hpp>
 
 //#define DYNAMIC_LANDMARKS_A_ALT 1
-#define ESTIMATE_VISITED_NODES 1
+//#define ESTIMATE_VISITED_NODES 1
 //#define USE_EUCLIDEAN 1
 
 struct AdaptiveALTParams {
