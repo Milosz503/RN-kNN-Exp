@@ -44,6 +44,7 @@ private:
     std::string tsvPath;
     Graph graph;
     std::vector<Query> queries;
+    int seed = 0;
     unsigned long numQueries;
     unsigned long maxDist;
     unsigned long numTargets;
@@ -71,6 +72,8 @@ private:
     void compareOptimizations();
 
     void compareBestMethods();
+
+    void compareMixedAdaptiveAlt();
 
     void compareOtherMethods();
 

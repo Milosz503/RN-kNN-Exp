@@ -78,8 +78,9 @@ void DistanceExperimentCommand::compareOptimizations()
 
 void DistanceExperimentCommand::compareBestMethods()
 {
+    methods.push_back(new AStarMethod());
     methods.push_back(new ALTMethod(
-            8,
+            6,
             LANDMARK_TYPE::FARTHEST,
             ALTParameters()
     ));
@@ -92,11 +93,6 @@ void DistanceExperimentCommand::compareBestMethods()
             std::get<0>(hopsConfigs[1]),
             LANDMARK_TYPE::HOPS,
             ALTParameters(std::get<1>(hopsConfigs[1]), numQueries)
-    ));
-    methods.push_back(new ALTMethod(
-            std::get<0>(hopsConfigs[2]),
-            LANDMARK_TYPE::HOPS,
-            ALTParameters(std::get<1>(hopsConfigs[2]), numQueries)
     ));
     methods.push_back(
             new AdaptiveALTMethod(
@@ -112,6 +108,8 @@ void DistanceExperimentCommand::compareBestMethods()
                             0.0, 1.0, 0.0, std::get<1>(hopsConfigs[2])
                     )
             ));
+    methods.push_back(new AdaptiveALTMethod(
+        AdaptiveALTParams(12, 0.0, 1.0, 0.0, [](unsigned q) { return 0.16 * exp((-0.02)*q) + 0.24; })));
     if(network != "USA") {
         methods.push_back(new PhlMethod());
     }
@@ -131,6 +129,7 @@ void DistanceExperimentCommand::compareBestMethods()
     }
 }
 
+
 void DistanceExperimentCommand::compareOtherMethods()
 {
     if (gtreeConfig.find(network) == gtreeConfig.end()) {
@@ -143,6 +142,57 @@ void DistanceExperimentCommand::compareOtherMethods()
     methods.push_back(new DijkstraMethod());
     methods.push_back(new AStarMethod());
     methods.push_back(new PhlMethod());
+
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        validateAll();
+        queries.clear();
+
+        write_to_csv(results, methods, getResultsPath(), 1);
+    }
+}
+
+void DistanceExperimentCommand::compareMixedAdaptiveAlt()
+{
+//    methods.push_back(
+//            new AdaptiveALTMethod(
+//                    AdaptiveALTParams(
+//                            std::get<0>(hopsConfigs[0]),
+//                            0.0, 0.5, 0.5, (std::get<1>(hopsConfigs[0]) + std::get<1>(estConfigs[0]))/2
+//                    )
+//            ));
+    methods.push_back(
+            new AdaptiveALTMethod(
+                    AdaptiveALTParams(
+                            std::get<0>(hopsConfigs[2]),
+                            0.0, 0.5, 0.5, (std::get<1>(hopsConfigs[2]) + std::get<1>(estConfigs[2]))/2
+                    )
+            ));
+
+//    methods.push_back(new AdaptiveALTMethod(
+//            AdaptiveALTParams(12, 0.0, 1.0, 0.0, [](unsigned q) { return 0.16 * exp((-0.02)*q) + 0.24; })));
+
+    methods.push_back(new AdaptiveALTMethod(
+            AdaptiveALTParams(12, 0.0, 0.5, 0.5, [](unsigned q) { return 0.16 * exp((-0.02)*q) + 0.24; })));
+//    methods.push_back(
+//            new AdaptiveALTMethod(
+//                    AdaptiveALTParams(
+//                            std::get<0>(hopsConfigs[0]),
+//                            0.0, 1.0, 0.0, std::get<1>(hopsConfigs[0])
+//                    )
+//            ));
+//    methods.push_back(
+//            new AdaptiveALTMethod(
+//                    AdaptiveALTParams(
+//                            std::get<0>(hopsConfigs[2]),
+//                            0.0, 1.0, 0.0, std::get<1>(hopsConfigs[2])
+//                    )
+//            ));
 
     results.resize(methods.size());
 
@@ -728,7 +778,6 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
     LANDMARK_TYPE landmarkType = LANDMARK_TYPE::MIN_DIST;
     int testNum = -1;
     int opt;
-    int seed = 0;
     while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:t:x:w:")) != -1) {
         switch (opt) {
             case 'g':
@@ -932,6 +981,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         case 25:
             compareBestMethods();
             break;
+        case 26:
+            compareMixedAdaptiveAlt();
+            break;
         default:
             compareMethods();
     }
@@ -1053,6 +1105,8 @@ void DistanceExperimentCommand::buildIndexes(bool saveTimes)
 
 void DistanceExperimentCommand::loadQueries()
 {
+    srand(seed);
+    seed++;
     switch (workloadType) {
         case WorkloadType::RANDOM:
             queries = QueryGenerator().random(graph, numQueries, numTargets, std::numeric_limits<unsigned long>::max());
@@ -1191,6 +1245,9 @@ void DistanceExperimentCommand::runMethod(DistanceMethod *method, int iter, Resu
 
 //                method->printStatistics();
             if (i >= queries.size()) {
+                break;
+            }
+            if(method->getName() == "A*" && i >= queries.size()/2) {
                 break;
             }
         }
