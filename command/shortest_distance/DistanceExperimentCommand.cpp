@@ -112,7 +112,10 @@ void DistanceExperimentCommand::compareBestMethods()
                             0.0, 1.0, 0.0, std::get<1>(hopsConfigs[2])
                     )
             ));
-    methods.push_back(new PhlMethod());
+    if(network != "USA") {
+        methods.push_back(new PhlMethod());
+    }
+    
 
     results.resize(methods.size());
 
@@ -720,12 +723,12 @@ void DistanceExperimentCommand::compareMethods()
 
 void DistanceExperimentCommand::execute(int argc, char **argv)
 {
-    srand(7); // NOLINT(*-msc51-cpp) it is supposed to be possible to reproduce
 
     std::string bgrFilePath;
     LANDMARK_TYPE landmarkType = LANDMARK_TYPE::MIN_DIST;
     int testNum = -1;
     int opt;
+    int seed = 0;
     while ((opt = getopt(argc, argv, "e:g:p:f:s:n:d:t:q:k:m:v:l:r:t:x:w:")) != -1) {
         switch (opt) {
             case 'g':
@@ -759,6 +762,9 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             case 'w':
                 workloadType = static_cast<WorkloadType>(std::stoi(optarg));
                 break;
+            case 's':
+                seed = std::stoi(optarg);
+                break;
             default:
                 std::cerr << "Unknown option(s) provided!\n\n";
 //                std::cout << "Provided option: " << opt << std::endl;
@@ -766,6 +772,8 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
 //                exit(1);
         }
     }
+    std::cout << "#### SEED: " << seed << " #####" << std::endl;
+    srand(7); // NOLINT(*-msc51-cpp) it is supposed to be possible to reproduce
     if (numQueries == 0 || bgrFilePath.empty() || numTargets == 0) {
         std::cerr << "Missing required arguments!\n\n";
         showCommandUsage(argv[0]);
