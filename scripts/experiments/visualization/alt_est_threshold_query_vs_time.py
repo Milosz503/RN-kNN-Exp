@@ -27,8 +27,8 @@ def load_data():
 
 def main():
 
-    execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 22", include_clustered=False)
-    execute_experiment(f"-q {config.clustered_query_number} -r {config.repeats} -x 22 -w 1", include_clustered=False)
+    execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 22", include_clustered=False, executable=config.executable_alt_estimate)
+    execute_experiment(f"-q {config.clustered_query_number} -r {config.repeats} -x 22 -w 1", include_clustered=False, executable=config.executable_alt_estimate)
 
     plots, headers = load_data()
     plots = [add_marks(plot, mark) for plot, mark in zip(plots, scatter_classes)]

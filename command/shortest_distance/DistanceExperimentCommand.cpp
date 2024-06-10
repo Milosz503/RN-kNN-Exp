@@ -48,7 +48,7 @@ std::vector<std::tuple<int, double>> estConfigs = {
 
 void DistanceExperimentCommand::compareOptimizations()
 {
-    auto parameters = hopsConfigs[3];
+    auto parameters = hopsConfigs[2];
     methods.push_back(
             new AdaptiveALTMethod(
                     AdaptiveALTParams(
@@ -57,7 +57,7 @@ void DistanceExperimentCommand::compareOptimizations()
                     )
             ));
 
-    parameters = hopsConfigs[1];
+    parameters = hopsConfigs[4];
     methods.push_back(
             new AdaptiveALTMethod(
                     AdaptiveALTParams(
