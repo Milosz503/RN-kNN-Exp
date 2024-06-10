@@ -45,57 +45,80 @@ def load_experiments(experiments, network, clustered=False):
 
 
 default_header_index = 5
-experiments = [
+all_experiments = [
     # experiment, column index, name, header index
     ("alt_dist_threshold_query_vs_time", 1, "DistS", default_header_index),
     ("alt_hops_threshold_query_vs_time", 1, "HopsS", default_header_index),
     ("alt_farthest", 1, "Far", default_header_index),
+
     # ("alt_avoid", 1, "Avoid", default_header_index),
     ("adaptive_dist_threshold_query_vs_time", 1, "ADistS", default_header_index),
     ("adaptive_hops_threshold_query_vs_time", 1, "AHopsS", default_header_index),
+    ("alt_est_threshold_query_vs_time", 1, "AEstQ", default_header_index),
     ("other_methods", 0, None, 0),
     ("other_methods", 1, None, 0),
     ("other_methods", 2, None, 0),
 ]
 
+alt_experiments = [
+    ("alt_avoid", 1, "Avoid", default_header_index),
+    ("alt_dist_threshold_query_vs_time", 1, "DistS", default_header_index),
+    ("alt_dist_threshold_query_vs_time", 2, "DistS", default_header_index),
+    ("alt_hops_threshold_query_vs_time", 1, "HopsS", default_header_index),
+    ("alt_hops_threshold_query_vs_time", 2, "HopsS", default_header_index),
+    ("alt_farthest", 1, "Far", default_header_index),
+    ("alt_farthest", 2, "Far", default_header_index),
+    ("alt_farthest", 3, "Far", default_header_index),
+]
 
-def main():
-    plots, headers = load_experiments(experiments, config.network)
+adaptive_experiments = [
+    ("adaptive_dist_threshold_query_vs_time", 0, "ADistS", default_header_index),
+    ("adaptive_dist_threshold_query_vs_time", 2, "ADistS", default_header_index),
+    ("adaptive_hops_threshold_query_vs_time", 0, "AHopsS", default_header_index),
+    ("adaptive_hops_threshold_query_vs_time", 2, "AHopsS", default_header_index),
+    ("alt_est_threshold_query_vs_time", 1, "AEstQ", default_header_index),
+]
+
+best_methods = [
+    # experiment, column index, name, header index
+    ("alt_hops_threshold_query_vs_time", 1, "HopsS", default_header_index),
+    ("alt_hops_threshold_query_vs_time", 2, "HopsS", default_header_index),
+    ("alt_farthest", 2, "Far", default_header_index),
+    ("alt_farthest", 3, "Far", default_header_index),
+    ("adaptive_hops_threshold_query_vs_time", 0, "AHopsS", default_header_index),
+    ("adaptive_hops_threshold_query_vs_time", 2, "AHopsS", default_header_index),
+    ("other_methods", 3, None, 0),
+    ("other_methods", 4, None, 0),
+]
+
+def create_comparison_plot(name, experiments, network, clustered=False,params=""):
+    plots, headers = load_experiments(experiments, network, clustered)
     plots = [add_marks(plot, mark) for plot, mark in zip(plots, scatter_classes)]
 
+    suffix=name + "_" + network
+    if clustered:
+        suffix = network + "_clustered"
     save_to_file(
-        create_figure(
+        suffix=suffix,
+        content=create_figure(
             content=[
                 create_axis(
                     "Number of queries",
                     "Cumulative time (ms)",
                     log_axis=True,
-                    params="legend columns=2, legend pos=north west,",
+                    params=f"legend columns=2, legend pos=north west,{params}",
                     content=[create_plot(plot, color, legend=header) for plot, header, color in
                              zip(plots, headers, color_classes)],
                 ),
             ]
         )
     )
+def main():
+    create_comparison_plot("alt", alt_experiments, config.network, params="xmin=10,xmax=2100")
+    create_comparison_plot("adaptive", adaptive_experiments, config.network)
+    create_comparison_plot("best", best_methods, config.network)
+    create_comparison_plot("best_zoom", best_methods, config.network, params="xmin=10,xmax=2100,ymin=500,ymax=40000,")
 
-    if config.include_clustered:
-        plots, headers = load_experiments(experiments, config.network, clustered=True)
-        plots = [add_marks(plot, mark) for plot, mark in zip(plots, scatter_classes)]
-        save_to_file(
-            suffix="clustered",
-            content=create_figure(
-                content=[
-                    create_axis(
-                        "Number of queries",
-                        "Cumulative time (ms)",
-                        log_axis=True,
-                        params="legend columns=2, legend pos=south east,",
-                        content=[create_plot(plot, color, legend=header) for plot, header, color in
-                                zip(plots, headers, color_classes)],
-                    ),
-                ]
-            )
-        )
 
 
 main()

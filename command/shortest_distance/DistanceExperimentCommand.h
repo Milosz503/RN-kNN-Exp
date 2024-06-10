@@ -70,6 +70,8 @@ private:
 
     void compareOptimizations();
 
+    void compareBestMethods();
+
     void compareOtherMethods();
 
     void compareAdaptiveEstThresholdQueryVsTime();
