@@ -123,6 +123,8 @@ void DistanceExperimentCommand::compareBestMethods()
         runAll();
         validateAll();
         queries.clear();
+
+        write_to_csv(results, methods, getResultsPath(), 1);
     }
 }
 
@@ -920,9 +922,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             });
             break;
         case 25:
-            runStandardTestCase([this] {
-                compareBestMethods();
-            });
+            compareBestMethods();
             break;
         default:
             compareMethods();
