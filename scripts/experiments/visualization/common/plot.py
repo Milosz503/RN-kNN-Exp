@@ -108,7 +108,7 @@ def create_axis(x_label, y_label, content, log_axis=False, params=None):
     % xmin=1, xmax=1000,
     % mark size= 2.5pt,
     % line width=2pt,
-    legend style={font=\small},
+    legend style={font=\tiny},
     tick label style={font=\small},
     label style={font=\normalsize}
 ]

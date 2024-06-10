@@ -20,6 +20,7 @@ class Config:
         self.executable = ""
         self.executable_alt_dynamic = ""
         self.executable_alt_euclidean = ""
+        self.executable_alt_estimate = ""
 
     def init_config(self):
         experiment_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
@@ -32,6 +33,7 @@ class Config:
         self.executable = self._get_executable_dir() + "/nd_knn"
         self.executable_alt_dynamic = self._get_executable_dir() + "/nd_knn_alt_dynamic"
         self.executable_alt_euclidean = self._get_executable_dir() + "/nd_knn_alt_euclidean"
+        self.executable_alt_estimate = self._get_executable_dir() + "/nd_knn_alt_estimate"
 
         if not os.path.exists(self.results_dir):
             os.makedirs(self.results_dir)

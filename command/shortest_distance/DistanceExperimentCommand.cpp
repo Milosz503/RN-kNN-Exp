@@ -76,6 +76,56 @@ void DistanceExperimentCommand::compareOptimizations()
     }
 }
 
+void DistanceExperimentCommand::compareBestMethods()
+{
+    methods.push_back(new ALTMethod(
+            8,
+            LANDMARK_TYPE::FARTHEST,
+            ALTParameters()
+    ));
+    methods.push_back(new ALTMethod(
+            12,
+            LANDMARK_TYPE::FARTHEST,
+            ALTParameters()
+    ));
+    methods.push_back(new ALTMethod(
+            std::get<0>(hopsConfigs[1]),
+            LANDMARK_TYPE::HOPS,
+            ALTParameters(std::get<1>(hopsConfigs[1]), numQueries)
+    ));
+    methods.push_back(new ALTMethod(
+            std::get<0>(hopsConfigs[2]),
+            LANDMARK_TYPE::HOPS,
+            ALTParameters(std::get<1>(hopsConfigs[2]), numQueries)
+    ));
+    methods.push_back(
+            new AdaptiveALTMethod(
+                    AdaptiveALTParams(
+                            std::get<0>(hopsConfigs[0]),
+                            0.0, 1.0, 0.0, std::get<1>(hopsConfigs[0])
+                    )
+            ));
+    methods.push_back(
+            new AdaptiveALTMethod(
+                    AdaptiveALTParams(
+                            std::get<0>(hopsConfigs[2]),
+                            0.0, 1.0, 0.0, std::get<1>(hopsConfigs[2])
+                    )
+            ));
+    methods.push_back(new PhlMethod());
+
+    results.resize(methods.size());
+
+    for (int i = 0; i < numRepeats; i++) {
+        std::cout << "Repeat: " << i << std::endl;
+        buildIndexes();
+        loadQueries();
+        runAll();
+        validateAll();
+        queries.clear();
+    }
+}
+
 void DistanceExperimentCommand::compareOtherMethods()
 {
     if (gtreeConfig.find(network) == gtreeConfig.end()) {
@@ -867,6 +917,11 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
         case 24:
             runStandardTestCase([this] {
                 compareOptimizations();
+            });
+            break;
+        case 25:
+            runStandardTestCase([this] {
+                compareBestMethods();
             });
             break;
         default:
