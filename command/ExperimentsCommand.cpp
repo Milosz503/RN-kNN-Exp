@@ -144,6 +144,15 @@ void ExperimentsCommand::execute(int argc, char* argv[])
         
         this->buildIndexes(bgrFilePath,parameters,filePathPrefix,statsOutputFile);
         this->buildExternalIndexes(bgrFilePath,parameters,filePathPrefix,statsOutputFile);
+        std::cout << "#  Building times:  #" << std::endl;
+        for (int i = 0; i < results.size(); ++i) {
+            std::cout << results[i].first << ",";
+        }
+        std::cout << std::endl;
+        for (int i = 0; i < results.size(); ++i) {
+            std::cout << results[i].second << ",";
+        }
+        std::cout << std::endl;
         
     } else if (experiment == constants::EXP_BUILD_OBJ_INDEXES) {
         if (argc < 21) {
@@ -718,6 +727,7 @@ void ExperimentsCommand::buildGtree(Graph& graph, int fanout, std::size_t maxLea
     sw.stop();
 
     double processingTimeMs = sw.getTimeMs();
+    results.push_back({"Gtree", processingTimeMs});
     // Note: G-tree uses Graph to search for object within leaf (only edges and edge weights same parts as INE)
     double memoryUsage = gtree.computeIndexSize() + graph.computeINEIndexSize();
     
@@ -753,6 +763,7 @@ AdaptiveGtree* ExperimentsCommand::buildAGtree(Graph &graph, int fanout, std::si
     sw.stop();
 
     double processingTimeMs = sw.getTimeMs();
+    results.push_back({"AGtree", processingTimeMs});
     // Note: G-tree uses Graph to search for object within leaf (only edges and edge weights same parts as INE)
     double memoryUsage = agtree->computeIndexSize() + graph.computeINEIndexSize();
 
@@ -788,7 +799,8 @@ void ExperimentsCommand::buildRouteOverlay(Graph& graph, int fanout, int levels,
     road.buildRouteOverlay(graph);
     sw.stop();
     
-    double processingTimeMs = sw.getTimeMs();   
+    double processingTimeMs = sw.getTimeMs();
+    results.push_back({"ROAD", processingTimeMs});
     double memoryUsage = road.computeIndexSize();
     
     IndexTuple stats(road.getNetworkName(),road.getNumNodes(),road.getNumEdges(),
@@ -849,6 +861,7 @@ void ExperimentsCommand::buildPHL(std::string networkName, int numNodes, int num
     phl.ConstructLabel(dataOutputFile.c_str());
     
     double processingTimeMs = phl.getConstructionTime()*1000; // convert to ms
+    results.push_back({"PHL", processingTimeMs});
     double memoryUsage = phl.computeIndexSize();
 
     IndexTuple stats(networkName,numNodes,numEdges,constants::IDX_PHL_CMD,processingTimeMs,memoryUsage);
@@ -871,6 +884,7 @@ void ExperimentsCommand::buildCH(std::string networkName, int numNodes, int numE
     spw.buildCH(bgrIntFilePath,chFilePath,noFilePath);
     
     double processingTimeMs = spw.getConstructionTimeMs();
+    results.push_back({"CH", processingTimeMs});
     double memoryUsage = spw.getIndexSizeMB();
 
     IndexTuple stats(networkName,numNodes,numEdges,constants::IDX_CH_CMD,processingTimeMs,memoryUsage);

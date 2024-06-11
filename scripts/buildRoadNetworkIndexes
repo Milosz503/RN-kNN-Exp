@@ -27,10 +27,10 @@
 #                 "agtree=1,$ME_index_parameters"
 #                 "agtree=1,$NW_index_parameters")
 road_networks=("ME" "NW" "W" "USA")
-index_parameters=("agtree=1,gtree=1,ch=1,phl=1,$ME_index_parameters"
-                 "agtree=1,gtree=1,ch=1,phl=1,$NW_index_parameters"
-                 "agtree=1,gtree=1,ch=1,phl=1,$W_index_parameters"
-                 "agtree=1,gtree=1,ch=1,phl=1,$USA_index_parameters")
+index_parameters=("agtree=1,gtree=1,ch=1,phl=1,road=1,$ME_index_parameters"
+                 "agtree=1,gtree=1,ch=1,phl=1,road=1,$NW_index_parameters"
+                 "agtree=1,gtree=1,ch=1,phl=1,road=1,$W_index_parameters"
+                 "agtree=1,gtree=1,ch=1,phl=1,road=1,$USA_index_parameters")
             
 for i in "${!road_networks[@]}"; do 
     echo -e "\nBuilding indexes for ${road_networks[$i]}..." 

@@ -34,6 +34,8 @@ class ExperimentsCommand: public Command {
         void showPhaseUsage(std::string phase, std::string programName);
         
     private:
+        std::vector<std::pair<std::string, double>> results;
+
         void buildIndexes(std::string bgrFileName, std::string parameters, std::string filePathPrefix, std::string statsOutputFile);
         void buildExternalIndexes(std::string bgrFileName, std::string parameters, std::string filePathPrefix, std::string statsOutputFile);
         std::unordered_map<std::string,std::string> getParameters(std::string parameters);
