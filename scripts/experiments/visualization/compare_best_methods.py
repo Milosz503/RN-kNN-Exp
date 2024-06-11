@@ -101,9 +101,14 @@ all_experiments = [
 
 
 def main():
-    execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 25")
-    # execute_experiment(f"-q {config.clustered_query_number} -r {config.repeats} -x 25 -w 1")
+    # for network in config.networks:
+    #     if network == "NW":
+    #         continue
+    #     execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 25", network=network)
+    #     execute_experiment(f"-q {config.clustered_query_number} -r {config.repeats} -x 25 -w 1", network=network)
 
+    execute_experiment(f"-q {config.clustered_query_number} -r {config.repeats} -x 25 -w 1", network="NW")
+    execute_experiment(f"-q {config.default_query_number} -r {config.repeats} -x 25", network="NW")
     # create_comparison_plot("best", all_experiments, "W") #, params="xmin=10,xmax=2100")
     # create_comparison_plot("best", all_experiments, config.network, clustered=True) #, params="xmin=10,xmax=2100")
 

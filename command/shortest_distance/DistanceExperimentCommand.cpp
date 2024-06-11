@@ -78,7 +78,7 @@ void DistanceExperimentCommand::compareOptimizations()
 
 void DistanceExperimentCommand::compareBestMethods()
 {
-    methods.push_back(new AStarMethod());
+    // methods.push_back(new AStarMethod());
     methods.push_back(new ALTMethod(
             6,
             LANDMARK_TYPE::FARTHEST,
@@ -132,16 +132,17 @@ void DistanceExperimentCommand::compareBestMethods()
 
 void DistanceExperimentCommand::compareOtherMethods()
 {
-    if (gtreeConfig.find(network) == gtreeConfig.end()) {
-        std::cerr << "No gtree configuration found for network: " << network << std::endl;
-        exit(1);
-    }
-    auto gtreeParams = gtreeConfig[network];
-    methods.push_back(new AdaptiveGtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
-    methods.push_back(new GtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
-    methods.push_back(new DijkstraMethod());
+    // if (gtreeConfig.find(network) == gtreeConfig.end()) {
+    //     std::cerr << "No gtree configuration found for network: " << network << std::endl;
+    //     exit(1);
+    // }
+    // auto gtreeParams = gtreeConfig[network];
+    // methods.push_back(new AdaptiveGtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
+    // methods.push_back(new GtreeMethod(gtreeParams["fanout"], gtreeParams["maxleafsize"]));
+    // methods.push_back(new DijkstraMethod());
+    // methods.push_back(new AStarMethod());
+    // methods.push_back(new PhlMethod());
     methods.push_back(new AStarMethod());
-    methods.push_back(new PhlMethod());
 
     results.resize(methods.size());
 
@@ -203,6 +204,8 @@ void DistanceExperimentCommand::compareMixedAdaptiveAlt()
         runAll();
         validateAll();
         queries.clear();
+
+        write_to_csv(results, methods, getResultsPath(), 1);
     }
 }
 
@@ -955,9 +958,7 @@ void DistanceExperimentCommand::execute(int argc, char **argv)
             });
             break;
         case 19:
-            runStandardTestCase([this] {
-                compareOtherMethods();
-            });
+            compareOtherMethods();
             break;
         case 20:
             compareAltEstThresholdQueryVsLandmarks();
@@ -1245,9 +1246,6 @@ void DistanceExperimentCommand::runMethod(DistanceMethod *method, int iter, Resu
 
 //                method->printStatistics();
             if (i >= queries.size()) {
-                break;
-            }
-            if(method->getName() == "A*" && i >= queries.size()/2) {
                 break;
             }
         }

@@ -3,7 +3,7 @@ import sys
 class Config:
     def __init__(self):
         self.default_query_number=4096
-        self.clustered_query_number=16384
+        self.clustered_query_number=16384*2
         self.rerun_experiments = True
         self.validate = "-v 0"
         self.network = "NW"
