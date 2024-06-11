@@ -11,9 +11,13 @@ def load_data(experiment, network, clustered):
     data = data.drop(columns=[col for col in data.columns if col.startswith("Unnamed")])
 
     if clustered:
-        values_per_run = 16
+        values_per_run = 17
     else:
         values_per_run = 14
+
+    if experiment == "compare_astar":
+        values_per_run -= 1
+
     means = {}
     for col in data.columns:
         means[col] = []
@@ -52,7 +56,11 @@ def load_experiments(experiments, network, clustered=False):
     plots = []
     headers = []
     for experiment, index, name, header_index in experiments:
+        if not os.path.exists(config.get_results_file(experiment, network, clustered)):
+            print(f"    File {config.get_results_file(experiment, network, clustered)} does not exist, skipping...")
+            continue
         plot, header = load_plot(experiment, network, index, clustered)
+        # print(header)
         info = header.split("_")[header_index]
         plots.append(plot)
 
@@ -69,6 +77,10 @@ def create_comparison_plot(name, experiments, network, clustered=False,params=""
     suffix=name + "_" + network
     if clustered:
         suffix = suffix + "_clustered"
+        params += "xmin=1, xmax=16384,"
+    else:
+        params += "xmin=1, xmax=2048,"
+
     save_to_file(
         suffix=suffix,
         content=create_figure(
@@ -95,6 +107,22 @@ all_experiments = [
     ("compare_best_methods", 4, "AHopsS", default_header_index),
     ("compare_best_methods", 5, "AHopsSDecay", default_header_index),
     ("compare_best_methods", 6, None, 0),
+    ("alt_compare_mixed", 0, "Mixed", default_header_index),
+    ("alt_compare_mixed", 1, "MixedDecay", default_header_index),
+    ("compare_astar", 0, None, 0),
+]
+
+usa_experiments = [
+    # experiment, column index, name, header index
+    ("compare_best_methods", 0, "Far", default_header_index),
+    ("compare_best_methods", 1, "Far", default_header_index),
+    ("compare_best_methods", 2, "HopsS", default_header_index),
+    ("compare_best_methods", 3, "AHopsS", default_header_index),
+    ("compare_best_methods", 4, "AHopsS", default_header_index),
+    ("compare_best_methods", 5, "AHopsSDecay", default_header_index),
+    ("alt_compare_mixed", 0, "Mixed", default_header_index),
+    ("alt_compare_mixed", 1, "MixedDecay", default_header_index),
+    ("compare_astar", 0, None, 0),
 ]
 
 
@@ -107,8 +135,14 @@ def main():
     # create_comparison_plot("best", all_experiments, "W") #, params="xmin=10,xmax=2100")
     # create_comparison_plot("best", all_experiments, config.network, clustered=True) #, params="xmin=10,xmax=2100")
 
-    create_comparison_plot("best", all_experiments, config.network, clustered=False)
-    create_comparison_plot("best", all_experiments, config.network, clustered=True)
+    for network in config.networks:
+        print(f"Creating plots for {network}")
+        if network == "USA":
+            create_comparison_plot("best", usa_experiments, network, clustered=False)
+            create_comparison_plot("best", usa_experiments, network, clustered=True)
+        else:
+            create_comparison_plot("best", all_experiments, network, clustered=False)
+            create_comparison_plot("best", all_experiments, network, clustered=True)
     # create_comparison_plot("best", all_experiments, "W", clustered=True)
 
 main()

@@ -42,6 +42,7 @@ scatter_definitions=r'''
             mark7={mark=x, class7color},
             mark8={mark=o, class8color},
             mark9={mark=oplus, class9color},
+            mark10={mark=oplus, class1color},
             blackdotsalpha={mark=*, black, mark size=1pt, opacity=0.2, draw opacity=0.2},
             none={mark=none}
 	    },'''
@@ -56,7 +57,8 @@ scatter_classes = [
     "mark7",
     "mark8",
     "mark9",
-]
+    "mark10",
+] * 3
 
 def append_content(current_content, new_content):
     if isinstance(new_content, list):
